@@ -1,16 +1,85 @@
 // MainMenu.tsx
 // Pantalla principal de CalleViva
 
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
+import { api, GameSession, Parameter } from '../../services/api'
 
 export function MainMenu() {
   const navigate = useNavigate()
   const { player, logout } = useAuthStore()
 
+  const [games, setGames] = useState<GameSession[]>([])
+  const [countries, setCountries] = useState<Parameter[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showNewGame, setShowNewGame] = useState(false)
+  const [newGameName, setNewGameName] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState('costa_rica')
+  const [creating, setCreating] = useState(false)
+
   const handleLogout = () => {
     logout()
     navigate('/')
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    setLoading(true)
+    try {
+      const [gamesData, paramsData] = await Promise.all([
+        api.games.list(),
+        api.parameters.list('countries'),
+      ])
+      setGames(gamesData.games)
+      setCountries(paramsData.parameters)
+    } catch (err) {
+      console.error('Error loading data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCreateGame = async () => {
+    if (creating) return
+    setCreating(true)
+    try {
+      const game = await api.games.create({
+        world_type: selectedCountry,
+        name: newGameName || undefined,
+      })
+      setShowNewGame(false)
+      setNewGameName('')
+      // Navigate to game or reload list
+      setGames([game, ...games])
+    } catch (err) {
+      console.error('Error creating game:', err)
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const handleDeleteGame = async (gameId: string) => {
+    if (!confirm('¿Eliminar esta partida?')) return
+    try {
+      await api.games.delete(gameId)
+      setGames(games.filter(g => g.id !== gameId))
+    } catch (err) {
+      console.error('Error deleting game:', err)
+    }
+  }
+
+  const getCountryInfo = (code: string) => {
+    return countries.find(c => c.code === code)
+  }
+
+  const formatMoney = (amount: number, countryCode: string) => {
+    const country = getCountryInfo(countryCode)
+    const currency = (country?.config as Record<string, string>)?.currency || '₡'
+    return `${currency}${amount.toLocaleString()}`
   }
 
   return (
@@ -42,27 +111,141 @@ export function MainMenu() {
       <div className="absolute top-[20%] right-[15%] text-5xl opacity-30 select-none">☀️</div>
 
       {/* Logo */}
-      <div className="bg-white rounded-3xl px-12 py-10 shadow-2xl text-center mb-10">
-        <div className="text-6xl mb-3">🚚</div>
-        <h1 className="font-nunito text-5xl font-black text-carbon mb-2 tracking-tight">
+      <div className="bg-white rounded-3xl px-12 py-8 shadow-2xl text-center mb-8">
+        <div className="text-5xl mb-2">🚚</div>
+        <h1 className="font-nunito text-4xl font-black text-carbon mb-1 tracking-tight">
           Calle<span className="text-coral">Viva</span>
         </h1>
-        <p className="font-nunito text-lg font-bold text-terracota">
+        <p className="font-nunito text-md font-bold text-terracota">
           ¡La calle está viva!
         </p>
       </div>
 
-      {/* Botones */}
-      <div className="flex flex-col gap-4">
-        <button className="btn-primary text-lg px-10 py-4">
-          🎮 Nueva Partida
-        </button>
-        <button className="btn-secondary text-lg px-10 py-4">
-          📂 Continuar
-        </button>
-        <button className="btn-warning text-lg px-10 py-4">
-          ⚙️ Opciones
-        </button>
+      {/* Content */}
+      <div className="bg-white/95 backdrop-blur rounded-2xl shadow-xl w-full max-w-md p-6">
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">Cargando...</div>
+        ) : showNewGame ? (
+          // New Game Form
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-carbon text-center">Nueva Partida</h2>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre (opcional)
+              </label>
+              <input
+                type="text"
+                value={newGameName}
+                onChange={e => setNewGameName(e.target.value)}
+                placeholder="Mi Food Truck"
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-coral focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Mundo
+              </label>
+              <div className="grid grid-cols-1 gap-2">
+                {countries.map(country => (
+                  <button
+                    key={country.code}
+                    onClick={() => setSelectedCountry(country.code)}
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-colors ${
+                      selectedCountry === country.code
+                        ? 'border-coral bg-coral/10'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-2xl">{country.icon}</span>
+                    <div className="text-left">
+                      <div className="font-semibold">{country.name}</div>
+                      <div className="text-sm text-gray-500">
+                        Inicio: {(country.config as Record<string, string>)?.currency}
+                        {(country.config as Record<string, number>)?.starting_money?.toLocaleString()}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowNewGame(false)}
+                className="flex-1 py-3 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateGame}
+                disabled={creating}
+                className="flex-1 py-3 bg-coral text-white rounded-xl font-semibold hover:bg-coral/90 disabled:opacity-50"
+              >
+                {creating ? 'Creando...' : '🚚 Crear'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Games List
+          <div className="space-y-4">
+            <button
+              onClick={() => setShowNewGame(true)}
+              className="w-full btn-primary py-4 text-lg"
+            >
+              🎮 Nueva Partida
+            </button>
+
+            {games.length > 0 && (
+              <>
+                <div className="border-t pt-4">
+                  <h3 className="text-sm font-semibold text-gray-500 mb-3">Continuar</h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {games.map(game => {
+                      const country = getCountryInfo(game.world_type)
+                      return (
+                        <div
+                          key={game.id}
+                          className="flex items-center gap-3 p-3 bg-crema rounded-xl hover:bg-crema/80 transition-colors group"
+                        >
+                          <span className="text-2xl">{country?.icon || '🌍'}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold truncate">
+                              {game.name || `Partida ${game.world_type}`}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Día {game.game_day} • {formatMoney(game.money, game.world_type)}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleDeleteGame(game.id)}
+                              className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Eliminar"
+                            >
+                              🗑️
+                            </button>
+                            <button
+                              onClick={() => {/* TODO: Navigate to game */}}
+                              className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-semibold hover:bg-coral/90"
+                            >
+                              Jugar
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
+            <button className="w-full btn-warning py-3">
+              ⚙️ Opciones
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

@@ -67,6 +67,26 @@ export const api = {
     categories: () => request<{ categories: string[] }>('/parameters/categories'),
   },
 
+  // Games endpoints
+  games: {
+    list: () => request<GamesResponse>('/games'),
+    get: (id: string) => request<GameSession>(`/games/${id}`),
+    create: (data: CreateGame) =>
+      request<GameSession>('/games', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: (id: string, data: UpdateGame) =>
+      request<GameSession>(`/games/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      request<{ message: string }>(`/games/${id}`, {
+        method: 'DELETE',
+      }),
+  },
+
   // Admin endpoints
   admin: {
     parameters: {
@@ -131,4 +151,42 @@ interface UpdateParameter {
   is_active?: boolean
 }
 
-export type { Parameter, ParametersResponse, CreateParameter, UpdateParameter }
+// Game types
+interface GameSession {
+  id: string
+  player_id: string
+  world_type: string
+  name?: string
+  game_day: number
+  money: number
+  reputation: number
+  current_location?: string
+  weather: string
+  status: string
+  stats?: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+interface GamesResponse {
+  games: GameSession[]
+  total: number
+}
+
+interface CreateGame {
+  world_type: string
+  name?: string
+}
+
+interface UpdateGame {
+  name?: string
+  game_day?: number
+  money?: number
+  reputation?: number
+  current_location?: string
+  weather?: string
+  status?: string
+  stats?: Record<string, unknown>
+}
+
+export type { Parameter, ParametersResponse, CreateParameter, UpdateParameter, GameSession, GamesResponse, CreateGame, UpdateGame }
