@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CalleViva - Global Styles
+   ¡La calle está viva!
+   ============================================ */
+
+:root {
+  /* Primarios */
+  --coral: #FF6B6B;
+  --mango: #FFE66D;
+  --agua: #2EC4B6;
+  
+  /* Secundarios */
+  --papaya: #FF9F43;
+  --hoja: #5C8A4D;
+  --terracota: #E17055;
+  
+  /* Neutrales */
+  --carbon: #2D3436;
+  --crema: #F5F0E6;
+  --gris-claro: #DFE6E9;
+  
+  /* Fonts */
+  --font-main: 'Nunito', sans-serif;
+}
+
+/* Base */
+body {
+  font-family: var(--font-main);
+  background-color: var(--crema);
+  color: var(--carbon);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gris-claro);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--agua);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hoja);
+}
+
+/* Utilidades personalizadas */
+@layer utilities {
+  .text-coral { color: var(--coral); }
+  .text-mango { color: var(--mango); }
+  .text-agua { color: var(--agua); }
+  .text-papaya { color: var(--papaya); }
+  .text-hoja { color: var(--hoja); }
+  .text-terracota { color: var(--terracota); }
+  .text-carbon { color: var(--carbon); }
+  
+  .bg-coral { background-color: var(--coral); }
+  .bg-mango { background-color: var(--mango); }
+  .bg-agua { background-color: var(--agua); }
+  .bg-papaya { background-color: var(--papaya); }
+  .bg-hoja { background-color: var(--hoja); }
+  .bg-terracota { background-color: var(--terracota); }
+  .bg-crema { background-color: var(--crema); }
+  .bg-gris-claro { background-color: var(--gris-claro); }
+  
+  .border-coral { border-color: var(--coral); }
+  .border-agua { border-color: var(--agua); }
+  .border-gris-claro { border-color: var(--gris-claro); }
+}
+
+/* Componentes base */
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-xl font-bold uppercase tracking-wide;
+    @apply transition-all duration-200 ease-in-out;
+    @apply shadow-md hover:shadow-lg hover:-translate-y-0.5;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
+  }
+  
+  .btn-primary {
+    @apply btn bg-coral text-white;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-agua text-white;
+  }
+  
+  .btn-warning {
+    @apply btn bg-mango text-carbon;
+  }
+  
+  .btn-success {
+    @apply btn bg-hoja text-white;
+  }
+  
+  .panel {
+    @apply bg-white rounded-2xl p-5 shadow-lg;
+    border: 3px solid var(--gris-claro);
+  }
+  
+  .game-header {
+    @apply flex justify-between items-center p-3;
+    @apply bg-white rounded-2xl shadow-md mb-5;
+  }
+}
+
+/* Animaciones */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-bounce-slow {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}

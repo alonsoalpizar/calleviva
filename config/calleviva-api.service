@@ -1,0 +1,55 @@
+# ============================================
+# CalleViva - Systemd Service
+# ============================================
+# Copiar a /etc/systemd/system/calleviva-api.service
+# sudo systemctl daemon-reload
+# sudo systemctl enable calleviva-api
+# sudo systemctl start calleviva-api
+
+[Unit]
+Description=CalleViva API Server
+Documentation=https://github.com/alonsoalpizar/calleviva
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+
+# Directorio de trabajo
+WorkingDirectory=/opt/CalleViva
+
+# Ejecutable
+ExecStart=/opt/CalleViva/bin/calleviva-api
+
+# Variables de entorno
+EnvironmentFile=/opt/CalleViva/.env
+
+# Restart policy
+Restart=always
+RestartSec=5
+StartLimitInterval=0
+
+# Seguridad
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/CalleViva/logs
+
+# Límites
+LimitNOFILE=65535
+LimitNPROC=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=calleviva-api
+
+# Timeout
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

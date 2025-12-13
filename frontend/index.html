@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO -->
+    <title>CalleViva - ¡La calle está viva!</title>
+    <meta name="description" content="Un juego de Food Trucks donde la ciudad cobra vida. Gestioná tu negocio, conquistá la calle." />
+    <meta name="keywords" content="juego, tycoon, food truck, simulación, estrategia, costa rica" />
+    <meta name="author" content="Alonso Alpízar" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="CalleViva - ¡La calle está viva!" />
+    <meta property="og:description" content="Un juego de Food Trucks donde la ciudad cobra vida." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://calleviva.club" />
+    <meta property="og:image" content="https://calleviva.club/og-image.png" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CalleViva - ¡La calle está viva!" />
+    <meta name="twitter:description" content="Un juego de Food Trucks donde la ciudad cobra vida." />
+    
+    <!-- Theme -->
+    <meta name="theme-color" content="#FF6B6B" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Nunito', sans-serif;
+        background-color: #F5F0E6;
+        overflow-x: hidden;
+      }
+      
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Loading screen */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #FFE66D 0%, #FF9F43 50%, #FF6B6B 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      
+      .loading-logo {
+        font-size: 60px;
+        animation: bounce 1s ease infinite;
+      }
+      
+      .loading-text {
+        font-size: 24px;
+        font-weight: 800;
+        color: white;
+        margin-top: 20px;
+      }
+      
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Loading screen (se remueve cuando React carga) -->
+      <div class="loading-screen">
+        <div class="loading-logo">🚚</div>
+        <div class="loading-text">CalleViva</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
