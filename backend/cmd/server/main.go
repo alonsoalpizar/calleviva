@@ -18,6 +18,7 @@ import (
 	"github.com/alonsoalpizar/calleviva/backend/internal/database"
 	"github.com/alonsoalpizar/calleviva/backend/internal/games"
 	"github.com/alonsoalpizar/calleviva/backend/internal/parameters"
+	"github.com/alonsoalpizar/calleviva/backend/internal/players"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -133,12 +134,12 @@ func main() {
 				r.Delete("/{id}", parameters.HandleDelete)
 			})
 
-			// CRUD Players (futuro)
+			// CRUD Players
 			r.Route("/players", func(r chi.Router) {
-				r.Get("/", handleNotImplemented)
-				r.Get("/{id}", handleNotImplemented)
-				r.Patch("/{id}", handleNotImplemented)
-				r.Delete("/{id}", handleNotImplemented)
+				r.Get("/", players.HandleList)
+				r.Get("/{id}", players.HandleGet)
+				r.Patch("/{id}", players.HandleUpdate)
+				r.Delete("/{id}", players.HandleDelete)
 			})
 
 			// Dashboard stats (futuro)

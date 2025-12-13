@@ -71,7 +71,7 @@ export function Register() {
               id="displayName"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-agua focus:outline-none transition-colors"
+              className="input-agua"
               placeholder="Tu nombre o apodo"
             />
           </div>
@@ -85,7 +85,7 @@ export function Register() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-agua focus:outline-none transition-colors"
+              className="input-agua"
               placeholder="tu@email.com"
               required
             />
@@ -100,7 +100,7 @@ export function Register() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-agua focus:outline-none transition-colors"
+              className="input-agua"
               placeholder="Mínimo 6 caracteres"
               required
             />
@@ -115,7 +115,7 @@ export function Register() {
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-agua focus:outline-none transition-colors"
+              className="input-agua"
               placeholder="Repetí tu contraseña"
               required
             />
@@ -124,7 +124,7 @@ export function Register() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-agua to-hoja text-white font-bold py-4 rounded-xl text-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            className="w-full btn-success bg-gradient-to-r from-agua to-hoja py-4 text-lg"
           >
             {isLoading ? 'Creando cuenta...' : '🚚 Crear mi Food Truck'}
           </button>

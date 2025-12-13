@@ -82,34 +82,94 @@ body {
 
 /* Componentes base */
 @layer components {
+  /* Botones */
   .btn {
-    @apply px-6 py-3 rounded-xl font-bold uppercase tracking-wide;
+    @apply px-6 py-3 rounded-xl font-bold tracking-wide;
     @apply transition-all duration-200 ease-in-out;
     @apply shadow-md hover:shadow-lg hover:-translate-y-0.5;
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
   }
-  
+
+  .btn-sm {
+    @apply px-4 py-2 rounded-lg font-semibold text-sm;
+    @apply transition-all duration-200 ease-in-out;
+    @apply shadow hover:shadow-md;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 rounded-xl font-bold text-lg;
+    @apply transition-all duration-200 ease-in-out;
+    @apply shadow-lg hover:shadow-xl hover:-translate-y-0.5;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
+  }
+
   .btn-primary {
-    @apply btn bg-coral text-white;
+    @apply btn bg-coral text-white hover:bg-coral/90;
   }
-  
+
+  .btn-primary-sm {
+    @apply btn-sm bg-coral text-white hover:bg-coral/90;
+  }
+
+  .btn-primary-lg {
+    @apply btn-lg bg-coral text-white hover:bg-coral/90;
+  }
+
   .btn-secondary {
-    @apply btn bg-agua text-white;
+    @apply btn bg-agua text-white hover:bg-agua/90;
   }
-  
+
+  .btn-secondary-sm {
+    @apply btn-sm bg-agua text-white hover:bg-agua/90;
+  }
+
   .btn-warning {
-    @apply btn bg-mango text-carbon;
+    @apply btn bg-mango text-carbon hover:bg-mango/90;
   }
-  
+
   .btn-success {
-    @apply btn bg-hoja text-white;
+    @apply btn bg-hoja text-white hover:bg-hoja/90;
   }
-  
+
+  .btn-success-sm {
+    @apply btn-sm bg-hoja text-white hover:bg-hoja/90;
+  }
+
+  .btn-outline {
+    @apply btn bg-white text-carbon border-2 border-gray-300 hover:bg-gray-50;
+  }
+
+  .btn-outline-sm {
+    @apply btn-sm bg-white text-carbon border-2 border-gray-300 hover:bg-gray-50;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 rounded-lg font-semibold;
+    @apply transition-colors duration-200;
+    @apply text-gray-600 hover:text-carbon hover:bg-gray-100;
+  }
+
+  .btn-danger-sm {
+    @apply btn-sm bg-red-500 text-white hover:bg-red-600;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-3 rounded-xl border-2 border-gray-200;
+    @apply focus:border-coral focus:outline-none transition-colors;
+  }
+
+  .input-agua {
+    @apply input focus:border-agua;
+  }
+
+  /* Panels */
   .panel {
     @apply bg-white rounded-2xl p-5 shadow-lg;
     border: 3px solid var(--gris-claro);
   }
-  
+
   .game-header {
     @apply flex justify-between items-center p-3;
     @apply bg-white rounded-2xl shadow-md mb-5;

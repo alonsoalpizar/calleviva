@@ -89,9 +89,9 @@ export function MainMenu() {
         {player?.is_admin && (
           <button
             onClick={() => navigate('/admin')}
-            className="bg-purple-600 text-white font-semibold px-4 py-2 rounded-full hover:bg-purple-700 transition-colors"
+            className="btn-secondary-sm"
           >
-            Admin
+            ⚙️ Admin
           </button>
         )}
         <span className="text-white font-semibold bg-black/20 px-4 py-2 rounded-full">
@@ -99,7 +99,7 @@ export function MainMenu() {
         </span>
         <button
           onClick={handleLogout}
-          className="bg-white/90 text-carbon font-semibold px-4 py-2 rounded-full hover:bg-white transition-colors"
+          className="btn-outline-sm"
         >
           Salir
         </button>
@@ -139,7 +139,7 @@ export function MainMenu() {
                 value={newGameName}
                 onChange={e => setNewGameName(e.target.value)}
                 placeholder="Mi Food Truck"
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-coral focus:outline-none"
+                className="input"
               />
             </div>
 
@@ -174,14 +174,14 @@ export function MainMenu() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setShowNewGame(false)}
-                className="flex-1 py-3 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50"
+                className="flex-1 btn-outline"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreateGame}
                 disabled={creating}
-                className="flex-1 py-3 bg-coral text-white rounded-xl font-semibold hover:bg-coral/90 disabled:opacity-50"
+                className="flex-1 btn-primary"
               >
                 {creating ? 'Creando...' : '🚚 Crear'}
               </button>
@@ -192,7 +192,7 @@ export function MainMenu() {
           <div className="space-y-4">
             <button
               onClick={() => setShowNewGame(true)}
-              className="w-full btn-primary py-4 text-lg"
+              className="w-full btn-primary-lg"
             >
               🎮 Nueva Partida
             </button>
@@ -218,17 +218,17 @@ export function MainMenu() {
                               Día {game.game_day} • {formatMoney(game.money, game.world_type)}
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 items-center">
                             <button
                               onClick={() => handleDeleteGame(game.id)}
-                              className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="btn-ghost opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
                               title="Eliminar"
                             >
                               🗑️
                             </button>
                             <button
                               onClick={() => {/* TODO: Navigate to game */}}
-                              className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-semibold hover:bg-coral/90"
+                              className="btn-primary-sm"
                             >
                               Jugar
                             </button>
@@ -241,7 +241,7 @@ export function MainMenu() {
               </>
             )}
 
-            <button className="w-full btn-warning py-3">
+            <button className="w-full btn-warning">
               ⚙️ Opciones
             </button>
           </div>

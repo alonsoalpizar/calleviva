@@ -59,7 +59,7 @@ export function Login() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-coral focus:outline-none transition-colors"
+              className="input"
               placeholder="tu@email.com"
               required
             />
@@ -74,7 +74,7 @@ export function Login() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-coral focus:outline-none transition-colors"
+              className="input"
               placeholder="••••••••"
               required
             />
@@ -83,7 +83,7 @@ export function Login() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full btn-primary py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full btn-primary-lg"
           >
             {isLoading ? 'Entrando...' : '🎮 Entrar al Juego'}
           </button>
