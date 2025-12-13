@@ -1,14 +1,38 @@
 // MainMenu.tsx
 // Pantalla principal de CalleViva
 
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../stores/authStore'
+
 export function MainMenu() {
+  const navigate = useNavigate()
+  const { player, logout } = useAuthStore()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-mango via-papaya to-coral flex flex-col items-center justify-center p-5 relative overflow-hidden">
+      {/* Header con usuario */}
+      <div className="absolute top-5 right-5 flex items-center gap-3">
+        <span className="text-white font-semibold bg-black/20 px-4 py-2 rounded-full">
+          👤 {player?.display_name || player?.email}
+        </span>
+        <button
+          onClick={handleLogout}
+          className="bg-white/90 text-carbon font-semibold px-4 py-2 rounded-full hover:bg-white transition-colors"
+        >
+          Salir
+        </button>
+      </div>
+
       {/* Decoración de fondo */}
-      <div className="absolute top-[10%] left-[5%] text-7xl opacity-30 -rotate-12">🌮</div>
-      <div className="absolute bottom-[15%] right-[8%] text-6xl opacity-30 rotate-12">🍦</div>
-      <div className="absolute top-[20%] right-[15%] text-5xl opacity-30">☀️</div>
-      
+      <div className="absolute top-[10%] left-[5%] text-7xl opacity-30 -rotate-12 select-none">🌮</div>
+      <div className="absolute bottom-[15%] right-[8%] text-6xl opacity-30 rotate-12 select-none">🍦</div>
+      <div className="absolute top-[20%] right-[15%] text-5xl opacity-30 select-none">☀️</div>
+
       {/* Logo */}
       <div className="bg-white rounded-3xl px-12 py-10 shadow-2xl text-center mb-10">
         <div className="text-6xl mb-3">🚚</div>
@@ -16,10 +40,10 @@ export function MainMenu() {
           Calle<span className="text-coral">Viva</span>
         </h1>
         <p className="font-nunito text-lg font-bold text-terracota">
-          ¡La calle está viva! 🔥
+          ¡La calle está viva!
         </p>
       </div>
-      
+
       {/* Botones */}
       <div className="flex flex-col gap-4">
         <button className="btn-primary text-lg px-10 py-4">
@@ -32,11 +56,11 @@ export function MainMenu() {
           ⚙️ Opciones
         </button>
       </div>
-      
+
       {/* Footer */}
       <div className="absolute bottom-5 text-center">
         <p className="text-white font-semibold opacity-90">
-          🇨🇷 Hecho con amor en Costa Rica
+          🇨🇷 Hecho en Costa Rica
         </p>
         <p className="text-white font-semibold opacity-70 text-sm mt-1">
           ✨ Inspirado por Nacho ✨
