@@ -9,6 +9,7 @@ interface Player {
   email: string
   display_name?: string
   avatar_url?: string
+  is_admin: boolean
   created_at: string
 }
 

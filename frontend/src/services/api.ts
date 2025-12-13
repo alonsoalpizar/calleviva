@@ -9,6 +9,7 @@ interface AuthResponse {
     email: string
     display_name?: string
     avatar_url?: string
+    is_admin: boolean
     created_at: string
   }
 }
@@ -58,4 +59,76 @@ export const api = {
   },
 
   health: () => request<{ status: string }>('/health'),
+
+  // Public parameters (read-only)
+  parameters: {
+    list: (category?: string) =>
+      request<ParametersResponse>(`/parameters${category ? `?category=${category}` : ''}`),
+    categories: () => request<{ categories: string[] }>('/parameters/categories'),
+  },
+
+  // Admin endpoints
+  admin: {
+    parameters: {
+      list: (category?: string) =>
+        request<ParametersResponse>(`/admin/parameters${category ? `?category=${category}` : ''}`),
+      get: (id: string) => request<Parameter>(`/admin/parameters/${id}`),
+      create: (data: CreateParameter) =>
+        request<Parameter>('/admin/parameters', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: UpdateParameter) =>
+        request<Parameter>(`/admin/parameters/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        request<{ message: string }>(`/admin/parameters/${id}`, {
+          method: 'DELETE',
+        }),
+    },
+  },
 }
+
+// Types
+interface Parameter {
+  id: string
+  category: string
+  code: string
+  name: string
+  description?: string
+  icon?: string
+  config?: Record<string, unknown>
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface ParametersResponse {
+  parameters: Parameter[]
+  total: number
+}
+
+interface CreateParameter {
+  category: string
+  code: string
+  name: string
+  description?: string
+  icon?: string
+  config?: Record<string, unknown>
+  sort_order?: number
+  is_active?: boolean
+}
+
+interface UpdateParameter {
+  name?: string
+  description?: string
+  icon?: string
+  config?: Record<string, unknown>
+  sort_order?: number
+  is_active?: boolean
+}
+
+export type { Parameter, ParametersResponse, CreateParameter, UpdateParameter }

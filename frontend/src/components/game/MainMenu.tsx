@@ -17,6 +17,14 @@ export function MainMenu() {
     <div className="min-h-screen bg-gradient-to-br from-mango via-papaya to-coral flex flex-col items-center justify-center p-5 relative overflow-hidden">
       {/* Header con usuario */}
       <div className="absolute top-5 right-5 flex items-center gap-3">
+        {player?.is_admin && (
+          <button
+            onClick={() => navigate('/admin')}
+            className="bg-purple-600 text-white font-semibold px-4 py-2 rounded-full hover:bg-purple-700 transition-colors"
+          >
+            Admin
+          </button>
+        )}
         <span className="text-white font-semibold bg-black/20 px-4 py-2 rounded-full">
           👤 {player?.display_name || player?.email}
         </span>

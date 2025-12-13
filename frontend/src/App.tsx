@@ -5,6 +5,7 @@ import { useAuthStore } from './stores/authStore'
 import { Landing } from './pages/Landing'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
+import { Admin } from './pages/Admin'
 import { MainMenu } from './components/game/MainMenu'
 
 // Protected Route Component
@@ -13,6 +14,21 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!player) {
     return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
+}
+
+// Admin Route Component
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { player } = useAuthStore()
+
+  if (!player) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!player.is_admin) {
+    return <Navigate to="/game" replace />
   }
 
   return <>{children}</>
@@ -34,6 +50,16 @@ function App() {
             <ProtectedRoute>
               <MainMenu />
             </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Admin />
+            </AdminRoute>
           }
         />
 

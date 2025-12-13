@@ -51,10 +51,10 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 	err = database.Pool.QueryRow(ctx, `
 		INSERT INTO players (email, password_hash, display_name)
 		VALUES ($1, $2, $3)
-		RETURNING id, email, display_name, avatar_url, created_at, updated_at
+		RETURNING id, email, display_name, avatar_url, is_admin, created_at, updated_at
 	`, req.Email, string(hashedPassword), displayName).Scan(
 		&player.ID, &player.Email, &player.DisplayName,
-		&player.AvatarURL, &player.CreatedAt, &player.UpdatedAt,
+		&player.AvatarURL, &player.IsAdmin, &player.CreatedAt, &player.UpdatedAt,
 	)
 
 	if err != nil {
@@ -67,7 +67,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generar token
-	token, err := GenerateToken(player.ID, player.Email)
+	token, err := GenerateToken(player.ID, player.Email, player.IsAdmin)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Failed to generate token")
 		return
@@ -96,12 +96,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	var player models.Player
 	err := database.Pool.QueryRow(ctx, `
-		SELECT id, email, password_hash, display_name, avatar_url, created_at, updated_at
+		SELECT id, email, password_hash, display_name, avatar_url, is_admin, created_at, updated_at
 		FROM players
 		WHERE email = $1 AND deleted_at IS NULL
 	`, req.Email).Scan(
 		&player.ID, &player.Email, &player.PasswordHash,
-		&player.DisplayName, &player.AvatarURL,
+		&player.DisplayName, &player.AvatarURL, &player.IsAdmin,
 		&player.CreatedAt, &player.UpdatedAt,
 	)
 
@@ -117,7 +117,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generar token
-	token, err := GenerateToken(player.ID, player.Email)
+	token, err := GenerateToken(player.ID, player.Email, player.IsAdmin)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Failed to generate token")
 		return
@@ -154,12 +154,12 @@ func HandleMe(w http.ResponseWriter, r *http.Request) {
 
 	var player models.Player
 	err = database.Pool.QueryRow(ctx, `
-		SELECT id, email, display_name, avatar_url, created_at, updated_at
+		SELECT id, email, display_name, avatar_url, is_admin, created_at, updated_at
 		FROM players
 		WHERE id = $1 AND deleted_at IS NULL
 	`, claims.PlayerID).Scan(
 		&player.ID, &player.Email, &player.DisplayName,
-		&player.AvatarURL, &player.CreatedAt, &player.UpdatedAt,
+		&player.AvatarURL, &player.IsAdmin, &player.CreatedAt, &player.UpdatedAt,
 	)
 
 	if err != nil {
@@ -203,6 +203,24 @@ func GetClaimsFromContext(ctx context.Context) (*Claims, error) {
 		return nil, errors.New("no claims in context")
 	}
 	return claims, nil
+}
+
+// AdminMiddleware verifica que el usuario sea admin
+func AdminMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, err := GetClaimsFromContext(r.Context())
+		if err != nil {
+			respondError(w, http.StatusUnauthorized, "Authentication required")
+			return
+		}
+
+		if !claims.IsAdmin {
+			respondError(w, http.StatusForbidden, "Admin access required")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func respondJSON(w http.ResponseWriter, status int, data interface{}) {

@@ -16,6 +16,8 @@ import (
 	"github.com/alonsoalpizar/calleviva/backend/internal/auth"
 	"github.com/alonsoalpizar/calleviva/backend/internal/config"
 	"github.com/alonsoalpizar/calleviva/backend/internal/database"
+	"github.com/alonsoalpizar/calleviva/backend/internal/games"
+	"github.com/alonsoalpizar/calleviva/backend/internal/parameters"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -87,12 +89,13 @@ func main() {
 		// Games (protegido)
 		r.Route("/games", func(r chi.Router) {
 			r.Use(auth.AuthMiddleware)
-			r.Post("/", handleNotImplemented)
-			r.Get("/", handleNotImplemented)
-			r.Get("/{gameID}", handleNotImplemented)
-			r.Delete("/{gameID}", handleNotImplemented)
+			r.Post("/", games.HandleCreate)
+			r.Get("/", games.HandleList)
+			r.Get("/{gameID}", games.HandleGet)
+			r.Patch("/{gameID}", games.HandleUpdate)
+			r.Delete("/{gameID}", games.HandleDelete)
 
-			// Gameplay
+			// Gameplay (futuro)
 			r.Get("/{gameID}/day", handleNotImplemented)
 			r.Post("/{gameID}/market/buy", handleNotImplemented)
 			r.Post("/{gameID}/location/set", handleNotImplemented)
@@ -101,11 +104,45 @@ func main() {
 			r.Get("/{gameID}/day/results", handleNotImplemented)
 		})
 
+		// Parameters (público - solo lectura)
+		r.Route("/parameters", func(r chi.Router) {
+			r.Get("/", parameters.HandleList)
+			r.Get("/categories", parameters.HandleListCategories)
+			r.Get("/{id}", parameters.HandleGet)
+		})
+
 		// Worlds (público - datos estáticos)
 		r.Route("/worlds", func(r chi.Router) {
 			r.Get("/{worldType}/products", handleNotImplemented)
 			r.Get("/{worldType}/locations", handleNotImplemented)
 			r.Get("/{worldType}/events", handleNotImplemented)
+		})
+
+		// Admin (protegido - solo admins)
+		r.Route("/admin", func(r chi.Router) {
+			r.Use(auth.AuthMiddleware)
+			r.Use(auth.AdminMiddleware)
+
+			// CRUD Parameters
+			r.Route("/parameters", func(r chi.Router) {
+				r.Get("/", parameters.HandleList)
+				r.Get("/categories", parameters.HandleListCategories)
+				r.Get("/{id}", parameters.HandleGet)
+				r.Post("/", parameters.HandleCreate)
+				r.Patch("/{id}", parameters.HandleUpdate)
+				r.Delete("/{id}", parameters.HandleDelete)
+			})
+
+			// CRUD Players (futuro)
+			r.Route("/players", func(r chi.Router) {
+				r.Get("/", handleNotImplemented)
+				r.Get("/{id}", handleNotImplemented)
+				r.Patch("/{id}", handleNotImplemented)
+				r.Delete("/{id}", handleNotImplemented)
+			})
+
+			// Dashboard stats (futuro)
+			r.Get("/stats", handleNotImplemented)
 		})
 	})
 

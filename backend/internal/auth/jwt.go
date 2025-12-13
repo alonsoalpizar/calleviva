@@ -18,13 +18,15 @@ func InitJWT(secret string, expiry time.Duration) {
 type Claims struct {
 	PlayerID string `json:"player_id"`
 	Email    string `json:"email"`
+	IsAdmin  bool   `json:"is_admin"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(playerID, email string) (string, error) {
+func GenerateToken(playerID, email string, isAdmin bool) (string, error) {
 	claims := &Claims{
 		PlayerID: playerID,
 		Email:    email,
+		IsAdmin:  isAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(jwtExpiry)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
