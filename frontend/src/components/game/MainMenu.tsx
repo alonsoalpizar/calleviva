@@ -51,14 +51,21 @@ export function MainMenu() {
         world_type: selectedCountry,
         name: newGameName || undefined,
       })
-      setShowNewGame(false)
-      setNewGameName('')
-      // Navigate to game or reload list
-      setGames([game, ...games])
+      // Navigate to truck setup
+      navigate(`/game/${game.id}/setup`)
     } catch (err) {
       console.error('Error creating game:', err)
-    } finally {
       setCreating(false)
+    }
+  }
+
+  const handlePlayGame = (game: GameSession) => {
+    // Check if truck is configured
+    const stats = game.stats as { truck?: { type?: string } } | null
+    if (stats?.truck?.type) {
+      navigate(`/game/${game.id}/play`)
+    } else {
+      navigate(`/game/${game.id}/setup`)
     }
   }
 
@@ -227,7 +234,7 @@ export function MainMenu() {
                               🗑️
                             </button>
                             <button
-                              onClick={() => {/* TODO: Navigate to game */}}
+                              onClick={() => handlePlayGame(game)}
                               className="btn-primary-sm"
                             >
                               Jugar

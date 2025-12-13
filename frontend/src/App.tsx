@@ -7,6 +7,8 @@ import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { Admin } from './pages/Admin'
 import { MainMenu } from './components/game/MainMenu'
+import { TruckSetup } from './components/game/TruckSetup'
+import { GamePlay } from './components/game/GamePlay'
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -49,6 +51,22 @@ function App() {
           element={
             <ProtectedRoute>
               <MainMenu />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/game/:gameId/setup"
+          element={
+            <ProtectedRoute>
+              <TruckSetup />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/game/:gameId/play"
+          element={
+            <ProtectedRoute>
+              <GamePlay />
             </ProtectedRoute>
           }
         />
