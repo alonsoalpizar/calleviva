@@ -13,6 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alonsoalpizar/calleviva/backend/internal/auth"
+	"github.com/alonsoalpizar/calleviva/backend/internal/config"
+	"github.com/alonsoalpizar/calleviva/backend/internal/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -29,8 +32,16 @@ func main() {
 	}
 
 	// Configuración
-	port := getEnv("PORT", "8080")
-	env := getEnv("ENV", "development")
+	cfg := config.Load()
+
+	// Conectar a PostgreSQL
+	if err := database.Connect(cfg.DBConnString()); err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer database.Close()
+
+	// Inicializar JWT
+	auth.InitJWT(cfg.JWTSecret, cfg.JWTExpiry())
 
 	// Router
 	r := chi.NewRouter()
@@ -44,7 +55,7 @@ func main() {
 
 	// CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{getEnv("FRONTEND_URL", "http://localhost:5173")},
+		AllowedOrigins:   []string{cfg.FrontendURL, "https://calleviva.club"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
 		ExposedHeaders:   []string{"Link"},
@@ -66,16 +77,16 @@ func main() {
 
 	// API v1
 	r.Route("/api/v1", func(r chi.Router) {
-		// Auth
+		// Auth (público)
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/register", handleNotImplemented)
-			r.Post("/login", handleNotImplemented)
-			r.Post("/logout", handleNotImplemented)
-			r.Get("/me", handleNotImplemented)
+			r.Post("/register", auth.HandleRegister)
+			r.Post("/login", auth.HandleLogin)
+			r.Get("/me", auth.HandleMe)
 		})
 
-		// Games
+		// Games (protegido)
 		r.Route("/games", func(r chi.Router) {
+			r.Use(auth.AuthMiddleware)
 			r.Post("/", handleNotImplemented)
 			r.Get("/", handleNotImplemented)
 			r.Get("/{gameID}", handleNotImplemented)
@@ -90,7 +101,7 @@ func main() {
 			r.Get("/{gameID}/day/results", handleNotImplemented)
 		})
 
-		// Worlds (static data)
+		// Worlds (público - datos estáticos)
 		r.Route("/worlds", func(r chi.Router) {
 			r.Get("/{worldType}/products", handleNotImplemented)
 			r.Get("/{worldType}/locations", handleNotImplemented)
@@ -100,7 +111,7 @@ func main() {
 
 	// Server
 	server := &http.Server{
-		Addr:         ":" + port,
+		Addr:         ":" + cfg.Port,
 		Handler:      r,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
@@ -112,8 +123,8 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("🚚 CalleViva API running on http://localhost:%s", port)
-		log.Printf("📍 Environment: %s", env)
+		log.Printf("🚚 CalleViva API running on http://localhost:%s", cfg.Port)
+		log.Printf("📍 Environment: %s", cfg.Environment)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error: %v", err)
 		}
@@ -136,13 +147,6 @@ func handleNotImplemented(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotImplemented)
 	w.Write([]byte(`{"error":"Not implemented yet","message":"Coming soon!"}`))
-}
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
 }
 
 func printBanner() {
