@@ -5,6 +5,31 @@
 
 ---
 
+## ⚡ SKILL: calleviva-project
+
+### 🚨 ACTIVAR SIEMPRE AL INICIO
+
+**IMPORTANTE:** Este proyecto tiene skills dedicados que se auto-activan:
+
+```bash
+# Skills disponibles (en /opt/.claude/skills/):
+Skill(calleviva-project)     # Master skill - contexto general
+Skill(calleviva-backend)     # Go API patterns y handlers
+Skill(calleviva-frontend)    # React + PixiJS components
+Skill(calleviva-game-logic)  # Sistemas del juego y fórmulas
+Skill(calleviva-ai)          # Integración Claude API
+```
+
+### Reglas Críticas (del skill)
+
+1. 🎨 **Paleta de colores** - Coral/Mango/Agua - NUNCA morado/lavanda
+2. 🏛️ **Arquitectura** - Chi router, capas separadas
+3. 🎮 **PixiJS** - Para rendering del juego, React para UI
+4. 🔒 **Seguridad** - JWT, validación dual (backend + frontend)
+5. 🖥️ **Deploy nativo** - systemd, NO Docker
+
+---
+
 ## 🎮 ¿Qué es CalleViva?
 
 **CalleViva.club** es un juego web tipo Tycoon donde gestionás un negocio de Food Trucks en una ciudad que cobra vida gracias a IA.

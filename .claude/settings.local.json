@@ -1,0 +1,20 @@
+{
+  "skills": {
+    "project": ["calleviva-project"],
+    "backend": ["calleviva-backend", "calleviva-game-logic"],
+    "frontend": ["calleviva-frontend"],
+    "ai": ["calleviva-ai"]
+  },
+  "autoActivate": [
+    "calleviva-project"
+  ],
+  "permissions": {
+    "allow": [
+      "Skill(calleviva-project)",
+      "Skill(calleviva-backend)",
+      "Skill(calleviva-frontend)",
+      "Skill(calleviva-game-logic)",
+      "Skill(calleviva-ai)"
+    ]
+  }
+}
