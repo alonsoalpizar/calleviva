@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalleViva - Personalización Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coral: '#FF6B6B',
+                        mango: '#FFE66D',
+                        agua: '#4ECDC4',
+                        crema: '#FFF8E7',
+                        dark: '#1A1A2E',
+                    }
+                }
+            }
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        * {
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            /* Vibrant sunset gradient */
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Upgrade Cards */
+        .upgrade-card {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 2px solid transparent;
+        }
+
+        .upgrade-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+
+        .upgrade-card.active {
+            border-color: #FF6B6B;
+            background: #FFF0F0;
+        }
+
+        .upgrade-card.owned {
+            border-color: #4ECDC4;
+            background: linear-gradient(145deg, #F0FFF9, #FFFFFF);
+        }
+
+        .upgrade-card.locked {
+            opacity: 0.6;
+            filter: grayscale(80%);
+            cursor: not-allowed;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        /* Truck Preview Stage */
+        .preview-stage {
+            background: radial-gradient(circle at center bottom, #87CEEB 0%, #E0F6FF 60%, transparent 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .truck-emoji {
+            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.3));
+            animation: idleFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes idleFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .menu-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #FF6B6B;
+            border-radius: 4px 4px 0 0;
+        }
+    </style>
+</head>
+
+<body class="p-6">
+
+    <!-- MAIN CONTAINER -->
+    <div class="max-w-7xl mx-auto h-[95vh] flex flex-col gap-6">
+
+        <!-- HEADER -->
+        <header
+            class="glass-header rounded-2xl px-8 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
+            <div class="flex items-center gap-4">
+                <div
+                    class="w-12 h-12 bg-coral rounded-xl flex items-center justify-center text-2xl shadow-lg text-white font-bold">
+                    🚚
+                </div>
+                <div>
+                    <h1 class="font-black text-2xl text-gray-800 tracking-tight" style="font-family: 'Outfit'">
+                        Taller <span class="text-coral">Creativo</span>
+                    </h1>
+                    <p class="text-sm font-bold text-gray-400">PERSONALIZACIÓN DE FLOTA</p>
+                </div>
+            </div>
+
+            <!-- Header Stats -->
+            <div class="flex items-center gap-8">
+                <div class="text-right">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Fondos Disponibles</div>
+                    <div class="text-2xl font-black text-green-600" style="font-family: 'Outfit'">₡85,000</div>
+                </div>
+                <button onclick="goBack()"
+                    class="bg-gray-800 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-900 transition flex items-center gap-2 shadow-xl hover:shadow-2xl hover:-translate-y-1 transform duration-200">
+                    <span>←</span> Regresar
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENT GRID -->
+        <div class="flex-1 grid grid-cols-12 gap-8 min-h-0">
+
+            <!-- LEFT: PREVIEW PANEL -->
+            <aside class="col-span-4 flex flex-col gap-4">
+
+                <!-- 3D Preview Stage -->
+                <div class="glass-panel rounded-3xl p-1 flex-1 relative flex flex-col">
+                    <div class="absolute top-4 left-0 w-full text-center z-10">
+                        <h2 class="font-black text-gray-400 text-sm tracking-widest uppercase">Vista Previa</h2>
+                    </div>
+
+                    <!-- The Stage -->
+                    <div id="preview-stage"
+                        class="preview-stage flex-1 rounded-2xl m-2 flex flex-col items-center justify-end pb-12 transition-colors duration-700">
+
+                        <!-- Accessories Layer -->
+                        <div id="accessories-container" class="absolute inset-0 pointer-events-none z-20"></div>
+
+                        <!-- Truck Layer -->
+                        <div class="relative z-10 group cursor-pointer">
+                            <div
+                                class="truck-emoji text-[180px] leading-none transition-transform duration-300 transform group-hover:scale-105">
+                                🚚
+                            </div>
+                            <!-- Brand Label on Truck -->
+                            <div
+                                class="absolute top-[45%] left-[55%] transform -translate-x-1/2 -translate-y-1/2 bg-white/90 px-3 py-1 rounded shadow-sm text-[10px] font-black pointer-events-none rotate-1">
+                                <span id="truck-brand-display">CalleViva</span>
+                            </div>
+                        </div>
+
+                        <!-- Shadow -->
+                        <div class="w-32 h-4 bg-black/10 rounded-[100%] blur-sm transform translate-y-2"></div>
+
+                        <!-- Floor Perspective lines -->
+                        <div class="absolute bottom-0 w-full h-32 opacity-20 pointer-events-none"
+                            style="background: repeating-linear-gradient(transparent, transparent 10px, #000 10px, #000 11px); transform: perspective(500px) rotateX(60deg);">
+                        </div>
+                    </div>
+
+                    <!-- Live Stats -->
+                    <div class="p-6 grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-gray-500">
+                                <span>Velocidad</span>
+                                <span class="text-coral">85/100</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-coral w-[85%] rounded-full shadow-sm"></div>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-gray-500">
+                                <span>Capacidad</span>
+                                <span class="text-agua">20</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-agua w-[20%] rounded-full shadow-sm"></div>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-gray-500">
+                                <span>Reputación</span>
+                                <span class="text-mango">4.5★</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-mango w-[90%] rounded-full shadow-sm"></div>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-gray-500">
+                                <span>Cocina</span>
+                                <span class="text-purple-400">Nvl. 2</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-purple-400 w-[60%] rounded-full shadow-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- RIGHT: CONFIGURATION PANEL -->
+            <main class="col-span-8 flex flex-col gap-4">
+
+                <!-- Navigation Tabs -->
+                <nav class="glass-panel p-2 rounded-2xl flex justify-between">
+                    <button onclick="switchTab('vehicle')"
+                        class="menu-btn active flex-1 py-3 hover:bg-gray-50 rounded-xl font-bold text-gray-600 transition text-center"
+                        id="tab-btn-vehicle">
+                        🚛 Vehículo
+                    </button>
+                    <button onclick="switchTab('equipment')"
+                        class="menu-btn flex-1 py-3 hover:bg-gray-50 rounded-xl font-bold text-gray-600 transition text-center"
+                        id="tab-btn-equipment">
+                        🔧 Equipamiento
+                    </button>
+                    <button onclick="switchTab('appearance')"
+                        class="menu-btn flex-1 py-3 hover:bg-gray-50 rounded-xl font-bold text-gray-600 transition text-center"
+                        id="tab-btn-appearance">
+                        🎨 Apariencia
+                    </button>
+                    <button onclick="switchTab('menu')"
+                        class="menu-btn flex-1 py-3 hover:bg-gray-50 rounded-xl font-bold text-gray-600 transition text-center"
+                        id="tab-btn-menu">
+                        🍽️ Menú
+                    </button>
+                </nav>
+
+                <!-- Dynamic Content Area -->
+                <div class="glass-panel rounded-3xl p-8 flex-1 overflow-y-auto relative">
+
+                    <!-- TAB: VEHICLE -->
+                    <div id="tab-vehicle" class="tab-content transition-all duration-300">
+                        <div class="flex justify-between items-end mb-6">
+                            <div>
+                                <h2 class="text-3xl font-black text-gray-800 font-[Outfit]">Elige tu Carrocería</h2>
+                                <p class="text-gray-500">La base de tu imperio móvil.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-6">
+                            <!-- Card: Cart (Owned) -->
+                            <div class="upgrade-card owned rounded-2xl p-6 relative">
+                                <span
+                                    class="absolute top-4 right-4 bg-agua/20 text-agua px-3 py-1 rounded-full text-xs font-bold">EN
+                                    PROPIEDAD</span>
+                                <div class="text-6xl mb-4">🛒</div>
+                                <h3 class="font-bold text-xl mb-1">Carrito Básico</h3>
+                                <p class="text-sm text-gray-500 mb-4">Ideal para empezar. Bajo costo operativo pero
+                                    capacidad limitada.</p>
+                                <div class="flex items-center gap-2 text-xs font-bold text-gray-400">
+                                    <span class="bg-gray-100 px-2 py-1 rounded">Cap: 20</span>
+                                    <span class="bg-gray-100 px-2 py-1 rounded">Vel: 1x</span>
+                                </div>
+                            </div>
+
+                            <!-- Card: Food Truck (Target) -->
+                            <div
+                                class="upgrade-card active rounded-2xl p-6 relative cursor-pointer ring-4 ring-coral/10">
+                                <span
+                                    class="absolute top-4 right-4 bg-coral text-white px-3 py-1 rounded-full text-xs font-bold">RECOMENDADO</span>
+                                <div class="text-6xl mb-4">🚚</div>
+                                <h3 class="font-bold text-xl mb-1">Food Truck Clásico</h3>
+                                <p class="text-sm text-gray-500 mb-4">El estándar de la industria. Buen balance de
+                                    movilidad y cocina.</p>
+                                <div class="flex justify-between items-center mt-4">
+                                    <div class="text-2xl font-black text-coral">₡100,000</div>
+                                    <button
+                                        class="bg-coral text-white px-4 py-2 rounded-lg font-bold hover:bg-red-500 transition">Comprar</button>
+                                </div>
+                            </div>
+
+                            <!-- Card: Bus (Locked) -->
+                            <div class="upgrade-card locked rounded-2xl p-6 relative bg-gray-50">
+                                <div
+                                    class="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[2px] z-10 rounded-2xl">
+                                    <div
+                                        class="bg-gray-900 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-xl">
+                                        🔒 Nvl. 10 Requerido</div>
+                                </div>
+                                <div class="text-6xl mb-4 opacity-50">🚌</div>
+                                <h3 class="font-bold text-xl mb-1 text-gray-400">School Bus Reformado</h3>
+                                <p class="text-sm text-gray-400 mb-4">Una bestia de la carretera. Capacidad masiva para
+                                    eventos.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: APPEARANCE (Initially Hidden) -->
+                    <div id="tab-appearance" class="tab-content hidden">
+                        <h2 class="text-3xl font-black text-gray-800 font-[Outfit] mb-6">Identidad Visual</h2>
+
+                        <div class="grid grid-cols-2 gap-8">
+                            <!-- Name Input -->
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                <label class="block text-sm font-bold text-gray-400 mb-2 uppercase">Nombre del
+                                    Negocio</label>
+                                <input type="text" value="CalleViva"
+                                    class="w-full text-2xl font-black text-gray-800 border-b-2 border-gray-200 focus:border-coral outline-none py-2 bg-transparent transition-colors"
+                                    oninput="updateName(this.value)">
+                            </div>
+
+                            <!-- Paint Job -->
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                <label class="block text-sm font-bold text-gray-400 mb-4 uppercase">Color de
+                                    Pintura</label>
+                                <div class="flex gap-3">
+                                    <button onclick="setPreviewColor('#E0F6FF')"
+                                        class="w-10 h-10 rounded-full bg-blue-100 border-2 border-transparent hover:scale-110 transition focus:ring-2 ring-offset-2 ring-blue-400"></button>
+                                    <button onclick="setPreviewColor('#FFE66D')"
+                                        class="w-10 h-10 rounded-full bg-yellow-300 border-2 border-transparent hover:scale-110 transition focus:ring-2 ring-offset-2 ring-yellow-400"></button>
+                                    <button onclick="setPreviewColor('#FF6B6B')"
+                                        class="w-10 h-10 rounded-full bg-red-400 border-2 border-transparent hover:scale-110 transition focus:ring-2 ring-offset-2 ring-red-400"></button>
+                                    <button onclick="setPreviewColor('#1A1A2E')"
+                                        class="w-10 h-10 rounded-full bg-gray-900 border-2 border-transparent hover:scale-110 transition focus:ring-2 ring-offset-2 ring-gray-900"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accessories Grid -->
+                        <h3 class="font-bold text-lg mt-8 mb-4">Accesorios y Decoración</h3>
+                        <div class="grid grid-cols-4 gap-4">
+                            <button onclick="toggleAccessory('umbrella')"
+                                class="p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-coral hover:shadow-lg transition flex flex-col items-center gap-2 group">
+                                <span class="text-3xl group-hover:scale-110 transition">⛱️</span>
+                                <span class="text-xs font-bold text-gray-500">Toldo</span>
+                            </button>
+                            <button onclick="toggleAccessory('lights')"
+                                class="p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-coral hover:shadow-lg transition flex flex-col items-center gap-2 group">
+                                <span class="text-3xl group-hover:scale-110 transition">💡</span>
+                                <span class="text-xs font-bold text-gray-500">Luces Neon</span>
+                            </button>
+                            <button onclick="toggleAccessory('plant')"
+                                class="p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-coral hover:shadow-lg transition flex flex-col items-center gap-2 group">
+                                <span class="text-3xl group-hover:scale-110 transition">🌿</span>
+                                <span class="text-xs font-bold text-gray-500">Jardinera</span>
+                            </button>
+                            <button onclick="toggleAccessory('sign')"
+                                class="p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-coral hover:shadow-lg transition flex flex-col items-center gap-2 group">
+                                <span class="text-3xl group-hover:scale-110 transition">🪧</span>
+                                <span class="text-xs font-bold text-gray-500">Pizarra Menú</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Other tabs placeholders -->
+                    <div id="tab-equipment" class="tab-content hidden">
+                        <div class="p-10 text-center text-gray-400 italic">Contenido de Equipamiento aquí...</div>
+                    </div>
+                    <div id="tab-menu" class="tab-content hidden">
+                        <div class="p-10 text-center text-gray-400 italic">Configuración de Menú aquí...</div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+        // State
+        const state = {
+            brandName: 'CalleViva',
+            accessories: new Set(['umbrella']),
+        };
+
+        // DOM Elements
+        const els = {
+            tabs: document.querySelectorAll('.tab-content'),
+            btns: document.querySelectorAll('.menu-btn'),
+            brandDisplay: document.getElementById('truck-brand-display'),
+            accContainer: document.getElementById('accessories-container'),
+            stage: document.getElementById('preview-stage'),
+        };
+
+        // Functions
+        function switchTab(tabName) {
+            // Animate Out Current
+            els.tabs.forEach(tab => {
+                if (!tab.classList.contains('hidden')) {
+                    gsap.to(tab, {
+                        opacity: 0,
+                        y: 10,
+                        duration: 0.2,
+                        onComplete: () => {
+                            tab.classList.add('hidden');
+                        }
+                    });
+                }
+            });
+
+            // Activate Button
+            els.btns.forEach(btn => btn.classList.remove('active', 'text-coral', 'bg-white'));
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.classList.add('active', 'text-coral', 'bg-white');
+
+            // Animate In New
+            const newTab = document.getElementById(`tab-${tabName}`);
+            setTimeout(() => {
+                newTab.classList.remove('hidden');
+                gsap.fromTo(newTab,
+                    { opacity: 0, y: 10 },
+                    { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }
+                );
+            }, 200);
+        }
+
+        function updateName(val) {
+            state.brandName = val;
+            els.brandDisplay.textContent = val;
+        }
+
+        function setPreviewColor(color) {
+            // Change background gradient of stage to reflect 'mood' of paint
+            // Ideally we would change svg truck color, but for emoji truck we can change ambiance
+            gsap.to(els.stage, {
+                background: `radial-gradient(circle at center bottom, ${color} 0%, transparent 70%)`,
+                duration: 1
+            });
+        }
+
+        function toggleAccessory(acc) {
+            if (state.accessories.has(acc)) {
+                state.accessories.delete(acc);
+                removeVisualAccessory(acc);
+            } else {
+                state.accessories.add(acc);
+                addVisualAccessory(acc);
+            }
+        }
+
+        function addVisualAccessory(acc) {
+            const el = document.createElement('div');
+            el.id = `acc-${acc}`;
+            el.className = 'absolute text-4xl drop-shadow-lg transform scale-0';
+
+            // Positioning logic
+            if (acc === 'umbrella') { el.innerHTML = '⛱️'; el.style.top = '10%'; el.style.right = '20%'; }
+            if (acc === 'lights') { el.innerHTML = '✨'; el.style.top = '25%'; el.style.left = '30%'; }
+            if (acc === 'plant') { el.innerHTML = '🌿'; el.style.bottom = '20%'; el.style.left = '25%'; }
+            if (acc === 'sign') { el.innerHTML = '🪧'; el.style.bottom = '20%'; el.style.right = '25%'; }
+
+            els.accContainer.appendChild(el);
+            gsap.to(el, { scale: 1, duration: 0.4, ease: "back.out(1.7)" });
+        }
+
+        function removeVisualAccessory(acc) {
+            const el = document.getElementById(`acc-${acc}`);
+            if (el) {
+                gsap.to(el, { scale: 0, duration: 0.3, onComplete: () => el.remove() });
+            }
+        }
+
+        function goBack() {
+            // Simulation of navigation
+            document.body.style.opacity = '0';
+            setTimeout(() => location.reload(), 500);
+        }
+
+        // Init
+        // Switch to vehicle tab securely
+        document.getElementById('tab-vehicle').classList.remove('hidden');
+        document.getElementById('tab-btn-vehicle').classList.add('active');
+
+        // Initial accessories
+        addVisualAccessory('umbrella');
+
+    </script>
+</body>
+
+</html>
