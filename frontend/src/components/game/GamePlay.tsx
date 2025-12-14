@@ -116,52 +116,75 @@ export function GamePlay() {
 
       {/* Main Game Area */}
       <main className="max-w-4xl mx-auto px-4 py-6">
-        {/* Placeholder Content */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-          <div className="text-6xl mb-4">🚧</div>
-          <h2 className="text-2xl font-bold text-carbon mb-2">
-            ¡Próximamente!
-          </h2>
-          <p className="text-gray-600 mb-6">
-            La pantalla de gameplay está en desarrollo.
-            <br />
-            Tu {truckConfig?.name} está listo para operar.
-          </p>
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <button
+            onClick={() => navigate(`/game/${gameId}/customize`)}
+            className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center"
+          >
+            <div className="text-3xl mb-2">🔧</div>
+            <div className="font-bold text-sm">Mi Negocio</div>
+            <div className="text-xs text-gray-500">Personalizar</div>
+          </button>
+          <button className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center opacity-50">
+            <div className="text-3xl mb-2">📍</div>
+            <div className="font-bold text-sm">Ubicación</div>
+            <div className="text-xs text-gray-500">Próximamente</div>
+          </button>
+          <button className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center opacity-50">
+            <div className="text-3xl mb-2">🛒</div>
+            <div className="font-bold text-sm">Mercado</div>
+            <div className="text-xs text-gray-500">Próximamente</div>
+          </button>
+          <button className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center opacity-50">
+            <div className="text-3xl mb-2">▶️</div>
+            <div className="font-bold text-sm">Iniciar Día</div>
+            <div className="text-xs text-gray-500">Próximamente</div>
+          </button>
+        </div>
 
-          <div className="bg-crema rounded-xl p-4 mb-6 inline-block">
-            <div className="text-4xl mb-2">
+        {/* Truck Info */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="flex items-center gap-6">
+            <div className="text-6xl">
               {truckConfig?.type === 'cart' && '🛒'}
               {truckConfig?.type === 'stand' && '🏪'}
               {truckConfig?.type === 'truck' && '🚚'}
               {truckConfig?.type === 'restaurant' && '🍽️'}
             </div>
-            <div className="font-bold">{truckConfig?.name}</div>
-            <div className="text-sm text-gray-600">
-              {truckConfig?.products?.length || 0} productos en menú
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-carbon">{truckConfig?.name}</h2>
+              <p className="text-gray-500">{truckConfig?.products?.length || 0} productos en menú</p>
+              <button
+                onClick={() => navigate(`/game/${gameId}/customize`)}
+                className="mt-2 text-coral font-semibold hover:underline"
+              >
+                🔧 Personalizar negocio →
+              </button>
             </div>
           </div>
+        </div>
 
-          <div className="space-y-3">
-            <p className="text-sm text-gray-500">
-              Funcionalidades que vendrán:
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              <span className="bg-mango/20 text-carbon px-3 py-1 rounded-full text-sm">
-                📍 Elegir ubicación
-              </span>
-              <span className="bg-mango/20 text-carbon px-3 py-1 rounded-full text-sm">
-                🛒 Comprar ingredientes
-              </span>
-              <span className="bg-mango/20 text-carbon px-3 py-1 rounded-full text-sm">
-                💰 Configurar precios
-              </span>
-              <span className="bg-mango/20 text-carbon px-3 py-1 rounded-full text-sm">
-                ▶️ Simular día
-              </span>
-              <span className="bg-mango/20 text-carbon px-3 py-1 rounded-full text-sm">
-                📊 Ver resultados
-              </span>
-            </div>
+        {/* Coming Soon */}
+        <div className="bg-gradient-to-r from-mango/20 to-coral/20 rounded-2xl p-6 mt-6 text-center">
+          <div className="text-4xl mb-3">🚧</div>
+          <h3 className="font-bold text-lg text-carbon mb-2">Gameplay en Desarrollo</h3>
+          <p className="text-gray-600 text-sm mb-4">
+            Mientras tanto, personaliza tu negocio y prepárate para la acción.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <span className="bg-white/80 px-3 py-1 rounded-full text-sm">
+              📍 Elegir ubicación
+            </span>
+            <span className="bg-white/80 px-3 py-1 rounded-full text-sm">
+              🛒 Comprar ingredientes
+            </span>
+            <span className="bg-white/80 px-3 py-1 rounded-full text-sm">
+              💰 Configurar precios
+            </span>
+            <span className="bg-white/80 px-3 py-1 rounded-full text-sm">
+              ▶️ Simular día
+            </span>
           </div>
         </div>
 
