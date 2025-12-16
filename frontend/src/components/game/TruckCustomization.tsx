@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api, GameSession, Parameter } from '../../services/api'
+import { TruckSVG } from './TruckSVG'
 
 type TabType = 'vehicle' | 'equipment' | 'appearance' | 'menu'
 
@@ -255,10 +256,9 @@ export function TruckCustomization() {
   const getCurrency = () => game?.world_type === 'costa_rica' ? '₡' : '$'
   const formatMoney = (amount: number) => `${getCurrency()}${amount.toLocaleString()}`
 
-  const getCurrentVehicle = () => truckTypes.find(t => t.code === config.type)
-  const getVehicleEmoji = () => {
-    const v = getCurrentVehicle()
-    return (v?.config as { emoji?: string })?.emoji || v?.icon || '🚚'
+  const getThemeColor = (): string => {
+    const colorParam = colors.find(c => c.code === config.theme)
+    return (colorParam?.config as { hex?: string })?.hex || '#FF6B6B'
   }
 
   if (loading) {
@@ -317,47 +317,25 @@ export function TruckCustomization() {
               </div>
 
               {/* Preview Stage */}
-              <div className="preview-stage flex-1 rounded-2xl m-2 flex flex-col items-center justify-end pb-8 relative overflow-hidden">
-                {/* Decorations Layer */}
-                <div className="absolute inset-0 pointer-events-none z-20">
-                  {config.decorations.map((decCode, idx) => {
-                    const dec = decorations.find(d => d.code === decCode)
-                    const positions = [
-                      { top: '15%', left: '20%' },
-                      { top: '10%', right: '20%' },
-                      { bottom: '35%', left: '15%' },
-                      { bottom: '35%', right: '15%' },
-                    ]
-                    const pos = positions[idx % positions.length]
-                    return (
-                      <span
-                        key={decCode}
-                        className="absolute text-3xl drop-shadow-lg animate-pulse"
-                        style={pos}
-                      >
-                        {dec?.icon}
-                      </span>
-                    )
-                  })}
+              <div className="preview-stage flex-1 rounded-2xl m-2 flex flex-col items-center justify-center relative overflow-hidden">
+                {/* SVG Truck */}
+                <div className="relative z-10 group cursor-pointer transform transition-transform duration-300 hover:scale-105">
+                  <TruckSVG
+                    vehicleType={config.type as 'cart' | 'stand' | 'food_truck' | 'bus' | 'restaurant'}
+                    color={getThemeColor()}
+                    equipment={config.equipment}
+                    decorations={config.decorations}
+                    name={config.name || 'Mi Food Truck'}
+                    width={320}
+                    height={220}
+                    animated={true}
+                    showSmoke={config.equipment.includes('improved_kitchen') || config.equipment.includes('grill')}
+                  />
                 </div>
-
-                {/* Truck */}
-                <div className="relative z-10 group cursor-pointer">
-                  <div className="truck-float text-[140px] lg:text-[160px] leading-none drop-shadow-2xl transition-transform group-hover:scale-105">
-                    {getVehicleEmoji()}
-                  </div>
-                  {/* Brand Label */}
-                  <div className="absolute top-[45%] left-[55%] transform -translate-x-1/2 -translate-y-1/2 bg-white/95 px-3 py-1 rounded-lg shadow-md text-xs font-black pointer-events-none rotate-1">
-                    {config.name || 'Mi Food Truck'}
-                  </div>
-                </div>
-
-                {/* Shadow */}
-                <div className="w-28 h-4 bg-black/20 rounded-full blur-sm mt-2" />
 
                 {/* Floor Grid */}
                 <div
-                  className="absolute bottom-0 w-full h-24 opacity-10 pointer-events-none"
+                  className="absolute bottom-0 w-full h-16 opacity-10 pointer-events-none"
                   style={{
                     background: 'repeating-linear-gradient(transparent, transparent 8px, #000 8px, #000 9px)',
                     transform: 'perspective(400px) rotateX(60deg)'
@@ -797,15 +775,6 @@ export function TruckCustomization() {
 
         .preview-stage {
           background: radial-gradient(circle at center bottom, #87CEEB 0%, #E0F6FF 60%, #fff 100%);
-        }
-
-        .truck-float {
-          animation: idleFloat 4s ease-in-out infinite;
-        }
-
-        @keyframes idleFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
         }
 
         .upgrade-card {
