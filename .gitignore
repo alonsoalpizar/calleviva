@@ -107,4 +107,6 @@ uploads/
 .ai-cache/
 
 # Assets generados
-frontend/src/assets/generated/
+
+# Binaries
+backend/main

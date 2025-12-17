@@ -45,3 +45,7 @@ func Close() {
 		log.Println("🔌 PostgreSQL connection closed")
 	}
 }
+
+func GetPool() *pgxpool.Pool {
+	return Pool
+}

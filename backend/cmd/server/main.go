@@ -16,6 +16,7 @@ import (
 	"github.com/alonsoalpizar/calleviva/backend/internal/ai/handlers"
 	"github.com/alonsoalpizar/calleviva/backend/internal/auth"
 	"github.com/alonsoalpizar/calleviva/backend/internal/config"
+	"github.com/alonsoalpizar/calleviva/backend/internal/creator"
 	"github.com/alonsoalpizar/calleviva/backend/internal/database"
 	"github.com/alonsoalpizar/calleviva/backend/internal/games"
 	"github.com/alonsoalpizar/calleviva/backend/internal/parameters"
@@ -155,6 +156,10 @@ func main() {
 			// Dashboard stats (futuro)
 			r.Get("/stats", handleNotImplemented)
 		})
+
+		// Creator Mode Routes
+		creatorHandler := creator.NewHandler(database.GetPool())
+		creatorHandler.SetupRoutes(r)
 	})
 
 	// Server
