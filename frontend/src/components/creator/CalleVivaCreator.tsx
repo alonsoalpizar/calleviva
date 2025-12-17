@@ -349,6 +349,40 @@ const PersonajeSVG: React.FC<{ data: CreationData }> = ({ data }) => {
     crazy: <><circle cx="65" cy="88" r="14" fill="white" stroke="#333" strokeWidth="2" /><circle cx="135" cy="92" r="10" fill="white" stroke="#333" strokeWidth="2" /><circle cx="68" cy="88" r="8" fill={eyeColor} /><circle cx="138" cy="92" r="5" fill={eyeColor} /></>,
   }
 
+  const noses: Record<string, JSX.Element> = {
+    normal: <ellipse cx="100" cy="115" rx="6" ry="4" fill={skinColor} stroke="#333" strokeWidth="1" />,
+    big: <ellipse cx="100" cy="115" rx="12" ry="8" fill={skinColor} stroke="#333" strokeWidth="2" />,
+    small: <circle cx="100" cy="115" r="3" fill={skinColor} stroke="#333" strokeWidth="1" />,
+    pointed: <polygon points="100,105 95,120 105,120" fill={skinColor} stroke="#333" strokeWidth="2" />,
+    round: <circle cx="100" cy="115" r="8" fill={skinColor} stroke="#333" strokeWidth="2" />,
+    flat: <ellipse cx="100" cy="118" rx="10" ry="3" fill={skinColor} stroke="#333" strokeWidth="2" />,
+    pig: <><ellipse cx="100" cy="115" rx="10" ry="8" fill={skinColor} stroke="#333" strokeWidth="2" /><circle cx="95" cy="115" r="2" fill="#333" /><circle cx="105" cy="115" r="2" fill="#333" /></>,
+    clown: <circle cx="100" cy="115" r="10" fill="#E53935" stroke="#333" strokeWidth="2" />,
+  }
+
+  const eyebrows: Record<string, JSX.Element | null> = {
+    none: null,
+    normal: <><path d="M55 75 Q70 70 85 75" fill="none" stroke="#333" strokeWidth="3" /><path d="M115 75 Q130 70 145 75" fill="none" stroke="#333" strokeWidth="3" /></>,
+    thick: <><path d="M52 75 Q70 65 88 75" fill="#333" stroke="#333" strokeWidth="5" /><path d="M112 75 Q130 65 148 75" fill="#333" stroke="#333" strokeWidth="5" /></>,
+    thin: <><path d="M58 78 Q70 74 82 78" fill="none" stroke="#333" strokeWidth="1" /><path d="M118 78 Q130 74 142 78" fill="none" stroke="#333" strokeWidth="1" /></>,
+    angry: <><path d="M55 82 L85 72" stroke="#333" strokeWidth="4" /><path d="M145 82 L115 72" stroke="#333" strokeWidth="4" /></>,
+    worried: <><path d="M55 72 L85 82" stroke="#333" strokeWidth="3" /><path d="M145 72 L115 82" stroke="#333" strokeWidth="3" /></>,
+    raised: <><path d="M55 68 Q70 62 85 70" fill="none" stroke="#333" strokeWidth="3" /><path d="M115 70 Q130 62 145 68" fill="none" stroke="#333" strokeWidth="3" /></>,
+    unibrow: <path d="M52 75 Q70 68 100 72 Q130 68 148 75" fill="none" stroke="#333" strokeWidth="4" />,
+  }
+
+  const facialHairs: Record<string, JSX.Element | null> = {
+    none: null,
+    stubble: <><circle cx="75" cy="145" r="1" fill="#333" /><circle cx="85" cy="148" r="1" fill="#333" /><circle cx="95" cy="150" r="1" fill="#333" /><circle cx="105" cy="150" r="1" fill="#333" /><circle cx="115" cy="148" r="1" fill="#333" /><circle cx="125" cy="145" r="1" fill="#333" /><circle cx="80" cy="155" r="1" fill="#333" /><circle cx="100" cy="158" r="1" fill="#333" /><circle cx="120" cy="155" r="1" fill="#333" /></>,
+    beard: <path d="M60 135 Q60 165 100 170 Q140 165 140 135 L140 145 Q100 158 60 145 Z" fill={hairColor} stroke="#333" strokeWidth="2" />,
+    long_beard: <path d="M55 125 Q50 190 100 200 Q150 190 145 125 L145 135 Q100 160 55 135 Z" fill={hairColor} stroke="#333" strokeWidth="2" />,
+    goatee: <ellipse cx="100" cy="158" rx="12" ry="10" fill={hairColor} stroke="#333" strokeWidth="2" />,
+    mustache: <><path d="M70 128 Q85 138 100 128 Q115 138 130 128" fill={hairColor} stroke="#333" strokeWidth="2" /><circle cx="70" cy="128" r="3" fill={hairColor} /><circle cx="130" cy="128" r="3" fill={hairColor} /></>,
+    handlebar: <><path d="M70 128 Q85 140 100 128 Q115 140 130 128" fill={hairColor} stroke="#333" strokeWidth="3" /><path d="M68 128 Q50 120 45 135" fill="none" stroke={hairColor} strokeWidth="4" /><path d="M132 128 Q150 120 155 135" fill="none" stroke={hairColor} strokeWidth="4" /></>,
+    sideburns: <><rect x="35" y="85" width="12" height="45" rx="4" fill={hairColor} stroke="#333" strokeWidth="2" /><rect x="153" y="85" width="12" height="45" rx="4" fill={hairColor} stroke="#333" strokeWidth="2" /></>,
+    santa: <><path d="M50 125 Q45 185 100 195 Q155 185 150 125 L150 140 Q100 165 50 140 Z" fill="white" stroke="#333" strokeWidth="2" /><path d="M70 128 Q85 140 100 128 Q115 140 130 128" fill="white" stroke="#333" strokeWidth="2" /></>,
+  }
+
   const mouths: Record<string, JSX.Element> = {
     smile: <path d="M75 130 Q100 150 125 130" fill="none" stroke="#333" strokeWidth="3" />,
     big_smile: <><path d="M70 128 Q100 160 130 128" fill="#8B0000" stroke="#333" strokeWidth="3" /><path d="M75 128 Q100 140 125 128" fill="white" /></>,
@@ -424,14 +458,28 @@ const PersonajeSVG: React.FC<{ data: CreationData }> = ({ data }) => {
 
   return (
     <svg width="200" height="200" viewBox="0 0 200 200">
+      {/* Back hair (long styles go behind face) */}
       {!hasHat && data.hair !== 'none' && ['long', 'braids', 'bob', 'dreads'].includes(data.hair) && hairs[data.hair]}
       {data.hair === 'afro' && hairs.afro}
+      {/* Face */}
       {faces[data.base] || faces.round}
+      {/* Ears */}
       {needsEars && <><ellipse cx="32" cy="102" rx="7" ry="11" fill={skinColor} stroke="#333" strokeWidth="2" /><ellipse cx="168" cy="102" rx="7" ry="11" fill={skinColor} stroke="#333" strokeWidth="2" /></>}
+      {/* Front hair */}
       {!hasHat && data.hair !== 'none' && !['long', 'braids', 'bob', 'dreads', 'afro'].includes(data.hair) && hairs[data.hair]}
+      {/* Eyebrows */}
+      {eyebrows[data.eyebrows]}
+      {/* Eyes */}
       {eyes[data.eyes] || eyes.normal}
+      {/* Nose */}
+      {noses[data.nose] || noses.normal}
+      {/* Mouth */}
       {mouths[data.mouth] || mouths.smile}
+      {/* Facial hair */}
+      {facialHairs[data.facialHair]}
+      {/* Glasses */}
       {glasses[data.glasses]}
+      {/* Accessories */}
       {accessories[data.accessory]}
     </svg>
   )
