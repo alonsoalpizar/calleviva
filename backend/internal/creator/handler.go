@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // DBExecutor interface abstracts pgxpool.Pool for testing
@@ -27,21 +27,21 @@ func NewHandler(db DBExecutor) *Handler {
 }
 
 func (h *Handler) SetupRoutes(r chi.Router) {
-	// Public Creator Routes
-	r.Route("/api/creator", func(r chi.Router) {
+	// Public Creator Routes (mounted under /api/v1 in main.go)
+	r.Route("/creator", func(r chi.Router) {
 		r.Post("/submit", h.Submit)
 		r.Get("/my-creations", h.MyCreations)
 	})
 
 	// Admin Routes
-	r.Route("/api/admin/creator", func(r chi.Router) {
+	r.Route("/admin/creator", func(r chi.Router) {
 		r.Get("/pending", h.GetPending)
 		r.Get("/all", h.GetAll)
 		r.Put("/{id}/review", h.Review)
 	})
 
 	// Game Routes
-	r.Route("/api/game/content", func(r chi.Router) {
+	r.Route("/game/content", func(r chi.Router) {
 		r.Get("/{type}", h.GetApprovedContent)
 		r.Get("/random/{type}", h.GetRandomContent)
 	})

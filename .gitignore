@@ -110,3 +110,5 @@ uploads/
 
 # Binaries
 backend/main
+backend/calleviva-api
+*.exe
