@@ -51,41 +51,37 @@ export function Admin() {
         <div className="flex gap-2 mb-6 flex-wrap">
           <button
             onClick={() => setActiveTab('parameters')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'parameters'
+            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${activeTab === 'parameters'
                 ? 'bg-coral text-white shadow-md'
                 : 'bg-white text-carbon hover:bg-gray-100'
-            }`}
+              }`}
           >
             📋 Parámetros
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'users'
+            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${activeTab === 'users'
                 ? 'bg-coral text-white shadow-md'
                 : 'bg-white text-carbon hover:bg-gray-100'
-            }`}
+              }`}
           >
             👥 Usuarios
           </button>
           <button
             onClick={() => setActiveTab('ai')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'ai'
+            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${activeTab === 'ai'
                 ? 'bg-coral text-white shadow-md'
                 : 'bg-white text-carbon hover:bg-gray-100'
-            }`}
+              }`}
           >
             🤖 IA
           </button>
           <button
             onClick={() => setActiveTab('creator')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'creator'
+            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${activeTab === 'creator'
                 ? 'bg-coral text-white shadow-md'
                 : 'bg-white text-carbon hover:bg-gray-100'
-            }`}
+              }`}
           >
             🎨 Creator
           </button>
@@ -123,7 +119,7 @@ function CreatorSection() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [activeTab, setActiveTab] = useState<CreatorTab>('pending')
-  
+
   // Modal state
   const [selectedCreation, setSelectedCreation] = useState<ContentCreation | null>(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -139,10 +135,10 @@ function CreatorSection() {
     setError('')
     try {
       const status = activeTab === 'all' ? '' : activeTab
-      const url = status 
+      const url = status
         ? `/api/v1/admin/creator/all?status=${status}`
         : '/api/v1/admin/creator/all'
-      
+
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -160,7 +156,7 @@ function CreatorSection() {
 
   const handleReview = async () => {
     if (!selectedCreation) return
-    
+
     try {
       const response = await fetch(`/api/v1/admin/creator/${selectedCreation.id}/review`, {
         method: 'PUT',
@@ -173,9 +169,9 @@ function CreatorSection() {
           notes: reviewNotes,
         }),
       })
-      
+
       if (!response.ok) throw new Error('Error al revisar')
-      
+
       setSuccess(`Creación ${reviewAction === 'approved' ? 'aprobada' : reviewAction === 'rejected' ? 'rechazada' : 'marcada para edición'}`)
       setShowReviewModal(false)
       setSelectedCreation(null)
@@ -200,9 +196,9 @@ function CreatorSection() {
           notes: 'Aprobado rápidamente',
         }),
       })
-      
+
       if (!response.ok) throw new Error('Error al aprobar')
-      
+
       setSuccess(`"${creation.name}" aprobado ✓`)
       loadCreations()
       setTimeout(() => setSuccess(''), 3000)
@@ -213,7 +209,7 @@ function CreatorSection() {
 
   const quickReject = async (creation: ContentCreation) => {
     if (!confirm(`¿Rechazar "${creation.name}"?`)) return
-    
+
     try {
       const response = await fetch(`/api/v1/admin/creator/${creation.id}/review`, {
         method: 'PUT',
@@ -226,9 +222,9 @@ function CreatorSection() {
           notes: 'Rechazado',
         }),
       })
-      
+
       if (!response.ok) throw new Error('Error al rechazar')
-      
+
       setSuccess(`"${creation.name}" rechazado`)
       loadCreations()
       setTimeout(() => setSuccess(''), 3000)
@@ -342,11 +338,10 @@ function CreatorSection() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-3 font-medium whitespace-nowrap transition-colors ${
-                activeTab === tab
+              className={`px-5 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === tab
                   ? 'text-coral border-b-2 border-coral bg-coral/5'
                   : 'text-gray-600 hover:text-carbon hover:bg-gray-50'
-              }`}
+                }`}
             >
               {tab === 'pending' && `⏳ Pendientes (${stats.pending})`}
               {tab === 'approved' && `✅ Aprobados (${stats.approved})`}
@@ -367,16 +362,16 @@ function CreatorSection() {
             <div className="text-center py-12">
               <div className="text-4xl mb-4">📭</div>
               <p className="text-gray-500">
-                {activeTab === 'pending' 
-                  ? 'No hay creaciones pendientes de revisión' 
+                {activeTab === 'pending'
+                  ? 'No hay creaciones pendientes de revisión'
                   : 'No hay creaciones en esta categoría'}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {creations.map(creation => (
-                <div 
-                  key={creation.id} 
+                <div
+                  key={creation.id}
                   className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-shadow"
                 >
                   {/* Header */}
@@ -467,7 +462,7 @@ function CreatorSection() {
                 ×
               </button>
             </div>
-            
+
             <div className="p-6">
               {/* Preview */}
               <div className="bg-gray-100 rounded-xl p-4 mb-4">
@@ -507,7 +502,7 @@ function CreatorSection() {
                 <div className="bg-gray-50 rounded-lg p-3 mt-1 max-h-40 overflow-y-auto">
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(selectedCreation.recipe || {}).map(([key, value]) => (
-                      <span 
+                      <span
                         key={key}
                         className="px-2 py-1 bg-white rounded border text-xs"
                       >
@@ -526,31 +521,28 @@ function CreatorSection() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setReviewAction('approved')}
-                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
-                          reviewAction === 'approved'
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${reviewAction === 'approved'
                             ? 'bg-green-500 text-white'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                          }`}
                       >
                         ✅ Aprobar
                       </button>
                       <button
                         onClick={() => setReviewAction('needs_edit')}
-                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
-                          reviewAction === 'needs_edit'
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${reviewAction === 'needs_edit'
                             ? 'bg-orange-500 text-white'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                          }`}
                       >
                         ✏️ Pedir Edición
                       </button>
                       <button
                         onClick={() => setReviewAction('rejected')}
-                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
-                          reviewAction === 'rejected'
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${reviewAction === 'rejected'
                             ? 'bg-red-500 text-white'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                          }`}
                       >
                         ❌ Rechazar
                       </button>
@@ -567,29 +559,28 @@ function CreatorSection() {
                       className="input"
                       rows={3}
                       placeholder={
-                        reviewAction === 'approved' 
-                          ? '¡Excelente trabajo!' 
+                        reviewAction === 'approved'
+                          ? '¡Excelente trabajo!'
                           : reviewAction === 'needs_edit'
-                          ? 'Por favor ajusta...'
-                          : 'Motivo del rechazo...'
+                            ? 'Por favor ajusta...'
+                            : 'Motivo del rechazo...'
                       }
                     />
                   </div>
 
                   <div className="flex justify-end gap-3">
-                    <button 
-                      onClick={() => setShowReviewModal(false)} 
+                    <button
+                      onClick={() => setShowReviewModal(false)}
                       className="btn-outline"
                     >
                       Cancelar
                     </button>
-                    <button 
+                    <button
                       onClick={handleReview}
-                      className={`btn-primary ${
-                        reviewAction === 'approved' ? 'bg-green-500 hover:bg-green-600' :
-                        reviewAction === 'rejected' ? 'bg-red-500 hover:bg-red-600' :
-                        'bg-orange-500 hover:bg-orange-600'
-                      }`}
+                      className={`btn-primary ${reviewAction === 'approved' ? 'bg-green-500 hover:bg-green-600' :
+                          reviewAction === 'rejected' ? 'bg-red-500 hover:bg-red-600' :
+                            'bg-orange-500 hover:bg-orange-600'
+                        }`}
                     >
                       Confirmar
                     </button>
@@ -627,7 +618,7 @@ function CreatorSection() {
 function CreationPreview({ creation, large = false }: { creation: ContentCreation; large?: boolean }) {
   const size = large ? 'h-48' : 'h-24'
   const recipe = creation.recipe || {}
-  
+
   const getPreviewColor = () => {
     // Try to get a meaningful color from recipe
     if (recipe.skinTone) {
@@ -680,6 +671,7 @@ function CreationPreview({ creation, large = false }: { creation: ContentCreatio
   )
 }
 
+// ========== Parameters Section ==========
 // ========== Parameters Section ==========
 function ParametersSection() {
   const [categories, setCategories] = useState<string[]>([])
@@ -801,167 +793,203 @@ function ParametersSection() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-white/50 bg-opacity-90 backdrop-blur-md">
         {/* Header */}
-        <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50">
-          <h2 className="text-lg font-bold text-carbon">Parámetros del Sistema</h2>
-          <button onClick={handleCreate} className="btn-primary-sm">
-            + Nuevo
+        <div className="px-8 py-6 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+          <div>
+            <h2 className="text-2xl font-black text-carbon">Parámetros del Sistema</h2>
+            <p className="text-gray-500 text-sm mt-1">Configura las variables globales del juego</p>
+          </div>
+          <button
+            onClick={handleCreate}
+            className="bg-coral hover:bg-red-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-coral/30 hover:shadow-coral/50 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2"
+          >
+            <span>✨</span> Nuevo
           </button>
         </div>
 
         {/* Category Tabs */}
-        <div className="flex border-b border-gray-200 overflow-x-auto bg-white">
+        <div className="flex border-b border-gray-100 overflow-x-auto bg-gray-50/50 p-2 gap-2">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-5 py-3 font-medium whitespace-nowrap transition-colors ${
-                selectedCategory === cat
-                  ? 'text-coral border-b-2 border-coral bg-coral/5'
-                  : 'text-gray-600 hover:text-carbon hover:bg-gray-50'
-              }`}
+              className={`px-6 py-3 rounded-xl font-bold whitespace-nowrap transition-all ${selectedCategory === cat
+                  ? 'bg-white text-coral shadow-md scale-105 ring-1 ring-coral/20'
+                  : 'text-gray-500 hover:text-carbon hover:bg-white/50'
+                }`}
             >
               {cat}
             </button>
           ))}
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Card Grid */}
+        <div className="p-8 bg-gray-50/30 min-h-[400px]">
           {loading ? (
-            <div className="p-8 text-center text-gray-500">Cargando...</div>
+            <div className="flex flex-col items-center justify-center py-20 opacity-50">
+              <div className="text-6xl mb-4 animate-bounce">🎲</div>
+              <p className="font-bold text-gray-400">Cargando parámetros...</p>
+            </div>
           ) : parameters.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">No hay parámetros en esta categoría</div>
+            <div className="flex flex-col items-center justify-center py-20 opacity-60">
+              <div className="text-6xl mb-4 grayscale">📭</div>
+              <p className="font-bold text-gray-400">No hay parámetros en esta categoría</p>
+              <button onClick={handleCreate} className="mt-4 text-agua font-bold hover:underline">
+                Crear el primero
+              </button>
+            </div>
           ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Icon</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Code</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Nombre</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Orden</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Activo</th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {parameters.map(param => (
-                  <tr key={param.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-2xl">{param.icon || '—'}</td>
-                    <td className="px-4 py-3 font-mono text-sm text-gray-600">{param.code}</td>
-                    <td className="px-4 py-3 font-medium">{param.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{param.sort_order}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        param.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {param.is_active ? 'Sí' : 'No'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {parameters.map(param => (
+                <div
+                  key={param.id}
+                  className="group bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-xl hover:border-coral/20 transition-all duration-300 transform hover:-translate-y-2 relative"
+                >
+                  {/* Active Status Dot */}
+                  <div className={`absolute top-4 right-4 w-3 h-3 rounded-full ${param.is_active ? 'bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'bg-gray-300'}`} title={param.is_active ? 'Activo' : 'Inactivo'} />
+
+                  {/* Icon & Name */}
+                  <div className="text-center mb-4">
+                    <div className="text-5xl mb-3 transform group-hover:scale-110 transition-transform duration-300">
+                      {param.icon || '📦'}
+                    </div>
+                    <h3 className="font-bold text-lg text-carbon leading-tight mb-1">{param.name}</h3>
+                    <div className="inline-block bg-gray-100 text-gray-500 font-mono text-xs px-2 py-0.5 rounded-md border border-gray-200">
+                      {param.code}
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {param.description && (
+                    <p className="text-sm text-gray-500 text-center mb-4 line-clamp-2 h-10">
+                      {param.description}
+                    </p>
+                  )}
+
+                  {/* Actions Overlay */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                    <span className="text-xs font-bold text-gray-300">
+                      #{param.sort_order}
+                    </span>
+                    <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(param)}
-                        className="btn-ghost text-agua hover:text-agua/80 mr-2"
+                        className="p-2 text-agua bg-agua/10 rounded-lg hover:bg-agua hover:text-white transition-colors"
+                        title="Editar"
                       >
-                        Editar
+                        ✏️
                       </button>
                       <button
                         onClick={() => handleDelete(param)}
-                        className="btn-ghost text-red-500 hover:text-red-700"
+                        className="p-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
+                        title="Eliminar"
                       >
-                        Eliminar
+                        🗑️
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="border-b px-6 py-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-carbon">
-                {editingParam ? 'Editar Parámetro' : 'Nuevo Parámetro'}
+        <div className="fixed inset-0 bg-carbon/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all scale-100 border-4 border-white">
+            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-xl font-black text-carbon flex items-center gap-2">
+                {editingParam ? '✏️ Editar' : '✨ Nuevo'} Parámetro
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl">
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 transition-colors font-bold"
+              >
                 ×
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-8 space-y-5">
               {!editingParam && (
                 <>
                   <div>
-                    <label className="block text-sm font-semibold text-carbon mb-1">Categoría</label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Categoría</label>
                     <input
                       type="text"
                       value={formData.category}
                       onChange={e => setFormData({ ...formData, category: e.target.value })}
-                      className="input"
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-coral focus:ring-4 focus:ring-coral/10 outline-none transition-all font-bold text-carbon"
                       required
+                      placeholder="Ej: sistema"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-carbon mb-1">Código</label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Código (ID)</label>
                     <input
                       type="text"
                       value={formData.code}
                       onChange={e => setFormData({ ...formData, code: e.target.value })}
-                      className="input font-mono"
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-coral focus:ring-4 focus:ring-coral/10 outline-none transition-all font-mono text-sm"
                       required
+                      placeholder="SYSTEM_VAR"
                     />
                   </div>
                 </>
               )}
-              <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Nombre</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="input"
-                  required
-                />
+
+              <div className="grid grid-cols-4 gap-4">
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Icono</label>
+                  <input
+                    type="text"
+                    value={formData.icon}
+                    onChange={e => setFormData({ ...formData, icon: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-coral focus:ring-4 focus:ring-coral/10 outline-none transition-all text-center text-2xl"
+                    placeholder="🌮"
+                  />
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nombre Visible</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-coral focus:ring-4 focus:ring-coral/10 outline-none transition-all font-bold"
+                    required
+                    placeholder="Nombre amigable"
+                  />
+                </div>
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Icon (emoji)</label>
-                <input
-                  type="text"
-                  value={formData.icon}
-                  onChange={e => setFormData({ ...formData, icon: e.target.value })}
-                  className="input"
-                  placeholder="🌮"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Descripción</label>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Descripción</label>
                 <textarea
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  className="input"
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-coral focus:ring-4 focus:ring-coral/10 outline-none transition-all text-sm"
                   rows={2}
+                  placeholder="¿Para qué sirve este parámetro?"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Orden</label>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Orden de visualización</label>
                 <input
                   type="number"
                   value={formData.sort_order}
                   onChange={e => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-                  className="input"
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-coral focus:ring-4 focus:ring-coral/10 outline-none transition-all"
                 />
               </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="btn-outline-sm">
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors">
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary-sm">
-                  {editingParam ? 'Guardar' : 'Crear'}
+                <button type="submit" className="bg-coral hover:bg-red-500 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-coral/30 hover:shadow-coral/50 transition-all transform hover:-translate-y-1 active:scale-95">
+                  {editingParam ? 'Guardar Cambios' : 'Crear Parámetro'}
                 </button>
               </div>
             </form>
@@ -1072,9 +1100,8 @@ function UsersSection() {
                     <td className="px-4 py-3 text-gray-600">{user.display_name || '—'}</td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(user.created_at)}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        user.is_admin ? 'bg-agua/20 text-agua' : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${user.is_admin ? 'bg-agua/20 text-agua' : 'bg-gray-100 text-gray-600'
+                        }`}>
                         {user.is_admin ? 'Admin' : 'Usuario'}
                       </span>
                     </td>
@@ -1391,9 +1418,8 @@ function AISection() {
                   {config.is_ready ? 'IA Lista' : 'IA No Configurada'}
                 </span>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                config.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-              }`}>
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${config.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                }`}>
                 {config.enabled ? 'Habilitada' : 'Deshabilitada'}
               </span>
             </div>
@@ -1435,9 +1461,8 @@ function AISection() {
               </button>
 
               {testResult && (
-                <div className={`mt-4 p-4 rounded-xl ${
-                  testResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                }`}>
+                <div className={`mt-4 p-4 rounded-xl ${testResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                  }`}>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xl">{testResult.success ? '✅' : '❌'}</span>
                     <span className="font-semibold">{testResult.success ? 'Éxito' : 'Error'}</span>
@@ -1464,13 +1489,11 @@ function AISection() {
               <button
                 onClick={() => handleUpdateConfig({ enabled: !config.enabled })}
                 disabled={saving}
-                className={`relative w-14 h-7 rounded-full transition-colors ${
-                  config.enabled ? 'bg-green-500' : 'bg-gray-300'
-                }`}
+                className={`relative w-14 h-7 rounded-full transition-colors ${config.enabled ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
               >
-                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                  config.enabled ? 'translate-x-8' : 'translate-x-1'
-                }`} />
+                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${config.enabled ? 'translate-x-8' : 'translate-x-1'
+                  }`} />
               </button>
             </div>
 
@@ -1625,13 +1648,11 @@ function AISection() {
               <button
                 onClick={() => handleUpdateConfig({ cache_enabled: !config.cache_enabled })}
                 disabled={saving}
-                className={`relative w-14 h-7 rounded-full transition-colors ${
-                  config.cache_enabled ? 'bg-green-500' : 'bg-gray-300'
-                }`}
+                className={`relative w-14 h-7 rounded-full transition-colors ${config.cache_enabled ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
               >
-                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                  config.cache_enabled ? 'translate-x-8' : 'translate-x-1'
-                }`} />
+                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${config.cache_enabled ? 'translate-x-8' : 'translate-x-1'
+                  }`} />
               </button>
             </div>
 
@@ -1641,13 +1662,11 @@ function AISection() {
               <button
                 onClick={() => handleUpdateConfig({ fallback_enabled: !config.fallback_enabled })}
                 disabled={saving}
-                className={`relative w-14 h-7 rounded-full transition-colors ${
-                  config.fallback_enabled ? 'bg-green-500' : 'bg-gray-300'
-                }`}
+                className={`relative w-14 h-7 rounded-full transition-colors ${config.fallback_enabled ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
               >
-                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                  config.fallback_enabled ? 'translate-x-8' : 'translate-x-1'
-                }`} />
+                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${config.fallback_enabled ? 'translate-x-8' : 'translate-x-1'
+                  }`} />
               </button>
             </div>
           </div>
