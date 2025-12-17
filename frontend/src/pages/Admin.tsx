@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { api, Parameter, CreateParameter } from '../services/api'
 
-type AdminTab = 'parameters' | 'users' | 'ai'
+type AdminTab = 'parameters' | 'users' | 'ai' | 'creator'
 
 interface Player {
   id: string
@@ -19,88 +19,679 @@ export function Admin() {
   const navigate = useNavigate()
   const { player } = useAuthStore()
 
-  const [activeTab, setActiveTab] = useState<AdminTab>('parameters')
+  const [activeTab, setActiveTab] = useState&lt;AdminTab&gt;('parameters')
 
   // Redirect if not admin
   useEffect(() => {
-    if (player && !player.is_admin) {
+    if (player &amp;&amp; !player.is_admin) {
       navigate('/game')
     }
   }, [player, navigate])
 
   return (
-    <div className="min-h-screen bg-crema">
+    &lt;div className="min-h-screen bg-crema"&gt;
       {/* Header */}
-      <header className="bg-gradient-to-r from-coral to-terracota text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/game')}
+      &lt;header className="bg-gradient-to-r from-coral to-terracota text-white shadow-lg"&gt;
+        &lt;div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between"&gt;
+          &lt;div className="flex items-center gap-4"&gt;
+            &lt;button
+              onClick={() =&gt; navigate('/game')}
               className="btn-ghost text-white/80 hover:text-white hover:bg-white/10"
-            >
+            &gt;
               ← Volver
-            </button>
-            <h1 className="text-2xl font-bold">🛠️ Admin Console</h1>
-          </div>
-          <span className="text-white/80">{player?.email}</span>
-        </div>
-      </header>
+            &lt;/button&gt;
+            &lt;h1 className="text-2xl font-bold"&gt;🛠️ Admin Console&lt;/h1&gt;
+          &lt;/div&gt;
+          &lt;span className="text-white/80"&gt;{player?.email}&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/header&gt;
 
       {/* Main Tabs */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab('parameters')}
+      &lt;div className="max-w-7xl mx-auto px-4 py-6"&gt;
+        &lt;div className="flex gap-2 mb-6 flex-wrap"&gt;
+          &lt;button
+            onClick={() =&gt; setActiveTab('parameters')}
             className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
               activeTab === 'parameters'
                 ? 'bg-coral text-white shadow-md'
                 : 'bg-white text-carbon hover:bg-gray-100'
             }`}
-          >
+          &gt;
             📋 Parámetros
-          </button>
-          <button
-            onClick={() => setActiveTab('users')}
+          &lt;/button&gt;
+          &lt;button
+            onClick={() =&gt; setActiveTab('users')}
             className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
               activeTab === 'users'
                 ? 'bg-coral text-white shadow-md'
                 : 'bg-white text-carbon hover:bg-gray-100'
             }`}
-          >
+          &gt;
             👥 Usuarios
-          </button>
-          <button
-            onClick={() => setActiveTab('ai')}
+          &lt;/button&gt;
+          &lt;button
+            onClick={() =&gt; setActiveTab('ai')}
             className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
               activeTab === 'ai'
                 ? 'bg-coral text-white shadow-md'
                 : 'bg-white text-carbon hover:bg-gray-100'
             }`}
-          >
+          &gt;
             🤖 IA
-          </button>
-        </div>
+          &lt;/button&gt;
+          &lt;button
+            onClick={() =&gt; setActiveTab('creator')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
+              activeTab === 'creator'
+                ? 'bg-coral text-white shadow-md'
+                : 'bg-white text-carbon hover:bg-gray-100'
+            }`}
+          &gt;
+            🎨 Creator
+          &lt;/button&gt;
+        &lt;/div&gt;
 
-        {activeTab === 'parameters' && <ParametersSection />}
-        {activeTab === 'users' && <UsersSection />}
-        {activeTab === 'ai' && <AISection />}
-      </div>
-    </div>
+        {activeTab === 'parameters' &amp;&amp; &lt;ParametersSection /&gt;}
+        {activeTab === 'users' &amp;&amp; &lt;UsersSection /&gt;}
+        {activeTab === 'ai' &amp;&amp; &lt;AISection /&gt;}
+        {activeTab === 'creator' &amp;&amp; &lt;CreatorSection /&gt;}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  )
+}
+
+// ========== Creator Section (NEW!) ==========
+interface ContentCreation {
+  id: string
+  content_type: string
+  name: string
+  description: string
+  recipe: Record&lt;string, string&gt;
+  creator_name: string
+  created_at: string
+  status: 'pending' | 'approved' | 'rejected' | 'needs_edit'
+  review_notes?: string
+  reviewed_at?: string
+  times_used: number
+}
+
+type CreatorTab = 'pending' | 'approved' | 'rejected' | 'all'
+
+function CreatorSection() {
+  const [creations, setCreations] = useState&lt;ContentCreation[]&gt;([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [activeTab, setActiveTab] = useState&lt;CreatorTab&gt;('pending')
+  
+  // Modal state
+  const [selectedCreation, setSelectedCreation] = useState&lt;ContentCreation | null&gt;(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviewNotes, setReviewNotes] = useState('')
+  const [reviewAction, setReviewAction] = useState&lt;'approved' | 'rejected' | 'needs_edit'&gt;('approved')
+
+  useEffect(() => {
+    loadCreations()
+  }, [activeTab])
+
+  const loadCreations = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const status = activeTab === 'all' ? '' : activeTab
+      const url = status 
+        ? `/api/v1/admin/creator/all?status=${status}`
+        : '/api/v1/admin/creator/all'
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
+      if (!response.ok) throw new Error('Error cargando creaciones')
+      const data = await response.json()
+      setCreations(data || [])
+    } catch {
+      setError('Error cargando creaciones')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReview = async () => {
+    if (!selectedCreation) return
+    
+    try {
+      const response = await fetch(`/api/v1/admin/creator/${selectedCreation.id}/review`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: reviewAction,
+          notes: reviewNotes,
+        }),
+      })
+      
+      if (!response.ok) throw new Error('Error al revisar')
+      
+      setSuccess(`Creación ${reviewAction === 'approved' ? 'aprobada' : reviewAction === 'rejected' ? 'rechazada' : 'marcada para edición'}`)
+      setShowReviewModal(false)
+      setSelectedCreation(null)
+      setReviewNotes('')
+      loadCreations()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setError('Error al revisar la creación')
+    }
+  }
+
+  const quickApprove = async (creation: ContentCreation) => {
+    try {
+      const response = await fetch(`/api/v1/admin/creator/${creation.id}/review`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'approved',
+          notes: 'Aprobado rápidamente',
+        }),
+      })
+      
+      if (!response.ok) throw new Error('Error al aprobar')
+      
+      setSuccess(`"${creation.name}" aprobado ✓`)
+      loadCreations()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setError('Error al aprobar')
+    }
+  }
+
+  const quickReject = async (creation: ContentCreation) => {
+    if (!confirm(`¿Rechazar "${creation.name}"?`)) return
+    
+    try {
+      const response = await fetch(`/api/v1/admin/creator/${creation.id}/review`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'rejected',
+          notes: 'Rechazado',
+        }),
+      })
+      
+      if (!response.ok) throw new Error('Error al rechazar')
+      
+      setSuccess(`"${creation.name}" rechazado`)
+      loadCreations()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setError('Error al rechazar')
+    }
+  }
+
+  const openReviewModal = (creation: ContentCreation) => {
+    setSelectedCreation(creation)
+    setReviewNotes('')
+    setReviewAction('approved')
+    setShowReviewModal(true)
+  }
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('es-CR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  const getTypeIcon = (type: string) => {
+    const icons: Record&lt;string, string&gt; = {
+      personajes: '👤',
+      productos: '🥬',
+      artefactos: '🪑',
+      sitios: '📍',
+    }
+    return icons[type] || '📦'
+  }
+
+  const getStatusBadge = (status: string) => {
+    const styles: Record&lt;string, string&gt; = {
+      pending: 'bg-yellow-100 text-yellow-700',
+      approved: 'bg-green-100 text-green-700',
+      rejected: 'bg-red-100 text-red-700',
+      needs_edit: 'bg-orange-100 text-orange-700',
+    }
+    const labels: Record&lt;string, string&gt; = {
+      pending: '⏳ Pendiente',
+      approved: '✅ Aprobado',
+      rejected: '❌ Rechazado',
+      needs_edit: '✏️ Editar',
+    }
+    return (
+      &lt;span className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status] || 'bg-gray-100'}`}&gt;
+        {labels[status] || status}
+      &lt;/span&gt;
+    )
+  }
+
+  // Stats
+  const stats = {
+    pending: creations.filter(c => c.status === 'pending').length,
+    approved: creations.filter(c => c.status === 'approved').length,
+    rejected: creations.filter(c => c.status === 'rejected').length,
+    total: creations.length,
+  }
+
+  return (
+    &lt;&gt;
+      {error &amp;&amp; (
+        &lt;div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center"&gt;
+          &lt;span&gt;{error}&lt;/span&gt;
+          &lt;button onClick={() =&gt; setError('')} className="text-red-700 hover:text-red-900 font-bold"&gt;×&lt;/button&gt;
+        &lt;/div&gt;
+      )}
+
+      {success &amp;&amp; (
+        &lt;div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-4"&gt;
+          {success}
+        &lt;/div&gt;
+      )}
+
+      {/* Stats Cards */}
+      &lt;div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"&gt;
+        &lt;div className="bg-white rounded-xl p-4 shadow-md"&gt;
+          &lt;div className="text-3xl font-bold text-yellow-600"&gt;{stats.pending}&lt;/div&gt;
+          &lt;div className="text-sm text-gray-600"&gt;Pendientes&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div className="bg-white rounded-xl p-4 shadow-md"&gt;
+          &lt;div className="text-3xl font-bold text-green-600"&gt;{stats.approved}&lt;/div&gt;
+          &lt;div className="text-sm text-gray-600"&gt;Aprobados&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div className="bg-white rounded-xl p-4 shadow-md"&gt;
+          &lt;div className="text-3xl font-bold text-red-600"&gt;{stats.rejected}&lt;/div&gt;
+          &lt;div className="text-sm text-gray-600"&gt;Rechazados&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div className="bg-white rounded-xl p-4 shadow-md"&gt;
+          &lt;div className="text-3xl font-bold text-agua"&gt;{stats.total}&lt;/div&gt;
+          &lt;div className="text-sm text-gray-600"&gt;Total&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div className="bg-white rounded-2xl shadow-lg overflow-hidden"&gt;
+        {/* Header */}
+        &lt;div className="border-b border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between"&gt;
+          &lt;h2 className="text-lg font-bold text-carbon"&gt;🎨 Creaciones de Nacho&lt;/h2&gt;
+          &lt;button onClick={loadCreations} className="btn-ghost text-agua"&gt;
+            🔄 Actualizar
+          &lt;/button&gt;
+        &lt;/div&gt;
+
+        {/* Sub Tabs */}
+        &lt;div className="flex border-b border-gray-200 overflow-x-auto bg-white"&gt;
+          {(['pending', 'approved', 'rejected', 'all'] as CreatorTab[]).map(tab =&gt; (
+            &lt;button
+              key={tab}
+              onClick={() =&gt; setActiveTab(tab)}
+              className={`px-5 py-3 font-medium whitespace-nowrap transition-colors ${
+                activeTab === tab
+                  ? 'text-coral border-b-2 border-coral bg-coral/5'
+                  : 'text-gray-600 hover:text-carbon hover:bg-gray-50'
+              }`}
+            &gt;
+              {tab === 'pending' &amp;&amp; `⏳ Pendientes (${stats.pending})`}
+              {tab === 'approved' &amp;&amp; `✅ Aprobados (${stats.approved})`}
+              {tab === 'rejected' &amp;&amp; `❌ Rechazados (${stats.rejected})`}
+              {tab === 'all' &amp;&amp; `📋 Todos (${stats.total})`}
+            &lt;/button&gt;
+          ))}
+        &lt;/div&gt;
+
+        {/* Content */}
+        &lt;div className="p-6"&gt;
+          {loading ? (
+            &lt;div className="text-center py-12"&gt;
+              &lt;div className="text-4xl mb-4 animate-bounce"&gt;🎨&lt;/div&gt;
+              &lt;p className="text-gray-500"&gt;Cargando creaciones...&lt;/p&gt;
+            &lt;/div&gt;
+          ) : creations.length === 0 ? (
+            &lt;div className="text-center py-12"&gt;
+              &lt;div className="text-4xl mb-4"&gt;📭&lt;/div&gt;
+              &lt;p className="text-gray-500"&gt;
+                {activeTab === 'pending' 
+                  ? 'No hay creaciones pendientes de revisión' 
+                  : 'No hay creaciones en esta categoría'}
+              &lt;/p&gt;
+            &lt;/div&gt;
+          ) : (
+            &lt;div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"&gt;
+              {creations.map(creation =&gt; (
+                &lt;div 
+                  key={creation.id} 
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-shadow"
+                &gt;
+                  {/* Header */}
+                  &lt;div className="flex items-start justify-between mb-3"&gt;
+                    &lt;div className="flex items-center gap-2"&gt;
+                      &lt;span className="text-2xl"&gt;{getTypeIcon(creation.content_type)}&lt;/span&gt;
+                      &lt;div&gt;
+                        &lt;h3 className="font-bold text-carbon"&gt;{creation.name}&lt;/h3&gt;
+                        &lt;p className="text-xs text-gray-500"&gt;{creation.content_type}&lt;/p&gt;
+                      &lt;/div&gt;
+                    &lt;/div&gt;
+                    {getStatusBadge(creation.status)}
+                  &lt;/div&gt;
+
+                  {/* Preview */}
+                  &lt;div className="bg-white rounded-lg p-3 mb-3 border"&gt;
+                    &lt;CreationPreview creation={creation} /&gt;
+                  &lt;/div&gt;
+
+                  {/* Description */}
+                  {creation.description &amp;&amp; (
+                    &lt;p className="text-sm text-gray-600 mb-3 line-clamp-2"&gt;
+                      {creation.description}
+                    &lt;/p&gt;
+                  )}
+
+                  {/* Meta */}
+                  &lt;div className="text-xs text-gray-500 mb-3 space-y-1"&gt;
+                    &lt;div&gt;👤 Por: &lt;span className="font-semibold"&gt;{creation.creator_name}&lt;/span&gt;&lt;/div&gt;
+                    &lt;div&gt;📅 {formatDate(creation.created_at)}&lt;/div&gt;
+                    {creation.times_used &gt; 0 &amp;&amp; (
+                      &lt;div&gt;🎮 Usado {creation.times_used} veces&lt;/div&gt;
+                    )}
+                    {creation.review_notes &amp;&amp; (
+                      &lt;div className="bg-yellow-50 p-2 rounded mt-2"&gt;
+                        📝 {creation.review_notes}
+                      &lt;/div&gt;
+                    )}
+                  &lt;/div&gt;
+
+                  {/* Actions */}
+                  {creation.status === 'pending' ? (
+                    &lt;div className="flex gap-2"&gt;
+                      &lt;button
+                        onClick={() =&gt; quickApprove(creation)}
+                        className="flex-1 py-2 px-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition-colors"
+                      &gt;
+                        ✅ Aprobar
+                      &lt;/button&gt;
+                      &lt;button
+                        onClick={() =&gt; openReviewModal(creation)}
+                        className="py-2 px-3 bg-gray-200 hover:bg-gray-300 text-carbon rounded-lg text-sm font-semibold transition-colors"
+                      &gt;
+                        📝
+                      &lt;/button&gt;
+                      &lt;button
+                        onClick={() =&gt; quickReject(creation)}
+                        className="py-2 px-3 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-semibold transition-colors"
+                      &gt;
+                        ❌
+                      &lt;/button&gt;
+                    &lt;/div&gt;
+                  ) : (
+                    &lt;button
+                      onClick={() =&gt; openReviewModal(creation)}
+                      className="w-full py-2 px-3 bg-gray-200 hover:bg-gray-300 text-carbon rounded-lg text-sm font-semibold transition-colors"
+                    &gt;
+                      👁️ Ver Detalles
+                    &lt;/button&gt;
+                  )}
+                &lt;/div&gt;
+              ))}
+            &lt;/div&gt;
+          )}
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      {/* Review Modal */}
+      {showReviewModal &amp;&amp; selectedCreation &amp;&amp; (
+        &lt;div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"&gt;
+          &lt;div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"&gt;
+            &lt;div className="border-b px-6 py-4 flex items-center justify-between sticky top-0 bg-white"&gt;
+              &lt;h3 className="text-lg font-bold text-carbon flex items-center gap-2"&gt;
+                {getTypeIcon(selectedCreation.content_type)}
+                {selectedCreation.name}
+              &lt;/h3&gt;
+              &lt;button onClick={() =&gt; setShowReviewModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl"&gt;
+                ×
+              &lt;/button&gt;
+            &lt;/div&gt;
+            
+            &lt;div className="p-6"&gt;
+              {/* Preview */}
+              &lt;div className="bg-gray-100 rounded-xl p-4 mb-4"&gt;
+                &lt;CreationPreview creation={selectedCreation} large /&gt;
+              &lt;/div&gt;
+
+              {/* Details */}
+              &lt;div className="grid grid-cols-2 gap-4 mb-4"&gt;
+                &lt;div&gt;
+                  &lt;label className="text-sm font-semibold text-gray-600"&gt;Tipo&lt;/label&gt;
+                  &lt;p className="font-medium"&gt;{selectedCreation.content_type}&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;label className="text-sm font-semibold text-gray-600"&gt;Creador&lt;/label&gt;
+                  &lt;p className="font-medium"&gt;{selectedCreation.creator_name}&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;label className="text-sm font-semibold text-gray-600"&gt;Fecha&lt;/label&gt;
+                  &lt;p className="font-medium"&gt;{formatDate(selectedCreation.created_at)}&lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;label className="text-sm font-semibold text-gray-600"&gt;Estado&lt;/label&gt;
+                  &lt;p&gt;{getStatusBadge(selectedCreation.status)}&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              {selectedCreation.description &amp;&amp; (
+                &lt;div className="mb-4"&gt;
+                  &lt;label className="text-sm font-semibold text-gray-600"&gt;Descripción&lt;/label&gt;
+                  &lt;p className="text-gray-700"&gt;{selectedCreation.description}&lt;/p&gt;
+                &lt;/div&gt;
+              )}
+
+              {/* Recipe/Attributes */}
+              &lt;div className="mb-4"&gt;
+                &lt;label className="text-sm font-semibold text-gray-600"&gt;Atributos&lt;/label&gt;
+                &lt;div className="bg-gray-50 rounded-lg p-3 mt-1 max-h-40 overflow-y-auto"&gt;
+                  &lt;div className="flex flex-wrap gap-2"&gt;
+                    {Object.entries(selectedCreation.recipe || {}).map(([key, value]) =&gt; (
+                      &lt;span 
+                        key={key}
+                        className="px-2 py-1 bg-white rounded border text-xs"
+                      &gt;
+                        &lt;span className="text-gray-500"&gt;{key}:&lt;/span&gt; {value}
+                      &lt;/span&gt;
+                    ))}
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              {/* Review Form (only for pending) */}
+              {selectedCreation.status === 'pending' &amp;&amp; (
+                &lt;&gt;
+                  &lt;div className="mb-4"&gt;
+                    &lt;label className="block text-sm font-semibold text-gray-600 mb-2"&gt;Acción&lt;/label&gt;
+                    &lt;div className="flex gap-2"&gt;
+                      &lt;button
+                        onClick={() =&gt; setReviewAction('approved')}
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
+                          reviewAction === 'approved'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      &gt;
+                        ✅ Aprobar
+                      &lt;/button&gt;
+                      &lt;button
+                        onClick={() =&gt; setReviewAction('needs_edit')}
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
+                          reviewAction === 'needs_edit'
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      &gt;
+                        ✏️ Pedir Edición
+                      &lt;/button&gt;
+                      &lt;button
+                        onClick={() =&gt; setReviewAction('rejected')}
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
+                          reviewAction === 'rejected'
+                            ? 'bg-red-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      &gt;
+                        ❌ Rechazar
+                      &lt;/button&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+
+                  &lt;div className="mb-4"&gt;
+                    &lt;label className="block text-sm font-semibold text-gray-600 mb-1"&gt;
+                      Notas para Nacho (opcional)
+                    &lt;/label&gt;
+                    &lt;textarea
+                      value={reviewNotes}
+                      onChange={e =&gt; setReviewNotes(e.target.value)}
+                      className="input"
+                      rows={3}
+                      placeholder={
+                        reviewAction === 'approved' 
+                          ? '¡Excelente trabajo!' 
+                          : reviewAction === 'needs_edit'
+                          ? 'Por favor ajusta...'
+                          : 'Motivo del rechazo...'
+                      }
+                    /&gt;
+                  &lt;/div&gt;
+
+                  &lt;div className="flex justify-end gap-3"&gt;
+                    &lt;button 
+                      onClick={() =&gt; setShowReviewModal(false)} 
+                      className="btn-outline"
+                    &gt;
+                      Cancelar
+                    &lt;/button&gt;
+                    &lt;button 
+                      onClick={handleReview}
+                      className={`btn-primary ${
+                        reviewAction === 'approved' ? 'bg-green-500 hover:bg-green-600' :
+                        reviewAction === 'rejected' ? 'bg-red-500 hover:bg-red-600' :
+                        'bg-orange-500 hover:bg-orange-600'
+                      }`}
+                    &gt;
+                      Confirmar
+                    &lt;/button&gt;
+                  &lt;/div&gt;
+                &lt;/&gt;
+              )}
+
+              {/* Previous notes if already reviewed */}
+              {selectedCreation.status !== 'pending' &amp;&amp; selectedCreation.review_notes &amp;&amp; (
+                &lt;div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4"&gt;
+                  &lt;label className="text-sm font-semibold text-yellow-800"&gt;📝 Notas de revisión&lt;/label&gt;
+                  &lt;p className="text-yellow-700 mt-1"&gt;{selectedCreation.review_notes}&lt;/p&gt;
+                &lt;/div&gt;
+              )}
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      )}
+
+      {/* Info */}
+      &lt;div className="mt-6 bg-gradient-to-r from-mango/10 to-coral/10 rounded-2xl p-6"&gt;
+        &lt;h3 className="font-bold text-carbon mb-2"&gt;✨ Sobre el Creator&lt;/h3&gt;
+        &lt;ul className="text-sm text-gray-600 space-y-1"&gt;
+          &lt;li&gt;• Las creaciones de Nacho aparecen aquí para tu revisión&lt;/li&gt;
+          &lt;li&gt;• Al aprobar, el contenido queda disponible para el juego&lt;/li&gt;
+          &lt;li&gt;• Puedes pedir ediciones con notas específicas&lt;/li&gt;
+          &lt;li&gt;• El juego usa contenido aprobado en &lt;code className="bg-gray-200 px-1 rounded"&gt;/api/v1/game/content&lt;/code&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/div&gt;
+    &lt;/&gt;
+  )
+}
+
+// Simple preview component (renders basic info since SVGs are complex)
+function CreationPreview({ creation, large = false }: { creation: ContentCreation; large?: boolean }) {
+  const size = large ? 'h-48' : 'h-24'
+  const recipe = creation.recipe || {}
+  
+  const getPreviewColor = () => {
+    // Try to get a meaningful color from recipe
+    if (recipe.skinTone) {
+      const tones: Record&lt;string, string&gt; = {
+        pale: '#FFF0E6', light: '#FDEBD0', medium: '#E59866', tan: '#CA6F1E',
+        brown: '#A04000', dark: '#6E2C00', olive: '#C5B358', golden: '#DAA520',
+      }
+      return tones[recipe.skinTone] || '#E59866'
+    }
+    if (recipe.color) {
+      const colors: Record&lt;string, string&gt; = {
+        green: '#4CAF50', red: '#F44336', yellow: '#FFEB3B', orange: '#FF9800',
+        brown: '#795548', white: '#FAFAFA', purple: '#9C27B0', pink: '#E91E63',
+      }
+      return colors[recipe.color] || '#4CAF50'
+    }
+    if (recipe.material) {
+      const materials: Record&lt;string, string&gt; = {
+        wood: '#8D6E63', metal: '#78909C', plastic_red: '#E53935', plastic_blue: '#1E88E5',
+      }
+      return materials[recipe.material] || '#8D6E63'
+    }
+    return '#9E9E9E'
+  }
+
+  const typeIcons: Record&lt;string, string&gt; = {
+    personajes: '👤',
+    productos: '🥬',
+    artefactos: '🪑',
+    sitios: '📍',
+  }
+
+  return (
+    &lt;div className={`${size} flex items-center justify-center rounded-lg`} style={{ backgroundColor: getPreviewColor() + '33' }}&gt;
+      &lt;div className="text-center"&gt;
+        &lt;div className={large ? 'text-6xl mb-2' : 'text-3xl'}&gt;
+          {typeIcons[creation.content_type] || '📦'}
+        &lt;/div&gt;
+        {large &amp;&amp; (
+          &lt;div className="text-sm font-medium text-gray-700"&gt;
+            {Object.entries(recipe).slice(0, 3).map(([k, v]) =&gt; (
+              &lt;span key={k} className="inline-block bg-white/80 px-2 py-0.5 rounded m-0.5 text-xs"&gt;
+                {v}
+              &lt;/span&gt;
+            ))}
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+    &lt;/div&gt;
   )
 }
 
 // ========== Parameters Section ==========
 function ParametersSection() {
-  const [categories, setCategories] = useState<string[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
-  const [parameters, setParameters] = useState<Parameter[]>([])
+  const [categories, setCategories] = useState&lt;string[]&gt;([])
+  const [selectedCategory, setSelectedCategory] = useState&lt;string&gt;('')
+  const [parameters, setParameters] = useState&lt;Parameter[]&gt;([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   // Modal state
   const [showModal, setShowModal] = useState(false)
-  const [editingParam, setEditingParam] = useState<Parameter | null>(null)
-  const [formData, setFormData] = useState<CreateParameter>({
+  const [editingParam, setEditingParam] = useState&lt;Parameter | null&gt;(null)
+  const [formData, setFormData] = useState&lt;CreateParameter&gt;({
     category: '',
     code: '',
     name: '',
@@ -109,22 +700,22 @@ function ParametersSection() {
     sort_order: 0,
   })
 
-  useEffect(() => {
+  useEffect(() =&gt; {
     loadCategories()
   }, [])
 
-  useEffect(() => {
+  useEffect(() =&gt; {
     if (selectedCategory) {
       loadParameters(selectedCategory)
     }
   }, [selectedCategory])
 
-  const loadCategories = async () => {
+  const loadCategories = async () =&gt; {
     try {
       const data = await api.admin.parameters.list()
-      const uniqueCategories = [...new Set(data.parameters.map(p => p.category))]
+      const uniqueCategories = [...new Set(data.parameters.map(p =&gt; p.category))]
       setCategories(uniqueCategories)
-      if (uniqueCategories.length > 0 && !selectedCategory) {
+      if (uniqueCategories.length &gt; 0 &amp;&amp; !selectedCategory) {
         setSelectedCategory(uniqueCategories[0])
       }
     } catch {
@@ -132,7 +723,7 @@ function ParametersSection() {
     }
   }
 
-  const loadParameters = async (category: string) => {
+  const loadParameters = async (category: string) =&gt; {
     setLoading(true)
     try {
       const data = await api.admin.parameters.list(category)
@@ -144,7 +735,7 @@ function ParametersSection() {
     }
   }
 
-  const handleCreate = () => {
+  const handleCreate = () =&gt; {
     setEditingParam(null)
     setFormData({
       category: selectedCategory,
@@ -157,7 +748,7 @@ function ParametersSection() {
     setShowModal(true)
   }
 
-  const handleEdit = (param: Parameter) => {
+  const handleEdit = (param: Parameter) =&gt; {
     setEditingParam(param)
     setFormData({
       category: param.category,
@@ -170,7 +761,7 @@ function ParametersSection() {
     setShowModal(true)
   }
 
-  const handleDelete = async (param: Parameter) => {
+  const handleDelete = async (param: Parameter) =&gt; {
     if (!confirm(`Eliminar "${param.name}"?`)) return
     try {
       await api.admin.parameters.delete(param.id)
@@ -180,7 +771,7 @@ function ParametersSection() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) =&gt; {
     e.preventDefault()
     setError('')
     try {
@@ -202,196 +793,196 @@ function ParametersSection() {
   }
 
   return (
-    <>
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center">
-          <span>{error}</span>
-          <button onClick={() => setError('')} className="text-red-700 hover:text-red-900 font-bold">×</button>
-        </div>
+    &lt;&gt;
+      {error &amp;&amp; (
+        &lt;div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center"&gt;
+          &lt;span&gt;{error}&lt;/span&gt;
+          &lt;button onClick={() =&gt; setError('')} className="text-red-700 hover:text-red-900 font-bold"&gt;×&lt;/button&gt;
+        &lt;/div&gt;
       )}
 
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      &lt;div className="bg-white rounded-2xl shadow-lg overflow-hidden"&gt;
         {/* Header */}
-        <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50">
-          <h2 className="text-lg font-bold text-carbon">Parámetros del Sistema</h2>
-          <button onClick={handleCreate} className="btn-primary-sm">
+        &lt;div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50"&gt;
+          &lt;h2 className="text-lg font-bold text-carbon"&gt;Parámetros del Sistema&lt;/h2&gt;
+          &lt;button onClick={handleCreate} className="btn-primary-sm"&gt;
             + Nuevo
-          </button>
-        </div>
+          &lt;/button&gt;
+        &lt;/div&gt;
 
         {/* Category Tabs */}
-        <div className="flex border-b border-gray-200 overflow-x-auto bg-white">
-          {categories.map(cat => (
-            <button
+        &lt;div className="flex border-b border-gray-200 overflow-x-auto bg-white"&gt;
+          {categories.map(cat =&gt; (
+            &lt;button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() =&gt; setSelectedCategory(cat)}
               className={`px-5 py-3 font-medium whitespace-nowrap transition-colors ${
                 selectedCategory === cat
                   ? 'text-coral border-b-2 border-coral bg-coral/5'
                   : 'text-gray-600 hover:text-carbon hover:bg-gray-50'
               }`}
-            >
+            &gt;
               {cat}
-            </button>
+            &lt;/button&gt;
           ))}
-        </div>
+        &lt;/div&gt;
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        &lt;div className="overflow-x-auto"&gt;
           {loading ? (
-            <div className="p-8 text-center text-gray-500">Cargando...</div>
+            &lt;div className="p-8 text-center text-gray-500"&gt;Cargando...&lt;/div&gt;
           ) : parameters.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">No hay parámetros en esta categoría</div>
+            &lt;div className="p-8 text-center text-gray-500"&gt;No hay parámetros en esta categoría&lt;/div&gt;
           ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Icon</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Code</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Nombre</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Orden</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Activo</th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {parameters.map(param => (
-                  <tr key={param.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-2xl">{param.icon || '—'}</td>
-                    <td className="px-4 py-3 font-mono text-sm text-gray-600">{param.code}</td>
-                    <td className="px-4 py-3 font-medium">{param.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{param.sort_order}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+            &lt;table className="w-full"&gt;
+              &lt;thead className="bg-gray-50 border-b"&gt;
+                &lt;tr&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Icon&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Code&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Nombre&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Orden&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Activo&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-right text-sm font-semibold text-gray-600"&gt;Acciones&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody className="divide-y divide-gray-100"&gt;
+                {parameters.map(param =&gt; (
+                  &lt;tr key={param.id} className="hover:bg-gray-50 transition-colors"&gt;
+                    &lt;td className="px-4 py-3 text-2xl"&gt;{param.icon || '—'}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 font-mono text-sm text-gray-600"&gt;{param.code}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 font-medium"&gt;{param.name}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-gray-600"&gt;{param.sort_order}&lt;/td&gt;
+                    &lt;td className="px-4 py-3"&gt;
+                      &lt;span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         param.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
+                      }`}&gt;
                         {param.is_active ? 'Sí' : 'No'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleEdit(param)}
+                      &lt;/span&gt;
+                    &lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-right"&gt;
+                      &lt;button
+                        onClick={() =&gt; handleEdit(param)}
                         className="btn-ghost text-agua hover:text-agua/80 mr-2"
-                      >
+                      &gt;
                         Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(param)}
+                      &lt;/button&gt;
+                      &lt;button
+                        onClick={() =&gt; handleDelete(param)}
                         className="btn-ghost text-red-500 hover:text-red-700"
-                      >
+                      &gt;
                         Eliminar
-                      </button>
-                    </td>
-                  </tr>
+                      &lt;/button&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
                 ))}
-              </tbody>
-            </table>
+              &lt;/tbody&gt;
+            &lt;/table&gt;
           )}
-        </div>
-      </div>
+        &lt;/div&gt;
+      &lt;/div&gt;
 
       {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="border-b px-6 py-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-carbon">
+      {showModal &amp;&amp; (
+        &lt;div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"&gt;
+          &lt;div className="bg-white rounded-2xl shadow-2xl w-full max-w-md"&gt;
+            &lt;div className="border-b px-6 py-4 flex items-center justify-between"&gt;
+              &lt;h3 className="text-lg font-bold text-carbon"&gt;
                 {editingParam ? 'Editar Parámetro' : 'Nuevo Parámetro'}
-              </h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl">
+              &lt;/h3&gt;
+              &lt;button onClick={() =&gt; setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl"&gt;
                 ×
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {!editingParam && (
-                <>
-                  <div>
-                    <label className="block text-sm font-semibold text-carbon mb-1">Categoría</label>
-                    <input
+              &lt;/button&gt;
+            &lt;/div&gt;
+            &lt;form onSubmit={handleSubmit} className="p-6 space-y-4"&gt;
+              {!editingParam &amp;&amp; (
+                &lt;&gt;
+                  &lt;div&gt;
+                    &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Categoría&lt;/label&gt;
+                    &lt;input
                       type="text"
                       value={formData.category}
-                      onChange={e => setFormData({ ...formData, category: e.target.value })}
+                      onChange={e =&gt; setFormData({ ...formData, category: e.target.value })}
                       className="input"
                       required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-carbon mb-1">Código</label>
-                    <input
+                    /&gt;
+                  &lt;/div&gt;
+                  &lt;div&gt;
+                    &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Código&lt;/label&gt;
+                    &lt;input
                       type="text"
                       value={formData.code}
-                      onChange={e => setFormData({ ...formData, code: e.target.value })}
+                      onChange={e =&gt; setFormData({ ...formData, code: e.target.value })}
                       className="input font-mono"
                       required
-                    />
-                  </div>
-                </>
+                    /&gt;
+                  &lt;/div&gt;
+                &lt;/&gt;
               )}
-              <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Nombre</label>
-                <input
+              &lt;div&gt;
+                &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Nombre&lt;/label&gt;
+                &lt;input
                   type="text"
                   value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  onChange={e =&gt; setFormData({ ...formData, name: e.target.value })}
                   className="input"
                   required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Icon (emoji)</label>
-                <input
+                /&gt;
+              &lt;/div&gt;
+              &lt;div&gt;
+                &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Icon (emoji)&lt;/label&gt;
+                &lt;input
                   type="text"
                   value={formData.icon}
-                  onChange={e => setFormData({ ...formData, icon: e.target.value })}
+                  onChange={e =&gt; setFormData({ ...formData, icon: e.target.value })}
                   className="input"
                   placeholder="🌮"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Descripción</label>
-                <textarea
+                /&gt;
+              &lt;/div&gt;
+              &lt;div&gt;
+                &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Descripción&lt;/label&gt;
+                &lt;textarea
                   value={formData.description}
-                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  onChange={e =&gt; setFormData({ ...formData, description: e.target.value })}
                   className="input"
                   rows={2}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Orden</label>
-                <input
+                /&gt;
+              &lt;/div&gt;
+              &lt;div&gt;
+                &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Orden&lt;/label&gt;
+                &lt;input
                   type="number"
                   value={formData.sort_order}
-                  onChange={e => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
+                  onChange={e =&gt; setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
                   className="input"
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="btn-outline-sm">
+                /&gt;
+              &lt;/div&gt;
+              &lt;div className="flex justify-end gap-3 pt-4"&gt;
+                &lt;button type="button" onClick={() =&gt; setShowModal(false)} className="btn-outline-sm"&gt;
                   Cancelar
-                </button>
-                <button type="submit" className="btn-primary-sm">
+                &lt;/button&gt;
+                &lt;button type="submit" className="btn-primary-sm"&gt;
                   {editingParam ? 'Guardar' : 'Crear'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+                &lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/form&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
       )}
-    </>
+    &lt;/&gt;
   )
 }
 
 // ========== Users Section ==========
 function UsersSection() {
-  const [users, setUsers] = useState<Player[]>([])
+  const [users, setUsers] = useState&lt;Player[]&gt;([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
+  useEffect(() =&gt; {
     loadUsers()
   }, [])
 
-  const loadUsers = async () => {
+  const loadUsers = async () =&gt; {
     setLoading(true)
     try {
       const response = await fetch('/api/v1/admin/players', {
@@ -416,7 +1007,7 @@ function UsersSection() {
     }
   }
 
-  const toggleAdmin = async (user: Player) => {
+  const toggleAdmin = async (user: Player) =&gt; {
     if (!confirm(`${user.is_admin ? 'Quitar' : 'Dar'} permisos de admin a "${user.email}"?`)) return
     try {
       const response = await fetch(`/api/v1/admin/players/${user.id}`, {
@@ -434,7 +1025,7 @@ function UsersSection() {
     }
   }
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string) =&gt; {
     return new Date(dateStr).toLocaleDateString('es-CR', {
       year: 'numeric',
       month: 'short',
@@ -443,66 +1034,66 @@ function UsersSection() {
   }
 
   return (
-    <>
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center">
-          <span>{error}</span>
-          <button onClick={() => setError('')} className="text-red-700 hover:text-red-900 font-bold">×</button>
-        </div>
+    &lt;&gt;
+      {error &amp;&amp; (
+        &lt;div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center"&gt;
+          &lt;span&gt;{error}&lt;/span&gt;
+          &lt;button onClick={() =&gt; setError('')} className="text-red-700 hover:text-red-900 font-bold"&gt;×&lt;/button&gt;
+        &lt;/div&gt;
       )}
 
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="border-b border-gray-200 px-6 py-4 bg-gray-50">
-          <h2 className="text-lg font-bold text-carbon">Usuarios Registrados</h2>
-        </div>
+      &lt;div className="bg-white rounded-2xl shadow-lg overflow-hidden"&gt;
+        &lt;div className="border-b border-gray-200 px-6 py-4 bg-gray-50"&gt;
+          &lt;h2 className="text-lg font-bold text-carbon"&gt;Usuarios Registrados&lt;/h2&gt;
+        &lt;/div&gt;
 
-        <div className="overflow-x-auto">
+        &lt;div className="overflow-x-auto"&gt;
           {loading ? (
-            <div className="p-8 text-center text-gray-500">Cargando...</div>
+            &lt;div className="p-8 text-center text-gray-500"&gt;Cargando...&lt;/div&gt;
           ) : users.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            &lt;div className="p-8 text-center text-gray-500"&gt;
               {error ? 'El backend necesita implementar /admin/players' : 'No hay usuarios'}
-            </div>
+            &lt;/div&gt;
           ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Email</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Nombre</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Registro</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Admin</th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {users.map(user => (
-                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium">{user.email}</td>
-                    <td className="px-4 py-3 text-gray-600">{user.display_name || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{formatDate(user.created_at)}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+            &lt;table className="w-full"&gt;
+              &lt;thead className="bg-gray-50 border-b"&gt;
+                &lt;tr&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Email&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Nombre&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Registro&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-left text-sm font-semibold text-gray-600"&gt;Admin&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-right text-sm font-semibold text-gray-600"&gt;Acciones&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody className="divide-y divide-gray-100"&gt;
+                {users.map(user =&gt; (
+                  &lt;tr key={user.id} className="hover:bg-gray-50 transition-colors"&gt;
+                    &lt;td className="px-4 py-3 font-medium"&gt;{user.email}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-gray-600"&gt;{user.display_name || '—'}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-gray-600"&gt;{formatDate(user.created_at)}&lt;/td&gt;
+                    &lt;td className="px-4 py-3"&gt;
+                      &lt;span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         user.is_admin ? 'bg-agua/20 text-agua' : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      }`}&gt;
                         {user.is_admin ? 'Admin' : 'Usuario'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => toggleAdmin(user)}
+                      &lt;/span&gt;
+                    &lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-right"&gt;
+                      &lt;button
+                        onClick={() =&gt; toggleAdmin(user)}
                         className={`btn-ghost ${user.is_admin ? 'text-red-500' : 'text-agua'}`}
-                      >
+                      &gt;
                         {user.is_admin ? 'Quitar Admin' : 'Hacer Admin'}
-                      </button>
-                    </td>
-                  </tr>
+                      &lt;/button&gt;
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
                 ))}
-              </tbody>
-            </table>
+              &lt;/tbody&gt;
+            &lt;/table&gt;
           )}
-        </div>
-      </div>
-    </>
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/&gt;
   )
 }
 
@@ -589,23 +1180,23 @@ const PROVIDER_PRESETS = {
 type ProviderKey = keyof typeof PROVIDER_PRESETS
 
 function AISection() {
-  const [config, setConfig] = useState<AIConfig | null>(null)
+  const [config, setConfig] = useState&lt;AIConfig | null&gt;(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [testResult, setTestResult] = useState<TestResult | null>(null)
+  const [testResult, setTestResult] = useState&lt;TestResult | null&gt;(null)
 
   // Form state
   const [newApiKey, setNewApiKey] = useState('')
   const [showApiKeyInput, setShowApiKeyInput] = useState(false)
-  const [selectedProvider, setSelectedProvider] = useState<ProviderKey>('anthropic')
+  const [selectedProvider, setSelectedProvider] = useState&lt;ProviderKey&gt;('anthropic')
   const [customUrl, setCustomUrl] = useState('')
   const [customModel, setCustomModel] = useState('')
 
   // Determine which provider preset to show based on current URL
-  const detectProvider = (url: string): ProviderKey => {
+  const detectProvider = (url: string): ProviderKey =&gt; {
     if (url.includes('anthropic.com')) return 'anthropic'
     if (url.includes('openai.com')) return 'openai'
     if (url.includes('groq.com')) return 'groq'
@@ -615,16 +1206,16 @@ function AISection() {
   }
 
   // Get current models list based on provider
-  const getCurrentModels = () => {
+  const getCurrentModels = () =&gt; {
     if (selectedProvider === 'custom') return []
     return PROVIDER_PRESETS[selectedProvider].models
   }
 
-  useEffect(() => {
+  useEffect(() =&gt; {
     loadConfig()
   }, [])
 
-  const loadConfig = async () => {
+  const loadConfig = async () =&gt; {
     setLoading(true)
     try {
       const response = await fetch('/api/v1/admin/ai/config', {
@@ -650,7 +1241,7 @@ function AISection() {
     }
   }
 
-  const handleUpdateConfig = async (updates: Partial<AIConfig>) => {
+  const handleUpdateConfig = async (updates: Partial&lt;AIConfig&gt;) =&gt; {
     setSaving(true)
     setError('')
     setSuccess('')
@@ -667,7 +1258,7 @@ function AISection() {
       const data = await response.json()
       setConfig(data)
       setSuccess('Configuración guardada')
-      setTimeout(() => setSuccess(''), 3000)
+      setTimeout(() =&gt; setSuccess(''), 3000)
     } catch {
       setError('Error guardando configuración')
     } finally {
@@ -676,7 +1267,7 @@ function AISection() {
   }
 
   // Handle provider preset change
-  const handleProviderChange = async (providerKey: ProviderKey) => {
+  const handleProviderChange = async (providerKey: ProviderKey) =&gt; {
     setSelectedProvider(providerKey)
 
     if (providerKey === 'custom') {
@@ -696,7 +1287,7 @@ function AISection() {
   }
 
   // Handle saving custom URL
-  const handleSaveCustomUrl = async () => {
+  const handleSaveCustomUrl = async () =&gt; {
     if (!customUrl.trim()) return
     const providerType = customUrl.includes('anthropic.com') ? 'anthropic' : 'openai'
     await handleUpdateConfig({
@@ -706,7 +1297,7 @@ function AISection() {
     })
   }
 
-  const handleSaveApiKey = async () => {
+  const handleSaveApiKey = async () =&gt; {
     if (!newApiKey.trim()) return
     setSaving(true)
     setError('')
@@ -724,7 +1315,7 @@ function AISection() {
       setShowApiKeyInput(false)
       setSuccess('API Key guardada y encriptada')
       loadConfig()
-      setTimeout(() => setSuccess(''), 3000)
+      setTimeout(() =&gt; setSuccess(''), 3000)
     } catch {
       setError('Error guardando API key')
     } finally {
@@ -732,7 +1323,7 @@ function AISection() {
     }
   }
 
-  const handleTest = async () => {
+  const handleTest = async () =&gt; {
     setTesting(true)
     setTestResult(null)
     setError('')
@@ -754,327 +1345,327 @@ function AISection() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-        <div className="text-4xl mb-4 animate-pulse">🤖</div>
-        <p className="text-gray-500">Cargando configuración de IA...</p>
-      </div>
+      &lt;div className="bg-white rounded-2xl shadow-lg p-8 text-center"&gt;
+        &lt;div className="text-4xl mb-4 animate-pulse"&gt;🤖&lt;/div&gt;
+        &lt;p className="text-gray-500"&gt;Cargando configuración de IA...&lt;/p&gt;
+      &lt;/div&gt;
     )
   }
 
   if (!config) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-        <div className="text-4xl mb-4">❌</div>
-        <p className="text-red-500">No se pudo cargar la configuración</p>
-        <button onClick={loadConfig} className="btn-primary mt-4">Reintentar</button>
-      </div>
+      &lt;div className="bg-white rounded-2xl shadow-lg p-8 text-center"&gt;
+        &lt;div className="text-4xl mb-4"&gt;❌&lt;/div&gt;
+        &lt;p className="text-red-500"&gt;No se pudo cargar la configuración&lt;/p&gt;
+        &lt;button onClick={loadConfig} className="btn-primary mt-4"&gt;Reintentar&lt;/button&gt;
+      &lt;/div&gt;
     )
   }
 
   return (
-    <>
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center">
-          <span>{error}</span>
-          <button onClick={() => setError('')} className="text-red-700 hover:text-red-900 font-bold">×</button>
-        </div>
+    &lt;&gt;
+      {error &amp;&amp; (
+        &lt;div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center"&gt;
+          &lt;span&gt;{error}&lt;/span&gt;
+          &lt;button onClick={() =&gt; setError('')} className="text-red-700 hover:text-red-900 font-bold"&gt;×&lt;/button&gt;
+        &lt;/div&gt;
       )}
 
-      {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-4">
+      {success &amp;&amp; (
+        &lt;div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-4"&gt;
           {success}
-        </div>
+        &lt;/div&gt;
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      &lt;div className="grid grid-cols-1 lg:grid-cols-2 gap-6"&gt;
         {/* Status Card */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="border-b border-gray-200 px-6 py-4 bg-gray-50">
-            <h2 className="text-lg font-bold text-carbon">Estado del Sistema</h2>
-          </div>
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full ${config.is_ready ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                <span className="font-semibold text-lg">
+        &lt;div className="bg-white rounded-2xl shadow-lg overflow-hidden"&gt;
+          &lt;div className="border-b border-gray-200 px-6 py-4 bg-gray-50"&gt;
+            &lt;h2 className="text-lg font-bold text-carbon"&gt;Estado del Sistema&lt;/h2&gt;
+          &lt;/div&gt;
+          &lt;div className="p-6"&gt;
+            &lt;div className="flex items-center justify-between mb-6"&gt;
+              &lt;div className="flex items-center gap-3"&gt;
+                &lt;div className={`w-4 h-4 rounded-full ${config.is_ready ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} /&gt;
+                &lt;span className="font-semibold text-lg"&gt;
                   {config.is_ready ? 'IA Lista' : 'IA No Configurada'}
-                </span>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                &lt;/span&gt;
+              &lt;/div&gt;
+              &lt;span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                 config.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-              }`}>
+              }`}&gt;
                 {config.enabled ? 'Habilitada' : 'Deshabilitada'}
-              </span>
-            </div>
+              &lt;/span&gt;
+            &lt;/div&gt;
 
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Proveedor:</span>
-                <span className="font-semibold">
+            &lt;div className="space-y-3 text-sm"&gt;
+              &lt;div className="flex justify-between"&gt;
+                &lt;span className="text-gray-600"&gt;Proveedor:&lt;/span&gt;
+                &lt;span className="font-semibold"&gt;
                   {PROVIDER_PRESETS[selectedProvider]?.name || 'Personalizado'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Modelo:</span>
-                <span className="font-mono text-xs">{config.model}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">API Key:</span>
-                <span className={config.has_api_key ? 'text-green-600' : 'text-red-600'}>
+                &lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div className="flex justify-between"&gt;
+                &lt;span className="text-gray-600"&gt;Modelo:&lt;/span&gt;
+                &lt;span className="font-mono text-xs"&gt;{config.model}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div className="flex justify-between"&gt;
+                &lt;span className="text-gray-600"&gt;API Key:&lt;/span&gt;
+                &lt;span className={config.has_api_key ? 'text-green-600' : 'text-red-600'}&gt;
                   {config.has_api_key ? '✓ Configurada' : '✗ No configurada'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Cache:</span>
-                <span>{config.cache_enabled ? `✓ ${config.cache_ttl_minutes} min` : '✗ Deshabilitado'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Fallback:</span>
-                <span>{config.fallback_enabled ? '✓ Habilitado' : '✗ Deshabilitado'}</span>
-              </div>
-            </div>
+                &lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div className="flex justify-between"&gt;
+                &lt;span className="text-gray-600"&gt;Cache:&lt;/span&gt;
+                &lt;span&gt;{config.cache_enabled ? `✓ ${config.cache_ttl_minutes} min` : '✗ Deshabilitado'}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div className="flex justify-between"&gt;
+                &lt;span className="text-gray-600"&gt;Fallback:&lt;/span&gt;
+                &lt;span&gt;{config.fallback_enabled ? '✓ Habilitado' : '✗ Deshabilitado'}&lt;/span&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
 
-            <div className="mt-6 pt-4 border-t">
-              <button
+            &lt;div className="mt-6 pt-4 border-t"&gt;
+              &lt;button
                 onClick={handleTest}
                 disabled={testing || !config.is_ready}
                 className="btn-primary w-full"
-              >
+              &gt;
                 {testing ? '🔄 Probando...' : '🧪 Probar Conexión'}
-              </button>
+              &lt;/button&gt;
 
-              {testResult && (
-                <div className={`mt-4 p-4 rounded-xl ${
+              {testResult &amp;&amp; (
+                &lt;div className={`mt-4 p-4 rounded-xl ${
                   testResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                }`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">{testResult.success ? '✅' : '❌'}</span>
-                    <span className="font-semibold">{testResult.success ? 'Éxito' : 'Error'}</span>
-                  </div>
-                  <p className="text-sm">{testResult.message}</p>
-                  {testResult.response_ms && (
-                    <p className="text-xs text-gray-500 mt-1">Tiempo: {testResult.response_ms}ms</p>
+                }`}&gt;
+                  &lt;div className="flex items-center gap-2 mb-2"&gt;
+                    &lt;span className="text-xl"&gt;{testResult.success ? '✅' : '❌'}&lt;/span&gt;
+                    &lt;span className="font-semibold"&gt;{testResult.success ? 'Éxito' : 'Error'}&lt;/span&gt;
+                  &lt;/div&gt;
+                  &lt;p className="text-sm"&gt;{testResult.message}&lt;/p&gt;
+                  {testResult.response_ms &amp;&amp; (
+                    &lt;p className="text-xs text-gray-500 mt-1"&gt;Tiempo: {testResult.response_ms}ms&lt;/p&gt;
                   )}
-                </div>
+                &lt;/div&gt;
               )}
-            </div>
-          </div>
-        </div>
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
 
         {/* Configuration Card */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="border-b border-gray-200 px-6 py-4 bg-gray-50">
-            <h2 className="text-lg font-bold text-carbon">Configuración</h2>
-          </div>
-          <div className="p-6 space-y-4">
+        &lt;div className="bg-white rounded-2xl shadow-lg overflow-hidden"&gt;
+          &lt;div className="border-b border-gray-200 px-6 py-4 bg-gray-50"&gt;
+            &lt;h2 className="text-lg font-bold text-carbon"&gt;Configuración&lt;/h2&gt;
+          &lt;/div&gt;
+          &lt;div className="p-6 space-y-4"&gt;
             {/* Enable/Disable */}
-            <div className="flex items-center justify-between">
-              <label className="font-semibold">Habilitar IA</label>
-              <button
-                onClick={() => handleUpdateConfig({ enabled: !config.enabled })}
+            &lt;div className="flex items-center justify-between"&gt;
+              &lt;label className="font-semibold"&gt;Habilitar IA&lt;/label&gt;
+              &lt;button
+                onClick={() =&gt; handleUpdateConfig({ enabled: !config.enabled })}
                 disabled={saving}
                 className={`relative w-14 h-7 rounded-full transition-colors ${
                   config.enabled ? 'bg-green-500' : 'bg-gray-300'
                 }`}
-              >
-                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+              &gt;
+                &lt;div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
                   config.enabled ? 'translate-x-8' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
+                }`} /&gt;
+              &lt;/button&gt;
+            &lt;/div&gt;
 
             {/* Provider Selector */}
-            <div>
-              <label className="block text-sm font-semibold text-carbon mb-1">Proveedor</label>
-              <select
+            &lt;div&gt;
+              &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Proveedor&lt;/label&gt;
+              &lt;select
                 value={selectedProvider}
-                onChange={e => handleProviderChange(e.target.value as ProviderKey)}
+                onChange={e =&gt; handleProviderChange(e.target.value as ProviderKey)}
                 disabled={saving}
                 className="input"
-              >
-                {Object.entries(PROVIDER_PRESETS).map(([key, preset]) => (
-                  <option key={key} value={key}>{preset.name}</option>
+              &gt;
+                {Object.entries(PROVIDER_PRESETS).map(([key, preset]) =&gt; (
+                  &lt;option key={key} value={key}&gt;{preset.name}&lt;/option&gt;
                 ))}
-              </select>
-            </div>
+              &lt;/select&gt;
+            &lt;/div&gt;
 
             {/* Custom URL (only for custom provider) */}
-            {selectedProvider === 'custom' && (
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-sm font-semibold text-carbon mb-1">URL del API</label>
-                  <input
+            {selectedProvider === 'custom' &amp;&amp; (
+              &lt;div className="space-y-2"&gt;
+                &lt;div&gt;
+                  &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;URL del API&lt;/label&gt;
+                  &lt;input
                     type="text"
                     value={customUrl}
-                    onChange={e => setCustomUrl(e.target.value)}
+                    onChange={e =&gt; setCustomUrl(e.target.value)}
                     placeholder="https://api.example.com/v1/chat/completions"
                     className="input font-mono text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-carbon mb-1">Nombre del Modelo</label>
-                  <input
+                  /&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Nombre del Modelo&lt;/label&gt;
+                  &lt;input
                     type="text"
                     value={customModel}
-                    onChange={e => setCustomModel(e.target.value)}
+                    onChange={e =&gt; setCustomModel(e.target.value)}
                     placeholder="model-name"
                     className="input font-mono text-sm"
-                  />
-                </div>
-                <button
+                  /&gt;
+                &lt;/div&gt;
+                &lt;button
                   onClick={handleSaveCustomUrl}
                   disabled={saving || !customUrl.trim()}
                   className="btn-primary-sm w-full"
-                >
+                &gt;
                   {saving ? 'Guardando...' : 'Guardar URL Personalizada'}
-                </button>
-              </div>
+                &lt;/button&gt;
+              &lt;/div&gt;
             )}
 
             {/* Model (for preset providers) */}
-            {selectedProvider !== 'custom' && (
-              <div>
-                <label className="block text-sm font-semibold text-carbon mb-1">Modelo</label>
-                <select
+            {selectedProvider !== 'custom' &amp;&amp; (
+              &lt;div&gt;
+                &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;Modelo&lt;/label&gt;
+                &lt;select
                   value={config.model}
-                  onChange={e => handleUpdateConfig({ model: e.target.value })}
+                  onChange={e =&gt; handleUpdateConfig({ model: e.target.value })}
                   disabled={saving}
                   className="input"
-                >
-                  {getCurrentModels().map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
+                &gt;
+                  {getCurrentModels().map(m =&gt; (
+                    &lt;option key={m.value} value={m.value}&gt;{m.label}&lt;/option&gt;
                   ))}
                   {/* Also show current model if not in list */}
-                  {!getCurrentModels().find(m => m.value === config.model) && (
-                    <option value={config.model}>{config.model} (actual)</option>
+                  {!getCurrentModels().find(m =&gt; m.value === config.model) &amp;&amp; (
+                    &lt;option value={config.model}&gt;{config.model} (actual)&lt;/option&gt;
                   )}
-                </select>
-              </div>
+                &lt;/select&gt;
+              &lt;/div&gt;
             )}
 
             {/* Max Tokens */}
-            <div>
-              <label className="block text-sm font-semibold text-carbon mb-1">
+            &lt;div&gt;
+              &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;
                 Max Tokens: {config.max_tokens}
-              </label>
-              <input
+              &lt;/label&gt;
+              &lt;input
                 type="range"
                 min="100"
                 max="4000"
                 step="100"
                 value={config.max_tokens}
-                onChange={e => handleUpdateConfig({ max_tokens: parseInt(e.target.value) })}
+                onChange={e =&gt; handleUpdateConfig({ max_tokens: parseInt(e.target.value) })}
                 disabled={saving}
                 className="w-full"
-              />
-            </div>
+              /&gt;
+            &lt;/div&gt;
 
             {/* Temperature */}
-            <div>
-              <label className="block text-sm font-semibold text-carbon mb-1">
+            &lt;div&gt;
+              &lt;label className="block text-sm font-semibold text-carbon mb-1"&gt;
                 Temperatura: {config.temperature.toFixed(2)}
-              </label>
-              <input
+              &lt;/label&gt;
+              &lt;input
                 type="range"
                 min="0"
                 max="1"
                 step="0.05"
                 value={config.temperature}
-                onChange={e => handleUpdateConfig({ temperature: parseFloat(e.target.value) })}
+                onChange={e =&gt; handleUpdateConfig({ temperature: parseFloat(e.target.value) })}
                 disabled={saving}
                 className="w-full"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Preciso</span>
-                <span>Creativo</span>
-              </div>
-            </div>
+              /&gt;
+              &lt;div className="flex justify-between text-xs text-gray-500"&gt;
+                &lt;span&gt;Preciso&lt;/span&gt;
+                &lt;span&gt;Creativo&lt;/span&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
 
             {/* API Key */}
-            <div className="pt-4 border-t">
-              <label className="block text-sm font-semibold text-carbon mb-2">API Key</label>
+            &lt;div className="pt-4 border-t"&gt;
+              &lt;label className="block text-sm font-semibold text-carbon mb-2"&gt;API Key&lt;/label&gt;
               {showApiKeyInput ? (
-                <div className="space-y-2">
-                  <input
+                &lt;div className="space-y-2"&gt;
+                  &lt;input
                     type="password"
                     value={newApiKey}
-                    onChange={e => setNewApiKey(e.target.value)}
+                    onChange={e =&gt; setNewApiKey(e.target.value)}
                     placeholder="sk-ant-api..."
                     className="input font-mono text-sm"
-                  />
-                  <div className="flex gap-2">
-                    <button
+                  /&gt;
+                  &lt;div className="flex gap-2"&gt;
+                    &lt;button
                       onClick={handleSaveApiKey}
                       disabled={saving || !newApiKey.trim()}
                       className="btn-primary-sm flex-1"
-                    >
+                    &gt;
                       {saving ? 'Guardando...' : 'Guardar'}
-                    </button>
-                    <button
-                      onClick={() => { setShowApiKeyInput(false); setNewApiKey('') }}
+                    &lt;/button&gt;
+                    &lt;button
+                      onClick={() =&gt; { setShowApiKeyInput(false); setNewApiKey('') }}
                       className="btn-outline-sm"
-                    >
+                    &gt;
                       Cancelar
-                    </button>
-                  </div>
-                </div>
+                    &lt;/button&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
               ) : (
-                <button
-                  onClick={() => setShowApiKeyInput(true)}
+                &lt;button
+                  onClick={() =&gt; setShowApiKeyInput(true)}
                   className="btn-outline w-full"
-                >
+                &gt;
                   {config.has_api_key ? '🔑 Cambiar API Key' : '🔑 Configurar API Key'}
-                </button>
+                &lt;/button&gt;
               )}
-            </div>
+            &lt;/div&gt;
 
             {/* Cache Toggle */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <label className="font-semibold">Cache</label>
-              <button
-                onClick={() => handleUpdateConfig({ cache_enabled: !config.cache_enabled })}
+            &lt;div className="flex items-center justify-between pt-4 border-t"&gt;
+              &lt;label className="font-semibold"&gt;Cache&lt;/label&gt;
+              &lt;button
+                onClick={() =&gt; handleUpdateConfig({ cache_enabled: !config.cache_enabled })}
                 disabled={saving}
                 className={`relative w-14 h-7 rounded-full transition-colors ${
                   config.cache_enabled ? 'bg-green-500' : 'bg-gray-300'
                 }`}
-              >
-                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+              &gt;
+                &lt;div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
                   config.cache_enabled ? 'translate-x-8' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
+                }`} /&gt;
+              &lt;/button&gt;
+            &lt;/div&gt;
 
             {/* Fallback Toggle */}
-            <div className="flex items-center justify-between">
-              <label className="font-semibold">Fallback (respuestas predefinidas)</label>
-              <button
-                onClick={() => handleUpdateConfig({ fallback_enabled: !config.fallback_enabled })}
+            &lt;div className="flex items-center justify-between"&gt;
+              &lt;label className="font-semibold"&gt;Fallback (respuestas predefinidas)&lt;/label&gt;
+              &lt;button
+                onClick={() =&gt; handleUpdateConfig({ fallback_enabled: !config.fallback_enabled })}
                 disabled={saving}
                 className={`relative w-14 h-7 rounded-full transition-colors ${
                   config.fallback_enabled ? 'bg-green-500' : 'bg-gray-300'
                 }`}
-              >
-                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
+              &gt;
+                &lt;div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${
                   config.fallback_enabled ? 'translate-x-8' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+                }`} /&gt;
+              &lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
 
       {/* Info Card */}
-      <div className="mt-6 bg-gradient-to-r from-agua/10 to-mango/10 rounded-2xl p-6">
-        <h3 className="font-bold text-carbon mb-2">💡 Información</h3>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• <strong>Multi-proveedor:</strong> Soporta OpenAI, Anthropic, Groq, Together, Ollama y más</li>
-          <li>• La API Key se almacena <strong>encriptada</strong> en la base de datos</li>
-          <li>• El cache reduce costos reutilizando respuestas idénticas</li>
-          <li>• El fallback proporciona respuestas predefinidas si la IA falla</li>
-          <li>• <strong>Groq:</strong> Ultra rápido y gratuito para desarrollo</li>
-          <li>• <strong>Ollama:</strong> Ejecuta modelos localmente sin costo</li>
-        </ul>
-      </div>
-    </>
+      &lt;div className="mt-6 bg-gradient-to-r from-agua/10 to-mango/10 rounded-2xl p-6"&gt;
+        &lt;h3 className="font-bold text-carbon mb-2"&gt;💡 Información&lt;/h3&gt;
+        &lt;ul className="text-sm text-gray-600 space-y-1"&gt;
+          &lt;li&gt;• &lt;strong&gt;Multi-proveedor:&lt;/strong&gt; Soporta OpenAI, Anthropic, Groq, Together, Ollama y más&lt;/li&gt;
+          &lt;li&gt;• La API Key se almacena &lt;strong&gt;encriptada&lt;/strong&gt; en la base de datos&lt;/li&gt;
+          &lt;li&gt;• El cache reduce costos reutilizando respuestas idénticas&lt;/li&gt;
+          &lt;li&gt;• El fallback proporciona respuestas predefinidas si la IA falla&lt;/li&gt;
+          &lt;li&gt;• &lt;strong&gt;Groq:&lt;/strong&gt; Ultra rápido y gratuito para desarrollo&lt;/li&gt;
+          &lt;li&gt;• &lt;strong&gt;Ollama:&lt;/strong&gt; Ejecuta modelos localmente sin costo&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/div&gt;
+    &lt;/&gt;
   )
 }
