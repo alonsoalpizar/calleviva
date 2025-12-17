@@ -6,6 +6,7 @@ import { Landing } from './pages/Landing'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { Admin } from './pages/Admin'
+import { CreatorPage } from './pages/creator/CreatorPage'
 import { MainMenu } from './components/game/MainMenu'
 import { TruckSetup } from './components/game/TruckSetup'
 import { GamePlay } from './components/game/GamePlay'
@@ -45,6 +46,9 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Creator - Public (for Nacho!) */}
+        <Route path="/creator" element={<CreatorPage />} />
 
         {/* Protected Routes */}
         <Route
