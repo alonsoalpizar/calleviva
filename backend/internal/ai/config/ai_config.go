@@ -10,16 +10,25 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// ProviderType defines the type of AI provider
+type ProviderType string
+
+const (
+	ProviderTypeOpenAI    ProviderType = "openai"    // OpenAI-compatible (OpenAI, Groq, Together, Ollama, etc.)
+	ProviderTypeAnthropic ProviderType = "anthropic" // Anthropic Claude
+)
+
 // AIConfig holds all AI-related configuration
 type AIConfig struct {
 	// Provider settings
-	Enabled     bool   `json:"enabled"`
-	ProviderURL string `json:"provider_url"`
-	Model       string `json:"model"`
+	Enabled      bool         `json:"enabled"`
+	ProviderType ProviderType `json:"provider_type"` // "openai" or "anthropic"
+	ProviderURL  string       `json:"provider_url"`
+	Model        string       `json:"model"`
 
 	// API Key (stored encrypted in DB)
-	APIKeyEncrypted string `json:"-"`          // Don't serialize
-	APIKey          string `json:"api_key"`    // Decrypted at runtime
+	APIKeyEncrypted string `json:"-"`       // Don't serialize
+	APIKey          string `json:"api_key"` // Decrypted at runtime
 
 	// Generation defaults
 	MaxTokens      int     `json:"max_tokens"`
@@ -41,6 +50,7 @@ type AIConfig struct {
 func DefaultConfig() *AIConfig {
 	return &AIConfig{
 		Enabled:              false, // Disabled by default until configured
+		ProviderType:         ProviderTypeAnthropic,
 		ProviderURL:          "https://api.anthropic.com/v1/messages",
 		Model:                "claude-sonnet-4-20250514",
 		MaxTokens:            1024,
@@ -51,6 +61,14 @@ func DefaultConfig() *AIConfig {
 		MaxRequestsPerMinute: 60,
 		FallbackEnabled:      true,
 	}
+}
+
+// GetProviderType returns the provider type, defaulting to anthropic if not set
+func (c *AIConfig) GetProviderType() ProviderType {
+	if c.ProviderType == "" {
+		return ProviderTypeAnthropic
+	}
+	return c.ProviderType
 }
 
 // LoadFromDB loads AI configuration from the parameters table
@@ -111,17 +129,18 @@ func SaveToDB(ctx context.Context, pool *pgxpool.Pool, config *AIConfig) error {
 
 	// Build config JSON (without raw API key, with encrypted version)
 	configMap := map[string]interface{}{
-		"enabled":                config.Enabled,
-		"provider_url":           config.ProviderURL,
-		"model":                  config.Model,
-		"max_tokens":             config.MaxTokens,
-		"temperature":            config.Temperature,
-		"timeout_seconds":        config.TimeoutSeconds,
-		"cache_enabled":          config.CacheEnabled,
-		"cache_ttl_minutes":      config.CacheTTLMinutes,
+		"enabled":                 config.Enabled,
+		"provider_type":           config.ProviderType,
+		"provider_url":            config.ProviderURL,
+		"model":                   config.Model,
+		"max_tokens":              config.MaxTokens,
+		"temperature":             config.Temperature,
+		"timeout_seconds":         config.TimeoutSeconds,
+		"cache_enabled":           config.CacheEnabled,
+		"cache_ttl_minutes":       config.CacheTTLMinutes,
 		"max_requests_per_minute": config.MaxRequestsPerMinute,
-		"fallback_enabled":       config.FallbackEnabled,
-		"api_key_encrypted":      apiKeyEncrypted,
+		"fallback_enabled":        config.FallbackEnabled,
+		"api_key_encrypted":       apiKeyEncrypted,
 	}
 
 	configJSON, err := json.Marshal(configMap)

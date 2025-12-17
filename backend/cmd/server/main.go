@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alonsoalpizar/calleviva/backend/internal/ai/handlers"
 	"github.com/alonsoalpizar/calleviva/backend/internal/auth"
 	"github.com/alonsoalpizar/calleviva/backend/internal/config"
 	"github.com/alonsoalpizar/calleviva/backend/internal/database"
@@ -140,6 +141,15 @@ func main() {
 				r.Get("/{id}", players.HandleGet)
 				r.Patch("/{id}", players.HandleUpdate)
 				r.Delete("/{id}", players.HandleDelete)
+			})
+
+			// AI Configuration
+			aiHandler := handlers.NewAIAdminHandler()
+			r.Route("/ai", func(r chi.Router) {
+				r.Get("/config", aiHandler.HandleGetConfig)
+				r.Patch("/config", aiHandler.HandleUpdateConfig)
+				r.Post("/apikey", aiHandler.HandleSetAPIKey)
+				r.Post("/test", aiHandler.HandleTest)
 			})
 
 			// Dashboard stats (futuro)

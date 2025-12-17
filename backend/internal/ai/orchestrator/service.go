@@ -33,16 +33,16 @@ func NewService(ctx context.Context, pool *pgxpool.Pool) (*Service, error) {
 	}
 
 	s := &Service{
-		config:   cfg,
-		cache:    cache.NewMemoryCache(),
-		metrics:  metrics.NewTracker(),
-		prompts:  prompts.NewBuilder(),
-		pool:     pool,
+		config:  cfg,
+		cache:   cache.NewMemoryCache(),
+		metrics: metrics.NewTracker(),
+		prompts: prompts.NewBuilder(),
+		pool:    pool,
 	}
 
 	// Setup providers based on config
 	if cfg.IsReady() {
-		s.primaryProvider = providers.NewClaudeProvider(cfg)
+		s.primaryProvider = createProvider(cfg)
 	}
 
 	// Always have fallback
@@ -54,17 +54,30 @@ func NewService(ctx context.Context, pool *pgxpool.Pool) (*Service, error) {
 	return s, nil
 }
 
+// createProvider creates the appropriate provider based on config type
+func createProvider(cfg *aiconfig.AIConfig) providers.Provider {
+	switch cfg.GetProviderType() {
+	case aiconfig.ProviderTypeOpenAI:
+		return providers.NewOpenAIProvider(cfg)
+	case aiconfig.ProviderTypeAnthropic:
+		return providers.NewClaudeProvider(cfg)
+	default:
+		// Default to Anthropic for backwards compatibility
+		return providers.NewClaudeProvider(cfg)
+	}
+}
+
 // NewServiceWithConfig creates a service with explicit config (for testing)
 func NewServiceWithConfig(cfg *aiconfig.AIConfig) *Service {
 	s := &Service{
-		config:   cfg,
-		cache:    cache.NewMemoryCache(),
-		metrics:  metrics.NewTracker(),
-		prompts:  prompts.NewBuilder(),
+		config:  cfg,
+		cache:   cache.NewMemoryCache(),
+		metrics: metrics.NewTracker(),
+		prompts: prompts.NewBuilder(),
 	}
 
 	if cfg.IsReady() {
-		s.primaryProvider = providers.NewClaudeProvider(cfg)
+		s.primaryProvider = createProvider(cfg)
 	}
 	s.fallbackProvider = providers.NewFallbackProvider()
 
@@ -86,7 +99,7 @@ func (s *Service) ReloadConfig(ctx context.Context) error {
 
 	// Recreate primary provider with new config
 	if cfg.IsReady() {
-		s.primaryProvider = providers.NewClaudeProvider(cfg)
+		s.primaryProvider = createProvider(cfg)
 	} else {
 		s.primaryProvider = nil
 	}
