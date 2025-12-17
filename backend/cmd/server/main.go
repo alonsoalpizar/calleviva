@@ -121,6 +121,10 @@ func main() {
 			r.Get("/{worldType}/events", handleNotImplemented)
 		})
 
+		// Creator Mode - Public Routes
+		creatorHandler := creator.NewHandler(database.GetPool())
+		creatorHandler.SetupPublicRoutes(r)
+
 		// Admin (protegido - solo admins)
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(auth.AuthMiddleware)
@@ -153,13 +157,12 @@ func main() {
 				r.Post("/test", aiHandler.HandleTest)
 			})
 
+			// Creator Admin Routes
+			creatorHandler.SetupAdminRoutes(r)
+
 			// Dashboard stats (futuro)
 			r.Get("/stats", handleNotImplemented)
 		})
-
-		// Creator Mode Routes
-		creatorHandler := creator.NewHandler(database.GetPool())
-		creatorHandler.SetupRoutes(r)
 	})
 
 	// Server

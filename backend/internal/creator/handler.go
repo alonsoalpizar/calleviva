@@ -26,24 +26,25 @@ func NewHandler(db DBExecutor) *Handler {
 	return &Handler{db: db}
 }
 
-func (h *Handler) SetupRoutes(r chi.Router) {
-	// Public Creator Routes (mounted under /api/v1 in main.go)
+// SetupPublicRoutes mounts public creator routes (no auth required)
+func (h *Handler) SetupPublicRoutes(r chi.Router) {
 	r.Route("/creator", func(r chi.Router) {
 		r.Post("/submit", h.Submit)
 		r.Get("/my-creations", h.MyCreations)
 	})
 
-	// Admin Routes
-	r.Route("/admin/creator", func(r chi.Router) {
-		r.Get("/pending", h.GetPending)
-		r.Get("/all", h.GetAll)
-		r.Put("/{id}/review", h.Review)
-	})
-
-	// Game Routes
 	r.Route("/game/content", func(r chi.Router) {
 		r.Get("/{type}", h.GetApprovedContent)
 		r.Get("/random/{type}", h.GetRandomContent)
+	})
+}
+
+// SetupAdminRoutes mounts admin creator routes (requires auth)
+func (h *Handler) SetupAdminRoutes(r chi.Router) {
+	r.Route("/creator", func(r chi.Router) {
+		r.Get("/pending", h.GetPending)
+		r.Get("/all", h.GetAll)
+		r.Put("/{id}/review", h.Review)
 	})
 }
 
