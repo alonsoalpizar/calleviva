@@ -745,8 +745,8 @@ const CalleVivaCreator = () => {
 
       <div className="flex justify-center gap-1 mb-3 flex-wrap">
         {SECTIONS.map(s => (
-          <button key={s.id} onClick={() => setActive(s.id)}
-            className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${active === s.id ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'
+          <button key={s.id} onClick={() => setActiveTab(s.id)}
+            className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${activeTab === s.id ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'
               }`}>
             {s.icon} {s.name}
           </button>
@@ -759,8 +759,11 @@ const CalleVivaCreator = () => {
       </div>
 
       {toast && <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-bounce text-sm">✅ ¡Guardado!</div>}
+      {errorToast && <div className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg animate-bounce text-sm">❌ Error al guardar</div>}
 
       <div className="text-center mt-4 text-white/60 text-xs">Hecho con 🧡 para CalleViva.club</div>
     </div>
   )
 }
+
+export default CalleVivaCreator
