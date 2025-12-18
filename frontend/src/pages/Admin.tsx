@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { api, Parameter, CreateParameter } from '../services/api'
-import { PersonajeSVG, ProductoSVG, ArtefactoSVG, SitioSVG } from '../components/creator/CalleVivaCreator'
+import { PersonajeSVG, IngredienteSVG, ArtefactoSVG, SitioSVG } from '../components/creator/CalleVivaCreator'
 
 type AdminTab = 'parameters' | 'users' | 'ai' | 'creator'
 
@@ -254,7 +254,7 @@ function CreatorSection() {
   const getTypeIcon = (type: string) => {
     const icons: Record<string, string> = {
       personajes: '👤',
-      productos: '🥬',
+      ingredientes: '🥬',
       artefactos: '🪑',
       sitios: '📍',
     }
@@ -626,8 +626,8 @@ function CreationPreview({ creation, large = false }: { creation: ContentCreatio
     switch (creation.content_type) {
       case 'personajes':
         return <PersonajeSVG data={data} />
-      case 'productos':
-        return <ProductoSVG data={data} />
+      case 'ingredientes':
+        return <IngredienteSVG data={data} />
       case 'artefactos':
         return <ArtefactoSVG data={data} />
       case 'sitios':

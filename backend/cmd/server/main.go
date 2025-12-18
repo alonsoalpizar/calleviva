@@ -19,6 +19,7 @@ import (
 	"github.com/alonsoalpizar/calleviva/backend/internal/creator"
 	"github.com/alonsoalpizar/calleviva/backend/internal/database"
 	"github.com/alonsoalpizar/calleviva/backend/internal/games"
+	"github.com/alonsoalpizar/calleviva/backend/internal/lab"
 	"github.com/alonsoalpizar/calleviva/backend/internal/parameters"
 	"github.com/alonsoalpizar/calleviva/backend/internal/players"
 	"github.com/go-chi/chi/v5"
@@ -94,17 +95,28 @@ func main() {
 			r.Use(auth.AuthMiddleware)
 			r.Post("/", games.HandleCreate)
 			r.Get("/", games.HandleList)
-			r.Get("/{gameID}", games.HandleGet)
-			r.Patch("/{gameID}", games.HandleUpdate)
-			r.Delete("/{gameID}", games.HandleDelete)
 
-			// Gameplay (futuro)
-			r.Get("/{gameID}/day", handleNotImplemented)
-			r.Post("/{gameID}/market/buy", handleNotImplemented)
-			r.Post("/{gameID}/location/set", handleNotImplemented)
-			r.Post("/{gameID}/menu/configure", handleNotImplemented)
-			r.Post("/{gameID}/day/start", handleNotImplemented)
-			r.Get("/{gameID}/day/results", handleNotImplemented)
+			// Subruta para game específico
+			r.Route("/{gameID}", func(r chi.Router) {
+				r.Get("/", games.HandleGet)
+				r.Patch("/", games.HandleUpdate)
+				r.Delete("/", games.HandleDelete)
+
+				// Laboratorio de Sabores
+				labHandler := lab.NewHandler(database.GetPool())
+				if err := labHandler.InitAI(context.Background()); err != nil {
+					log.Printf("Warning: Lab AI init failed: %v", err)
+				}
+				labHandler.SetupRoutes(r)
+
+				// Gameplay (futuro)
+				r.Get("/day", handleNotImplemented)
+				r.Post("/market/buy", handleNotImplemented)
+				r.Post("/location/set", handleNotImplemented)
+				r.Post("/menu/configure", handleNotImplemented)
+				r.Post("/day/start", handleNotImplemented)
+				r.Get("/day/results", handleNotImplemented)
+			})
 		})
 
 		// Parameters (público - solo lectura)

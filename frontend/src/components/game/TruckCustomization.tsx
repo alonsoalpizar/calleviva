@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api, GameSession, Parameter } from '../../services/api'
+import { labApi, PlayerDish } from '../../services/labApi'
 import { TruckSVG } from './TruckSVG'
 
 type TabType = 'vehicle' | 'equipment' | 'appearance' | 'menu'
@@ -42,6 +43,7 @@ export function TruckCustomization() {
   const [styles, setStyles] = useState<Parameter[]>([])
   const [products, setProducts] = useState<Parameter[]>([])
   const [, setRecipeUpgrades] = useState<Parameter[]>([])
+  const [labDishes, setLabDishes] = useState<PlayerDish[]>([])
 
   // Current config
   const [config, setConfig] = useState<TruckConfig>({
@@ -103,6 +105,14 @@ export function TruckCustomization() {
           equipment: stats.truck.equipment || [],
           style: stats.truck.style || 'classic',
         })
+      }
+
+      // Load lab dishes
+      try {
+        const dishes = await labApi.getDishes(gameId!)
+        setLabDishes(dishes)
+      } catch (labErr) {
+        console.log('No lab dishes yet:', labErr)
       }
     } catch (err) {
       console.error('Error loading data:', err)
@@ -233,6 +243,17 @@ export function TruckCustomization() {
 
   const handleNameChange = async (name: string) => {
     setConfig(c => ({ ...c, name }))
+  }
+
+  const toggleLabDishMenu = async (dish: PlayerDish) => {
+    try {
+      await labApi.updateDish(gameId!, dish.id, { is_in_menu: !dish.is_in_menu })
+      setLabDishes(prev => prev.map(d =>
+        d.id === dish.id ? { ...d, is_in_menu: !d.is_in_menu } : d
+      ))
+    } catch (err) {
+      console.error('Error toggling dish:', err)
+    }
   }
 
   const saveConfig = async () => {
@@ -748,6 +769,78 @@ export function TruckCustomization() {
                       })}
                     </div>
                   </div>
+
+                  {/* Lab Dishes Section */}
+                  {labDishes.length > 0 && (
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-5 mt-6 border border-purple-200">
+                      <h3 className="font-bold text-purple-700 mb-4 flex items-center gap-2">
+                        <span className="text-xl">🧪</span>
+                        Platillos del Laboratorio
+                        <span className="ml-auto bg-purple-200 text-purple-800 px-2 py-1 rounded-full text-xs">
+                          {labDishes.filter(d => d.is_in_menu).length} en menú
+                        </span>
+                      </h3>
+                      <div className="space-y-2">
+                        {labDishes.map(dish => (
+                          <div
+                            key={dish.id}
+                            className={`flex items-center gap-4 rounded-xl p-3 transition-all ${
+                              dish.is_in_menu
+                                ? 'bg-white shadow-md border-2 border-purple-300'
+                                : 'bg-white/50 border-2 border-transparent'
+                            }`}
+                          >
+                            <span className="text-3xl">🍽️</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold truncate">{dish.name}</div>
+                              <div className="text-xs text-gray-500 truncate">
+                                {dish.description}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`font-black text-lg ${dish.is_in_menu ? 'text-purple-600' : 'text-gray-400'}`}>
+                                {formatMoney(dish.player_price || dish.suggested_price)}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => toggleLabDishMenu(dish)}
+                              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                                dish.is_in_menu
+                                  ? 'bg-purple-500 text-white hover:bg-purple-600'
+                                  : 'bg-gray-200 text-gray-600 hover:bg-purple-100 hover:text-purple-600'
+                              }`}
+                            >
+                              {dish.is_in_menu ? '✓ En Menú' : '+ Agregar'}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => navigate(`/game/${gameId}/lab`)}
+                        className="mt-4 w-full py-3 bg-purple-100 text-purple-700 rounded-xl font-medium hover:bg-purple-200 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <span>🧪</span>
+                        Ir al Laboratorio para crear más platillos
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Link to Lab if no dishes yet */}
+                  {labDishes.length === 0 && (
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 mt-6 border border-purple-200 text-center">
+                      <div className="text-4xl mb-3">🧪</div>
+                      <h3 className="font-bold text-purple-700 mb-2">Laboratorio de Sabores</h3>
+                      <p className="text-purple-600 text-sm mb-4">
+                        Crea platillos únicos combinando ingredientes con IA
+                      </p>
+                      <button
+                        onClick={() => navigate(`/game/${gameId}/lab`)}
+                        className="px-6 py-3 bg-purple-500 text-white rounded-xl font-bold hover:bg-purple-600 transition-colors"
+                      >
+                        Ir al Laboratorio
+                      </button>
+                    </div>
+                  )}
 
                   {/* Save Button */}
                   <button

@@ -19,7 +19,7 @@ interface CatalogSection {
 
 interface Catalogs {
   personajes: CatalogSection
-  productos: CatalogSection
+  ingredientes: CatalogSection
   artefactos: CatalogSection
   sitios: CatalogSection
 }
@@ -168,7 +168,7 @@ const CATALOGS: Catalogs = {
     ],
   },
 
-  productos: {
+  ingredientes: {
     category: [
       { id: 'vegetable', name: 'Vegetal', icon: '🥬' }, { id: 'fruit', name: 'Fruta', icon: '🍎' },
       { id: 'protein', name: 'Carne', icon: '🥩' }, { id: 'chicken', name: 'Pollo', icon: '🍗' },
@@ -629,9 +629,9 @@ const PersonajeSVG: React.FC<{ data: CreationData }> = ({ data }) => {
   )
 }
 
-const ProductoSVG: React.FC<{ data: CreationData }> = ({ data }) => {
-  const colorVal = CATALOGS.productos.color.find(c => c.id === data.color)?.color || '#4CAF50'
-  const icon = CATALOGS.productos.category.find(c => c.id === data.category)?.icon || '🥬'
+const IngredienteSVG: React.FC<{ data: CreationData }> = ({ data }) => {
+  const colorVal = CATALOGS.ingredientes.color.find(c => c.id === data.color)?.color || '#4CAF50'
+  const icon = CATALOGS.ingredientes.category.find(c => c.id === data.category)?.icon || '🥬'
 
   // Generate lighter/darker for gradients
   const lighten = (c: string, p: number) => {
@@ -895,7 +895,7 @@ const TEMPLATES: Record<string, { name: string; icon: string; data: Partial<Crea
     { name: 'Turista', icon: '📸', data: { role: 'customer', mood: 'excited', skinTone: 'pale', hair: 'short', accessory: 'cap', glasses: 'sunglasses' } },
     { name: 'Niño', icon: '👦', data: { role: 'customer', mood: 'excited', base: 'round', hair: 'messy', extra: 'freckles' } },
   ],
-  productos: [
+  ingredientes: [
     { name: 'Taco', icon: '🌮', data: { category: 'taco', origin: 'mexican', shape: 'folded', flavor: 'savory', state: 'hot' } },
     { name: 'Elote', icon: '🌽', data: { category: 'snack', origin: 'mexican', shape: 'long', flavor: 'savory', state: 'hot' } },
     { name: 'Agua Fresca', icon: '🥤', data: { category: 'drink', origin: 'mexican', shape: 'tall', flavor: 'sweet', state: 'cold' } },
@@ -970,7 +970,7 @@ const Editor: React.FC<EditorProps> = ({ type, catalog, SVGComponent, onSave, on
       ['Accesorios', ['accessory', 'glasses', 'earrings', 'extra']],
       ['Personalidad', ['role', 'mood']],
     ],
-    productos: [
+    ingredientes: [
       ['Tipo', ['category', 'origin']],
       ['Apariencia', ['shape', 'color']],
       ['Sabor', ['flavor', 'state']],
@@ -1055,7 +1055,7 @@ const Gallery: React.FC<GalleryProps> = ({ items, onClear, onLoad, onDelete, onS
 
   const SVGComponents: Record<string, React.FC<{ data: CreationData }>> = {
     personajes: PersonajeSVG,
-    productos: ProductoSVG,
+    ingredientes: IngredienteSVG,
     artefactos: ArtefactoSVG,
     sitios: SitioSVG,
   }
@@ -1094,7 +1094,7 @@ const Gallery: React.FC<GalleryProps> = ({ items, onClear, onLoad, onDelete, onS
 
 const SECTIONS: Section[] = [
   { id: 'personajes', name: 'Personajes', icon: '👤', color: 'from-orange-400 to-amber-400', catalog: CATALOGS.personajes, svg: PersonajeSVG },
-  { id: 'productos', name: 'Productos', icon: '🥬', color: 'from-green-400 to-emerald-400', catalog: CATALOGS.productos, svg: ProductoSVG },
+  { id: 'ingredientes', name: 'Ingredientes', icon: '🥬', color: 'from-green-400 to-emerald-400', catalog: CATALOGS.ingredientes, svg: IngredienteSVG },
   { id: 'artefactos', name: 'Artefactos', icon: '🪑', color: 'from-amber-500 to-yellow-400', catalog: CATALOGS.artefactos, svg: ArtefactoSVG },
   { id: 'sitios', name: 'Sitios', icon: '📍', color: 'from-blue-400 to-cyan-400', catalog: CATALOGS.sitios, svg: SitioSVG },
 ]
@@ -1253,4 +1253,4 @@ const CalleVivaCreator = () => {
 }
 
 export default CalleVivaCreator
-export { PersonajeSVG, ProductoSVG, ArtefactoSVG, SitioSVG }
+export { PersonajeSVG, IngredienteSVG, ArtefactoSVG, SitioSVG }

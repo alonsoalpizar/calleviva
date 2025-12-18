@@ -117,7 +117,7 @@ export function GamePlay() {
       {/* Main Game Area */}
       <main className="max-w-4xl mx-auto px-4 py-6">
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <button
             onClick={() => navigate(`/game/${gameId}/customize`)}
             className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center"
@@ -125,6 +125,14 @@ export function GamePlay() {
             <div className="text-3xl mb-2">🔧</div>
             <div className="font-bold text-sm">Mi Negocio</div>
             <div className="text-xs text-gray-500">Personalizar</div>
+          </button>
+          <button
+            onClick={() => navigate(`/game/${gameId}/lab`)}
+            className="bg-gradient-to-br from-coral/10 to-papaya/10 rounded-xl p-4 shadow hover:shadow-lg transition-all hover:scale-105 text-center border-2 border-coral/30"
+          >
+            <div className="text-3xl mb-2">🧪</div>
+            <div className="font-bold text-sm text-coral">Laboratorio</div>
+            <div className="text-xs text-gray-500">Crear platillos</div>
           </button>
           <button className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center opacity-50">
             <div className="text-3xl mb-2">📍</div>
