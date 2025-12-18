@@ -3,6 +3,7 @@ package creator
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -61,14 +62,30 @@ func (h *Handler) Submit(w http.ResponseWriter, r *http.Request) {
 		input.CreatorName = "Nacho"
 	}
 
-	var id string
+	// Check for duplicate (same recipe in last 5 minutes)
+	var existingID string
 	err := h.db.QueryRow(r.Context(), `
+		SELECT id FROM content_creations
+		WHERE creator_name = $1 AND recipe = $2 AND created_at > NOW() - INTERVAL '5 minutes'
+		LIMIT 1
+	`, input.CreatorName, input.Recipe).Scan(&existingID)
+
+	if err == nil && existingID != "" {
+		// Duplicate found - return the existing ID without error
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, map[string]string{"message": "Already submitted", "id": existingID, "duplicate": "true"})
+		return
+	}
+
+	var id string
+	err = h.db.QueryRow(r.Context(), `
 		INSERT INTO content_creations (content_type, name, description, recipe, creator_name, status)
 		VALUES ($1, $2, $3, $4, $5, 'pending')
 		RETURNING id
 	`, input.ContentType, input.Name, input.Description, input.Recipe, input.CreatorName).Scan(&id)
 
 	if err != nil {
+		log.Printf("Insert error: %v", err)
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{"error": "Failed to create"})
 		return
@@ -113,7 +130,8 @@ func (h *Handler) MyCreations(w http.ResponseWriter, r *http.Request) {
 // GET /api/admin/creator/pending
 func (h *Handler) GetPending(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.db.Query(r.Context(), `
-		SELECT id, content_type, name, description, recipe, creator_name, created_at, status
+		SELECT id, content_type, name, description, recipe, creator_name, created_at, status,
+		       reviewed_by, reviewed_at, review_notes, times_used, last_used_at, is_active
 		FROM content_creations
 		WHERE status = 'pending' AND is_active = true
 		ORDER BY created_at ASC
@@ -140,53 +158,58 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	status := r.URL.Query().Get("status")
 	cType := r.URL.Query().Get("type")
 
-	// Basic query builder (simple enough for this scope)
-	query := `SELECT id, content_type, name, description, recipe, creator_name, created_at, status 
+	query := `SELECT id, content_type, name, COALESCE(description, '') as description, recipe,
+	                 creator_name, created_at, status, reviewed_by, reviewed_at,
+	                 COALESCE(review_notes, '') as review_notes, times_used, last_used_at, is_active
 			  FROM content_creations WHERE is_active = true`
 	var args []interface{}
-	idx := 1
-
-	if status != "" {
-		query += ` AND status = $` + string(rune(idx+'0'))
-		args = append(args, status)
-		idx++
-	}
-	if cType != "" {
-		query += ` AND content_type = $` + string(rune(idx+'0')) // Should be careful with this cast, but ok for valid inputs
-		// Actually, let's fix the idx logic manually for readability later
-		// For now implementing simpler:
-	}
-	// Let's restart args logic
-	args = []interface{}{}
-	query = `SELECT id, content_type, name, description, recipe, creator_name, created_at, status 
-			 FROM content_creations WHERE is_active = true`
 
 	if status != "" {
 		args = append(args, status)
-		query += ` AND status = $` + jsonNumber(len(args))
+		query += ` AND status = $1`
 	}
 	if cType != "" {
-		args = append(args, cType)
-		query += ` AND content_type = $` + jsonNumber(len(args))
+		if len(args) > 0 {
+			args = append(args, cType)
+			query += ` AND content_type = $2`
+		} else {
+			args = append(args, cType)
+			query += ` AND content_type = $1`
+		}
 	}
 
 	query += ` ORDER BY created_at DESC`
+	log.Printf("Query: %s, Args: %v", query, args)
 
 	rows, err := h.db.Query(r.Context(), query, args...)
 	if err != nil {
+		log.Printf("Query error: %v", err)
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{"error": "Database error"})
 		return
 	}
 	defer rows.Close()
 
-	creations, err := pgx.CollectRows(rows, pgx.RowToStructByName[ContentCreation])
-	if err != nil {
-		// Just return empty if fail, or handle better
-		render.JSON(w, r, []ContentCreation{})
-		return
+	var creations []ContentCreation
+	for rows.Next() {
+		var c ContentCreation
+		err := rows.Scan(
+			&c.ID, &c.ContentType, &c.Name, &c.Description, &c.Recipe,
+			&c.CreatorName, &c.CreatedAt, &c.Status, &c.ReviewedBy, &c.ReviewedAt,
+			&c.ReviewNotes, &c.TimesUsed, &c.LastUsedAt, &c.IsActive,
+		)
+		if err != nil {
+			log.Printf("Scan error: %v", err)
+			continue
+		}
+		creations = append(creations, c)
 	}
 
+	if err := rows.Err(); err != nil {
+		log.Printf("Rows error: %v", err)
+	}
+
+	log.Printf("Found %d creations", len(creations))
 	render.JSON(w, r, creations)
 }
 

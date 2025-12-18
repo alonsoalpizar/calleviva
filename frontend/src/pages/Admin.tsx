@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { api, Parameter, CreateParameter } from '../services/api'
+import { PersonajeSVG, ProductoSVG, ArtefactoSVG, SitioSVG } from '../components/creator/CalleVivaCreator'
 
 type AdminTab = 'parameters' | 'users' | 'ai' | 'creator'
 
@@ -614,58 +615,32 @@ function CreatorSection() {
   )
 }
 
-// Simple preview component (renders basic info since SVGs are complex)
+// Preview component with actual SVG renders
 function CreationPreview({ creation, large = false }: { creation: ContentCreation; large?: boolean }) {
-  const size = large ? 'h-48' : 'h-24'
+  const size = large ? 'w-48 h-48' : 'w-24 h-24'
   const recipe = creation.recipe || {}
 
-  const getPreviewColor = () => {
-    // Try to get a meaningful color from recipe
-    if (recipe.skinTone) {
-      const tones: Record<string, string> = {
-        pale: '#FFF0E6', light: '#FDEBD0', medium: '#E59866', tan: '#CA6F1E',
-        brown: '#A04000', dark: '#6E2C00', olive: '#C5B358', golden: '#DAA520',
-      }
-      return tones[recipe.skinTone] || '#E59866'
-    }
-    if (recipe.color) {
-      const colors: Record<string, string> = {
-        green: '#4CAF50', red: '#F44336', yellow: '#FFEB3B', orange: '#FF9800',
-        brown: '#795548', white: '#FAFAFA', purple: '#9C27B0', pink: '#E91E63',
-      }
-      return colors[recipe.color] || '#4CAF50'
-    }
-    if (recipe.material) {
-      const materials: Record<string, string> = {
-        wood: '#8D6E63', metal: '#78909C', plastic_red: '#E53935', plastic_blue: '#1E88E5',
-      }
-      return materials[recipe.material] || '#8D6E63'
-    }
-    return '#9E9E9E'
-  }
+  const renderSVG = () => {
+    const data = { ...recipe, name: creation.name, description: creation.description }
 
-  const typeIcons: Record<string, string> = {
-    personajes: '👤',
-    productos: '🥬',
-    artefactos: '🪑',
-    sitios: '📍',
+    switch (creation.content_type) {
+      case 'personajes':
+        return <PersonajeSVG data={data} />
+      case 'productos':
+        return <ProductoSVG data={data} />
+      case 'artefactos':
+        return <ArtefactoSVG data={data} />
+      case 'sitios':
+        return <SitioSVG data={data} />
+      default:
+        return <span className="text-4xl">📦</span>
+    }
   }
 
   return (
-    <div className={`${size} flex items-center justify-center rounded-lg`} style={{ backgroundColor: getPreviewColor() + '33' }}>
-      <div className="text-center">
-        <div className={large ? 'text-6xl mb-2' : 'text-3xl'}>
-          {typeIcons[creation.content_type] || '📦'}
-        </div>
-        {large && (
-          <div className="text-sm font-medium text-gray-700">
-            {Object.entries(recipe).slice(0, 3).map(([k, v]) => (
-              <span key={k} className="inline-block bg-white/80 px-2 py-0.5 rounded m-0.5 text-xs">
-                {v}
-              </span>
-            ))}
-          </div>
-        )}
+    <div className={`${size} flex items-center justify-center rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden`}>
+      <div className={large ? 'scale-100' : 'scale-50'}>
+        {renderSVG()}
       </div>
     </div>
   )

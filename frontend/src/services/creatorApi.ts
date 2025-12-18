@@ -21,7 +21,7 @@ export const creatorApi = {
         recipe: Record<string, string>
         creator_name?: string
     }): Promise<{ id: string }> {
-        const res = await fetch(`${API_BASE}/api/creator/submit`, {
+        const res = await fetch(`${API_BASE}/api/v1/creator/submit`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -40,7 +40,7 @@ export const creatorApi = {
 
     // Obtener mis creaciones
     async getMyCreations(creator = 'Nacho'): Promise<ContentCreation[]> {
-        const res = await fetch(`${API_BASE}/api/creator/my-creations?creator=${creator}`)
+        const res = await fetch(`${API_BASE}/api/v1/creator/my-creations?creator=${creator}`)
         if (!res.ok) throw new Error('Error al cargar creaciones')
         return res.json()
     }

@@ -1107,6 +1107,7 @@ const CalleVivaCreator = () => {
   const [activeTab, setActiveTab] = useState('personajes')
   const [toast, setToast] = useState<string | null>(null)
   const [loadedData, setLoadedData] = useState<CreationData | null>(null)
+  const [submittingIds, setSubmittingIds] = useState<Set<string>>(new Set())
 
   // Load gallery from localStorage on mount
   const [gallery, setGallery] = useState<Creation[]>(() => {
@@ -1143,8 +1144,19 @@ const CalleVivaCreator = () => {
     showToast('📁 Guardado en galería')
   }
 
-  // Submit to server
-  const submitToServer = async (item: { type: string; data: CreationData }) => {
+  // Submit to server (with duplicate prevention)
+  const submitToServer = async (item: { type: string; data: CreationData }, itemId?: string) => {
+    // Create a unique key for this submission
+    const submissionKey = itemId || JSON.stringify({ type: item.type, name: item.data.name })
+
+    // Prevent double submission
+    if (submittingIds.has(submissionKey)) {
+      showToast('⏳ Ya se está enviando...')
+      return
+    }
+
+    setSubmittingIds(prev => new Set(prev).add(submissionKey))
+
     try {
       await creatorApi.submit({
         content_type: item.type,
@@ -1156,6 +1168,15 @@ const CalleVivaCreator = () => {
     } catch (err) {
       console.error(err)
       showToast('❌ Error al enviar')
+    } finally {
+      // Keep the ID blocked for 3 seconds to prevent rapid re-clicks
+      setTimeout(() => {
+        setSubmittingIds(prev => {
+          const next = new Set(prev)
+          next.delete(submissionKey)
+          return next
+        })
+      }, 3000)
     }
   }
 
@@ -1232,3 +1253,4 @@ const CalleVivaCreator = () => {
 }
 
 export default CalleVivaCreator
+export { PersonajeSVG, ProductoSVG, ArtefactoSVG, SitioSVG }
