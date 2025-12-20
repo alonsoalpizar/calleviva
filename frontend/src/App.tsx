@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
 
@@ -13,6 +12,7 @@ import { TruckSetup } from './components/game/TruckSetup'
 import { GamePlay } from './components/game/GamePlay'
 import { TruckCustomization } from './components/game/TruckCustomization'
 import { DishLaboratorio } from './components/game/DishLaboratorio'
+import { Market } from './components/game/Market'
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -53,13 +53,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const { checkAuth } = useAuthStore()
-
-  // Check auth on app mount (restore session from localStorage)
-  useEffect(() => {
-    checkAuth()
-  }, [checkAuth])
-
+  // Auth is automatically checked on Zustand hydration (see authStore.ts)
   return (
     <BrowserRouter>
       <Routes>
@@ -101,6 +95,14 @@ function App() {
           element={
             <ProtectedRoute>
               <TruckCustomization />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/game/:gameId/market"
+          element={
+            <ProtectedRoute>
+              <Market />
             </ProtectedRoute>
           }
         />

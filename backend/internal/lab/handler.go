@@ -25,6 +25,26 @@ const (
 	AdminEmail         = "alonsoalpizar@gmail.com"
 )
 
+// cleanJSONResponse strips markdown code blocks from AI responses
+// DeepSeek and some other models wrap JSON in ```json ... ```
+func cleanJSONResponse(text string) string {
+	text = strings.TrimSpace(text)
+
+	// Remove ```json or ``` at the start
+	if strings.HasPrefix(text, "```json") {
+		text = strings.TrimPrefix(text, "```json")
+	} else if strings.HasPrefix(text, "```") {
+		text = strings.TrimPrefix(text, "```")
+	}
+
+	// Remove ``` at the end
+	if strings.HasSuffix(text, "```") {
+		text = strings.TrimSuffix(text, "```")
+	}
+
+	return strings.TrimSpace(text)
+}
+
 type Handler struct {
 	db        *pgxpool.Pool
 	aiService *orchestrator.Service
@@ -55,22 +75,50 @@ func (h *Handler) InitAI(ctx context.Context) error {
 		return err
 	}
 
-	// Register the dish generation template
-	template := `Sos un chef costarricense creativo.
-Con estos ingredientes: {{.Ingredientes}}
-El cliente pide: "{{.Prompt}}"
+	// Register the dish generation template - Natural Costa Rican voice
+	template := `Sos un chef costarricense creando platillos para un food truck.
 
-Generá UN platillo creativo. Respondé SOLO en este formato JSON exacto:
+Ingredientes disponibles: {{.Ingredientes}}
+{{if .Prompt}}El cliente pidió: "{{.Prompt}}"{{end}}
+
+Creá un platillo con personalidad. La descripción debe sentirse NATURAL, como si un tico de verdad te contara sobre su comida favorita.
+
+TONO: Variá según el plato. Puede ser:
+- Nostálgico: "Este plato me recuerda a los domingos en casa de mi abuela..."
+- Reconfortante: "Para esos días grises donde solo querés algo que te abrace por dentro..."
+- Orgulloso: "Esto es lo que somos, sin pretensiones..."
+- Juguetón: "No me pregunten cómo se me ocurrió, pero funciona..."
+- Simple: "A veces lo mejor es no complicarse..."
+
+IMPORTANTE - Lo que NO hacer:
+❌ No pongas "mae" al final de cada oración
+❌ No siempre tiene que ser cerveza - puede ser café, agua de pipa, fresco de cas, nada, lo que haga sentido
+❌ No todo plato es una "fiesta de sabores" o una "parranda"
+❌ No fuerces jerga tica - que salga natural o no la uses
+
+ESTRUCTURA (un solo texto fluido de 2-4 oraciones):
+1. Una línea evocadora sobre el plato (origen, sensación, o momento ideal)
+2. Descripción sensorial honesta (cómo huele, sabe, se ve)
+3. Un tip o secreto del chef (opcional, solo si aporta)
+
+EJEMPLOS DE BUEN TONO:
+- "El chicharrón suelta su grasa dorada y ahí empieza la magia. El arroz absorbe todo ese sabor mientras los frijoles aportan lo suyo. Simple, honesto, sin vueltas."
+- "Para cuando llueve y no querés salir de la casa. El caldo caliente, las verduras suaves, ese olor que llena toda la cocina. Esto es."
+- "Mi tía siempre decía que el secreto está en no apurarse. Dejar que las cosas tomen su tiempo. Este plato es exactamente eso."
+
+NOMBRES: Creativos pero no ridículos
+✅ "El Reconfortante", "Tarde de Domingo", "Lo de Siempre", "El Atrevido"
+❌ "Explosión Volcánica de Sabores Ancestrales"
+
+JSON (solo esto, nada más):
 {
-  "nombre": "Nombre creativo del platillo (máx 50 chars)",
-  "descripcion": "Descripción apetitosa en 1-2 oraciones con jerga tica",
-  "precio_sugerido": número entre 1500 y 15000 (en colones),
-  "popularidad": número entre 1 y 100,
-  "dificultad": "facil" o "medio" o "dificil",
-  "tags": ["tag1", "tag2", "tag3"]
-}
-
-SOLO el JSON, nada más.`
+  "nombre": "Nombre memorable (máx 40 chars)",
+  "descripcion": "Descripción natural y fluida. 150-250 caracteres.",
+  "precio_sugerido": 2500-12000,
+  "popularidad": 40-85,
+  "dificultad": "facil" | "medio" | "dificil",
+  "tags": ["2-4", "tags", "relevantes"]
+}`
 
 	if err := svc.RegisterTemplate("dish_generation", template); err != nil {
 		log.Printf("Warning: Failed to register template: %v", err)
@@ -81,22 +129,43 @@ SOLO el JSON, nada más.`
 }
 
 // GET /api/v1/games/{gameID}/lab/ingredients
+// Only returns ingredients the player owns
 func (h *Handler) GetIngredients(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
+
+	// Get game and player IDs
+	gameID, err := uuid.Parse(chi.URLParam(r, "gameID"))
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid game ID"})
+		return
+	}
+
+	claims, err := auth.GetClaimsFromContext(r.Context())
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": "Authentication required"})
+		return
+	}
+	playerID, _ := uuid.Parse(claims.PlayerID)
 
 	response := IngredientsResponse{
 		Default:     []Ingredient{},
 		FromCreator: []Ingredient{},
 	}
 
-	// Get default ingredients from parameters (category = 'ingredients_cr')
+	// Get only ingredients the player OWNS (from player_ingredients table)
 	rows, err := h.db.Query(ctx, `
-		SELECT code, name, icon, config
-		FROM parameters
-		WHERE category = 'ingredients_cr' AND is_active = true
-		ORDER BY sort_order, name
-	`)
+		SELECT p.code, p.name, p.icon, p.config
+		FROM parameters p
+		INNER JOIN player_ingredients pi ON pi.ingredient_code = p.code
+		WHERE p.category = 'ingredients_cr'
+		  AND p.is_active = true
+		  AND pi.session_id = $1
+		  AND pi.player_id = $2
+		ORDER BY p.name
+	`, gameID, playerID)
 	if err != nil {
 		log.Printf("Error fetching default ingredients: %v", err)
 	} else {
@@ -226,18 +295,23 @@ func (h *Handler) GenerateDish(w http.ResponseWriter, r *http.Request) {
 			"Ingredientes": ingredientStr,
 			"Prompt":       req.PlayerPrompt,
 		}, providers.Config{
-			MaxTokens:   300,
-			Temperature: 0.8,
+			MaxTokens:   800, // Increased for elaborate descriptions
+			Temperature: 0.9, // More creative
 		})
 
 		if err != nil {
 			log.Printf("AI generation failed: %v", err)
 			generated = h.fallbackGeneration(ingredientNames, req.PlayerPrompt)
 		} else {
+			// Clean markdown code blocks (DeepSeek wraps JSON in ```json ... ```)
+			cleanedText := cleanJSONResponse(resp.Text)
+
 			// Parse AI response
-			if err := json.Unmarshal([]byte(resp.Text), &generated); err != nil {
+			if err := json.Unmarshal([]byte(cleanedText), &generated); err != nil {
 				log.Printf("Failed to parse AI response: %v, raw: %s", err, resp.Text)
 				generated = h.fallbackGeneration(ingredientNames, req.PlayerPrompt)
+			} else {
+				log.Printf("AI dish generated successfully: %s (provider response)", generated.Name)
 			}
 		}
 	} else {
@@ -568,26 +642,68 @@ func (h *Handler) checkAndUpdateUsage(ctx context.Context, playerID string) (int
 	return usage.MaxHits - usage.HitsUsed - 1, nil
 }
 
-// fallbackGeneration creates a dish without AI
+// fallbackGeneration creates a dish with natural tone without AI
 func (h *Handler) fallbackGeneration(ingredients []string, prompt string) AIGeneratedDish {
-	// Simple deterministic generation based on ingredients
-	name := "Platillo Especial"
-	if len(ingredients) > 0 {
-		name = "Combo de " + ingredients[0]
-		if len(ingredients) > 1 {
-			name += " con " + ingredients[1]
+	// Simple, memorable names
+	names := []string{
+		"El Reconfortante",
+		"Tarde de Domingo",
+		"Lo de Siempre",
+		"El Clásico",
+		"Para Compartir",
+		"El Favorito",
+		"Sin Vueltas",
+		"El de la Casa",
+		"Pa' Llevar",
+		"El Honesto",
+		"Día de Lluvia",
+		"El Atrevido",
+	}
+
+	// Natural, flowing descriptions (complete sentences)
+	descriptions := []string{
+		"De esos platos que no necesitan explicación. Lo servís y la gente entiende. El aroma hace el trabajo, los sabores confirman.",
+		"Para cuando querés algo que simplemente funcione. Sin sorpresas, sin complicaciones. Solo comida honesta que sabe a lo que tiene que saber.",
+		"Mi abuela hacía algo parecido. No era exactamente esto, pero el sentimiento es el mismo. Comida que reconforta.",
+		"A veces lo mejor es no complicarse. Buenos ingredientes, cocción correcta, y dejar que las cosas hablen por sí solas.",
+		"Este plato es para sentarse sin prisa. Para esos días donde el tiempo no importa y solo querés disfrutar.",
+		"No voy a decir que es el mejor plato del mundo. Pero sí que cuando lo hacemos bien, la gente repite.",
+		"Hay combinaciones que simplemente funcionan. Esta es una de esas. No pregunten por qué, solo pruébenlo.",
+		"El secreto no es ningún secreto: buenos ingredientes y paciencia. Eso es todo.",
+	}
+
+	// Generate hash for consistent selection
+	hash := 0
+	for _, ing := range ingredients {
+		for _, c := range ing {
+			hash += int(c)
 		}
 	}
 
+	// Select based on hash
+	name := names[hash%len(names)]
+	desc := descriptions[(hash/2)%len(descriptions)]
+
+	// Add ingredient mention naturally if few ingredients
+	if len(ingredients) > 0 && len(ingredients) <= 3 {
+		ingredientList := strings.Join(ingredients, ", ")
+		extras := []string{
+			fmt.Sprintf(" Con %s como protagonistas.", ingredientList),
+			fmt.Sprintf(" Hoy con %s.", ingredientList),
+			fmt.Sprintf(" La versión con %s.", ingredientList),
+		}
+		desc += extras[hash%len(extras)]
+	}
+
 	// Base price on ingredient count
-	price := 2000 + (len(ingredients) * 500)
+	price := 3000 + (len(ingredients) * 700)
 	if price > 12000 {
 		price = 12000
 	}
 
-	popularity := 40 + (len(ingredients) * 5)
-	if popularity > 80 {
-		popularity = 80
+	popularity := 60 + (len(ingredients) * 4)
+	if popularity > 90 {
+		popularity = 90
 	}
 
 	difficulty := "medio"
@@ -597,9 +713,16 @@ func (h *Handler) fallbackGeneration(ingredients []string, prompt string) AIGene
 		difficulty = "dificil"
 	}
 
-	desc := fmt.Sprintf("Un delicioso platillo preparado con %s. ¡Pura vida!", strings.Join(ingredients, ", "))
-	if len(desc) > 150 {
-		desc = desc[:147] + "..."
+	// Simple, relevant tags
+	tagOptions := [][]string{
+		{"casero", "reconfortante"},
+		{"sencillo", "rico"},
+		{"tradicional", "familiar"},
+		{"para-compartir", "abundante"},
+	}
+	tags := tagOptions[hash%len(tagOptions)]
+	if len(ingredients) >= 4 {
+		tags = append(tags, "elaborado")
 	}
 
 	return AIGeneratedDish{
@@ -608,6 +731,6 @@ func (h *Handler) fallbackGeneration(ingredients []string, prompt string) AIGene
 		Price:      price,
 		Popularity: popularity,
 		Difficulty: difficulty,
-		Tags:       []string{"casero", "tradicional"},
+		Tags:       tags,
 	}
 }

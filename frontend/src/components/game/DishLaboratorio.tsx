@@ -254,7 +254,9 @@ export function DishLaboratorio() {
               <div className="text-5xl animate-bounce">🎉</div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-green-800">{generatedDish.name}</h3>
-                <p className="text-green-700 mt-1">{generatedDish.description}</p>
+                <div className="text-green-700 mt-2 whitespace-pre-line text-sm leading-relaxed bg-white/50 p-3 rounded-lg">
+                  {generatedDish.description}
+                </div>
 
                 {/* Editable Price Section */}
                 <div className="mt-4 p-4 bg-white rounded-xl border border-green-200">
@@ -494,7 +496,9 @@ export function DishLaboratorio() {
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-600 text-sm mb-3">{dish.description}</p>
+                      <div className="text-gray-600 text-sm mb-3 whitespace-pre-line leading-relaxed bg-gray-50 p-2 rounded-lg max-h-32 overflow-y-auto">
+                        {dish.description}
+                      </div>
 
                       <div className="flex flex-wrap gap-2 items-center">
                         {editingDishId === dish.id ? (

@@ -20,6 +20,7 @@ import (
 	"github.com/alonsoalpizar/calleviva/backend/internal/database"
 	"github.com/alonsoalpizar/calleviva/backend/internal/games"
 	"github.com/alonsoalpizar/calleviva/backend/internal/lab"
+	"github.com/alonsoalpizar/calleviva/backend/internal/market"
 	"github.com/alonsoalpizar/calleviva/backend/internal/parameters"
 	"github.com/alonsoalpizar/calleviva/backend/internal/players"
 	"github.com/go-chi/chi/v5"
@@ -102,6 +103,10 @@ func main() {
 				r.Patch("/", games.HandleUpdate)
 				r.Delete("/", games.HandleDelete)
 
+				// Mercado - comprar ingredientes
+				marketHandler := market.NewHandler(database.GetPool())
+				marketHandler.SetupRoutes(r)
+
 				// Laboratorio de Sabores
 				labHandler := lab.NewHandler(database.GetPool())
 				if err := labHandler.InitAI(context.Background()); err != nil {
@@ -111,7 +116,6 @@ func main() {
 
 				// Gameplay (futuro)
 				r.Get("/day", handleNotImplemented)
-				r.Post("/market/buy", handleNotImplemented)
 				r.Post("/location/set", handleNotImplemented)
 				r.Post("/menu/configure", handleNotImplemented)
 				r.Post("/day/start", handleNotImplemented)

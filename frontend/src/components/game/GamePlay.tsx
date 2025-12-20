@@ -127,6 +127,14 @@ export function GamePlay() {
             <div className="text-xs text-gray-500">Personalizar</div>
           </button>
           <button
+            onClick={() => navigate(`/game/${gameId}/market`)}
+            className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 shadow hover:shadow-lg transition-all hover:scale-105 text-center border-2 border-green-300"
+          >
+            <div className="text-3xl mb-2">🏪</div>
+            <div className="font-bold text-sm text-green-700">Mercado</div>
+            <div className="text-xs text-gray-500">Comprar ingredientes</div>
+          </button>
+          <button
             onClick={() => navigate(`/game/${gameId}/lab`)}
             className="bg-gradient-to-br from-coral/10 to-papaya/10 rounded-xl p-4 shadow hover:shadow-lg transition-all hover:scale-105 text-center border-2 border-coral/30"
           >
@@ -137,11 +145,6 @@ export function GamePlay() {
           <button className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center opacity-50">
             <div className="text-3xl mb-2">📍</div>
             <div className="font-bold text-sm">Ubicación</div>
-            <div className="text-xs text-gray-500">Próximamente</div>
-          </button>
-          <button className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center opacity-50">
-            <div className="text-3xl mb-2">🛒</div>
-            <div className="font-bold text-sm">Mercado</div>
             <div className="text-xs text-gray-500">Próximamente</div>
           </button>
           <button className="bg-white rounded-xl p-4 shadow hover:shadow-lg transition-shadow text-center opacity-50">

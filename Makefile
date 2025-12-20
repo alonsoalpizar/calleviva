@@ -108,7 +108,11 @@ deploy-frontend: build-frontend ## Solo deploy del frontend
 	@echo "$(YELLOW)→ Copiando frontend a /var/www/calleviva...$(NC)"
 	sudo rm -rf /var/www/calleviva/*
 	sudo cp -r $(FRONTEND_DIR)/dist/* /var/www/calleviva/
-	@echo "$(GREEN)✓ Frontend desplegado$(NC)"
+	sudo chown -R www-data:www-data /var/www/calleviva/
+	@echo "$(GREEN)✓ Frontend desplegado en /var/www/calleviva$(NC)"
+
+deploy-backend: build-backend restart ## Solo deploy del backend
+	@echo "$(GREEN)✓ Backend desplegado$(NC)"
 
 restart: ## Reinicia el servicio backend
 	@echo "$(YELLOW)→ Reiniciando servicio...$(NC)"
