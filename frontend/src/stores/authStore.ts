@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       player: null,
       token: null,
-      isLoading: true, // Start as loading until hydration completes
+      isLoading: false, // Don't block UI - hydration will trigger checkAuth if needed
       error: null,
       _hasHydrated: false,
 

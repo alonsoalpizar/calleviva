@@ -75,45 +75,44 @@ func (h *Handler) InitAI(ctx context.Context) error {
 		return err
 	}
 
-	// Register the dish generation template - Natural Costa Rican voice
+	// Register the dish generation template - Natural Costa Rican voice with stories
 	template := `Sos un chef costarricense creando platillos para un food truck.
 
 Ingredientes disponibles: {{.Ingredientes}}
 {{if .Prompt}}El cliente pidió: "{{.Prompt}}"{{end}}
 
-Creá un platillo con personalidad. La descripción debe sentirse NATURAL, como si un tico de verdad te contara sobre su comida favorita.
+Creá un platillo con HISTORIA y ALMA. La descripción debe contar de dónde viene este plato, cómo se siente, cómo huele.
 
-TONO: Variá según el plato. Puede ser:
-- Nostálgico: "Este plato me recuerda a los domingos en casa de mi abuela..."
-- Reconfortante: "Para esos días grises donde solo querés algo que te abrace por dentro..."
-- Orgulloso: "Esto es lo que somos, sin pretensiones..."
-- Juguetón: "No me pregunten cómo se me ocurrió, pero funciona..."
-- Simple: "A veces lo mejor es no complicarse..."
+ESTRUCTURA (3-4 oraciones fluidas):
+1. ORIGEN/LEYENDA: ¿Quién inventó este plato? ¿Cuándo? ¿Por qué? (una abuela, un cantinero, un pescador, una noche de lluvia...)
+2. SENSORIAL: ¿Cómo huele, cómo suena al cocinarse, qué colores tiene, qué texturas?
+3. OPCIONAL: Un tip, secreto, o sugerencia de cómo disfrutarlo.
 
-IMPORTANTE - Lo que NO hacer:
-❌ No pongas "mae" al final de cada oración
-❌ No siempre tiene que ser cerveza - puede ser café, agua de pipa, fresco de cas, nada, lo que haga sentido
-❌ No todo plato es una "fiesta de sabores" o una "parranda"
-❌ No fuerces jerga tica - que salga natural o no la uses
+IMPORTANTE - Tercera persona:
+✅ "Dicen que una abuela de Cartago inventó esto..."
+✅ "Cuenta la leyenda que un cocinero de Limón..."
+✅ "Este plato nació en una cantina de Heredia..."
+❌ NO uses "mi tía", "mi mamá", "mi abuela" - el plato es del jugador, no tuyo
 
-ESTRUCTURA (un solo texto fluido de 2-4 oraciones):
-1. Una línea evocadora sobre el plato (origen, sensación, o momento ideal)
-2. Descripción sensorial honesta (cómo huele, sabe, se ve)
-3. Un tip o secreto del chef (opcional, solo si aporta)
+IMPORTANTE - Evitar:
+❌ No pongas "mae" a cada rato
+❌ No siempre cerveza - puede ser café, agua de pipa, fresco, o nada
+❌ No "fiesta de sabores", "explosión", "danza de sabores"
+❌ No fuerces jerga - que salga natural
 
 EJEMPLOS DE BUEN TONO:
-- "El chicharrón suelta su grasa dorada y ahí empieza la magia. El arroz absorbe todo ese sabor mientras los frijoles aportan lo suyo. Simple, honesto, sin vueltas."
-- "Para cuando llueve y no querés salir de la casa. El caldo caliente, las verduras suaves, ese olor que llena toda la cocina. Esto es."
-- "Mi tía siempre decía que el secreto está en no apurarse. Dejar que las cosas tomen su tiempo. Este plato es exactamente eso."
+- "Cuenta la leyenda que don Pedro, un arriero de Turrialba, creó esta receta para sobrevivir las noches frías en el páramo. El chicharrón suelta su grasa dorada sobre el arroz, los frijoles aportan ese color negro profundo, y el culantro fresco corona todo con su aroma inconfundible."
+- "Nació en una madrugada lluviosa en el Mercado Central, cuando sobraban ingredientes y faltaba inspiración. El huevo se funde con el arroz caliente, la cebolla caramelizada aporta dulzor, y todo huele a domingo temprano."
+- "Una cocinera de Puntarenas mezclaba esto para los pescadores que volvían al amanecer. Fresco, liviano, con ese toque de limón que despierta hasta al más cansado."
 
 NOMBRES: Creativos pero no ridículos
-✅ "El Reconfortante", "Tarde de Domingo", "Lo de Siempre", "El Atrevido"
+✅ "El Arriero", "Madrugada en el Central", "Lo del Puerto"
 ❌ "Explosión Volcánica de Sabores Ancestrales"
 
 JSON (solo esto, nada más):
 {
   "nombre": "Nombre memorable (máx 40 chars)",
-  "descripcion": "Descripción natural y fluida. 150-250 caracteres.",
+  "descripcion": "Historia + descripción sensorial. 200-350 caracteres.",
   "precio_sugerido": 2500-12000,
   "popularidad": 40-85,
   "dificultad": "facil" | "medio" | "dificil",
