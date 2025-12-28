@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalleViva - Opciones de Perspectiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coral: '#FF6B6B',
+                        mango: '#FFE66D',
+                        agua: '#4ECDC4',
+                        crema: '#FFF8E7',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; }
+
+        .option-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .option-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .option-card.selected {
+            ring: 4px solid #FF6B6B;
+        }
+
+        /* Isometric helpers */
+        .iso-container {
+            transform: rotateX(60deg) rotateZ(-45deg);
+            transform-style: preserve-3d;
+        }
+
+        /* Street perspective */
+        .street-perspective {
+            perspective: 800px;
+        }
+
+        .cloud {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 p-8">
+
+    <header class="text-center mb-10">
+        <h1 class="text-4xl font-black text-gray-800 mb-2">🚚 CalleViva - Opciones de Perspectiva</h1>
+        <p class="text-gray-600">Selecciona el estilo visual que prefieres para la simulación</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+
+        <!-- OPCIÓN 1: Vista Lateral Mejorada (estilo Diner Dash) -->
+        <div class="option-card bg-white rounded-3xl overflow-hidden shadow-xl">
+            <div class="bg-coral text-white p-4 text-center">
+                <h2 class="text-xl font-black">OPCIÓN A: Vista Lateral</h2>
+                <p class="text-sm opacity-80">Estilo Diner Dash / Cooking Dash</p>
+            </div>
+
+            <!-- Scene preview -->
+            <div class="relative h-80 overflow-hidden" style="background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 60%, #90EE90 60%, #228B22 100%);">
+
+                <!-- Sol -->
+                <div class="absolute top-4 right-8 text-5xl">☀️</div>
+
+                <!-- Nubes -->
+                <div class="cloud absolute top-8 left-10 text-4xl opacity-60">☁️</div>
+                <div class="cloud absolute top-14 right-20 text-3xl opacity-40" style="animation-delay: -2s;">☁️</div>
+
+                <!-- Background buildings - más pequeños y atrás -->
+                <div class="absolute bottom-32 w-full flex justify-around items-end opacity-40">
+                    <span class="text-5xl">🏢</span>
+                    <span class="text-6xl">🌳</span>
+                    <span class="text-7xl">🏫</span>
+                    <span class="text-5xl">🌴</span>
+                </div>
+
+                <!-- Calle - franja horizontal clara -->
+                <div class="absolute bottom-16 w-full h-16 bg-gray-400">
+                    <div class="absolute top-1/2 w-full h-1 bg-yellow-400" style="background: repeating-linear-gradient(90deg, #fbbf24 0px, #fbbf24 20px, transparent 20px, transparent 40px);"></div>
+                </div>
+
+                <!-- Área de gameplay - acera -->
+                <div class="absolute bottom-0 w-full h-16 bg-gray-300"></div>
+
+                <!-- Clientes a la izquierda -->
+                <div class="absolute bottom-20 left-8 flex gap-2">
+                    <span class="text-4xl">👩‍🎓</span>
+                    <span class="text-4xl">👨‍💼</span>
+                    <span class="text-4xl">👵</span>
+                </div>
+
+                <!-- Food Truck centro-derecha -->
+                <div class="absolute bottom-12 right-16 text-8xl" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                    🚚
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50">
+                <h3 class="font-bold text-gray-800 mb-2">Características:</h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>✓ Simple de implementar</li>
+                    <li>✓ Claro para el jugador</li>
+                    <li>✓ Funciona bien en mobile</li>
+                    <li>✗ Menos inmersivo</li>
+                    <li>✗ Puede verse "flat"</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- OPCIÓN 2: Isométrico 2.5D (estilo Manor Cafe) -->
+        <div class="option-card bg-white rounded-3xl overflow-hidden shadow-xl">
+            <div class="bg-agua text-white p-4 text-center">
+                <h2 class="text-xl font-black">OPCIÓN B: Isométrico 2.5D</h2>
+                <p class="text-sm opacity-80">Estilo Manor Cafe / SimCity</p>
+            </div>
+
+            <!-- Scene preview - Isometric -->
+            <div class="relative h-80 overflow-hidden" style="background: linear-gradient(to bottom, #87CEEB 0%, #B0E0E6 100%);">
+
+                <!-- Sol -->
+                <div class="absolute top-4 right-8 text-4xl">☀️</div>
+
+                <!-- Grid isométrico simulado con CSS -->
+                <div class="absolute inset-0 flex items-center justify-center">
+
+                    <!-- Piso isométrico -->
+                    <div class="relative" style="transform: rotateX(55deg) rotateZ(-45deg); width: 300px; height: 300px;">
+                        <!-- Césped -->
+                        <div class="absolute inset-0 bg-green-400 rounded-lg" style="box-shadow: 0 20px 0 #228B22;"></div>
+
+                        <!-- Calle diagonal -->
+                        <div class="absolute top-1/3 left-0 right-0 h-16 bg-gray-500" style="transform: skewY(0deg);"></div>
+                    </div>
+                </div>
+
+                <!-- Elementos sobre el grid (sin transformar) -->
+                <div class="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-end gap-4">
+                    <!-- Edificio de fondo -->
+                    <div class="text-6xl opacity-60" style="transform: translateY(-40px);">🏫</div>
+
+                    <!-- Truck en perspectiva -->
+                    <div class="text-7xl" style="filter: drop-shadow(0 8px 12px rgba(0,0,0,0.4)); transform: scaleX(-1);">
+                        🚚
+                    </div>
+
+                    <!-- Árbol -->
+                    <div class="text-5xl opacity-70" style="transform: translateY(-20px);">🌳</div>
+                </div>
+
+                <!-- Clientes en cola diagonal -->
+                <div class="absolute bottom-24 left-16 flex gap-1" style="transform: perspective(100px) rotateY(-5deg);">
+                    <span class="text-3xl">👩‍🎓</span>
+                    <span class="text-3xl" style="transform: translateY(-2px);">👨‍💼</span>
+                    <span class="text-3xl" style="transform: translateY(-4px);">👵</span>
+                </div>
+
+                <!-- HUD overlay ejemplo -->
+                <div class="absolute top-4 left-4 bg-white/80 backdrop-blur-sm rounded-xl px-3 py-2 text-sm font-bold">
+                    💰 ₡18,500
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50">
+                <h3 class="font-bold text-gray-800 mb-2">Características:</h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>✓ Se ve muy profesional</li>
+                    <li>✓ Profundidad visual real</li>
+                    <li>✓ Popular en mobile games</li>
+                    <li>✗ Assets más complejos</li>
+                    <li>✗ Más trabajo para el creador</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- OPCIÓN 3: First-Person Counter (estilo Papa's Pizzeria) -->
+        <div class="option-card bg-white rounded-3xl overflow-hidden shadow-xl">
+            <div class="bg-mango text-gray-800 p-4 text-center">
+                <h2 class="text-xl font-black">OPCIÓN C: Vista desde el Truck</h2>
+                <p class="text-sm opacity-80">Estilo Papa's / Food Truck Tycoon</p>
+            </div>
+
+            <!-- Scene preview - First person from truck -->
+            <div class="relative h-80 overflow-hidden street-perspective" style="background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 40%, transparent 40%);">
+
+                <!-- Cielo de fondo -->
+                <div class="absolute inset-0" style="background: linear-gradient(to bottom, #87CEEB, #E0F6FF 50%, #90EE90 50%, #228B22);"></div>
+
+                <!-- Sol -->
+                <div class="absolute top-4 left-1/2 -translate-x-1/2 text-5xl">☀️</div>
+
+                <!-- Calle con perspectiva - viene hacia el jugador -->
+                <div class="absolute bottom-0 left-0 right-0 h-48"
+                     style="background: linear-gradient(to top, #6b7280 0%, #9ca3af 100%);
+                            clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);">
+                    <!-- Líneas de la calle -->
+                    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-2 h-8 bg-yellow-400"></div>
+                    <div class="absolute top-2/4 left-1/2 -translate-x-1/2 w-3 h-12 bg-yellow-400"></div>
+                    <div class="absolute top-3/4 left-1/2 -translate-x-1/2 w-4 h-16 bg-yellow-400"></div>
+                </div>
+
+                <!-- Edificios a los lados con perspectiva -->
+                <div class="absolute left-0 top-20 bottom-20 w-24 flex flex-col justify-end items-center opacity-50">
+                    <span class="text-4xl">🏢</span>
+                    <span class="text-5xl">🌳</span>
+                </div>
+                <div class="absolute right-0 top-20 bottom-20 w-24 flex flex-col justify-end items-center opacity-50">
+                    <span class="text-4xl">🏫</span>
+                    <span class="text-5xl">🌴</span>
+                </div>
+
+                <!-- Clientes que vienen hacia el truck -->
+                <div class="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-8 items-end">
+                    <span class="text-2xl opacity-60" style="transform: translateY(-20px);">👩‍🎓</span>
+                    <span class="text-4xl opacity-80" style="transform: translateY(-5px);">👨‍💼</span>
+                    <span class="text-5xl">👵</span>
+                </div>
+
+                <!-- Borde del truck (ventana de servicio) -->
+                <div class="absolute bottom-0 left-0 right-0 h-16 bg-coral rounded-t-3xl border-t-4 border-coral flex items-center justify-center gap-4">
+                    <span class="text-2xl">🍳</span>
+                    <span class="text-2xl">🥟</span>
+                    <span class="text-2xl">☕</span>
+                    <span class="text-xl font-black text-white">SERVIR</span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50">
+                <h3 class="font-bold text-gray-800 mb-2">Características:</h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>✓ Muy inmersivo</li>
+                    <li>✓ Enfocado en servir</li>
+                    <li>✓ UI del truck integrada</li>
+                    <li>✗ No ves todo el mundo</li>
+                    <li>✗ Menos "tycoon", más "action"</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Sección de comparación extra -->
+    <div class="max-w-4xl mx-auto mt-12 bg-white rounded-3xl p-8 shadow-xl">
+        <h2 class="text-2xl font-black text-gray-800 mb-6 text-center">📊 Comparación Rápida</h2>
+
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b-2 border-gray-200">
+                    <th class="py-3 text-left">Aspecto</th>
+                    <th class="py-3 text-center text-coral">A: Lateral</th>
+                    <th class="py-3 text-center text-agua">B: Isométrico</th>
+                    <th class="py-3 text-center text-yellow-600">C: First-Person</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 font-semibold">Dificultad de implementar</td>
+                    <td class="py-3 text-center">⭐ Fácil</td>
+                    <td class="py-3 text-center">⭐⭐ Media</td>
+                    <td class="py-3 text-center">⭐⭐ Media</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 font-semibold">Assets del Creador</td>
+                    <td class="py-3 text-center">Simples</td>
+                    <td class="py-3 text-center">Complejos</td>
+                    <td class="py-3 text-center">Simples</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 font-semibold">Vista del mundo</td>
+                    <td class="py-3 text-center">Buena</td>
+                    <td class="py-3 text-center">Excelente</td>
+                    <td class="py-3 text-center">Limitada</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 font-semibold">Sensación de juego</td>
+                    <td class="py-3 text-center">Casual</td>
+                    <td class="py-3 text-center">Tycoon Pro</td>
+                    <td class="py-3 text-center">Action/Arcade</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-3 font-semibold">Mobile-friendly</td>
+                    <td class="py-3 text-center">✅ Muy bueno</td>
+                    <td class="py-3 text-center">✅ Bueno</td>
+                    <td class="py-3 text-center">✅ Excelente</td>
+                </tr>
+                <tr>
+                    <td class="py-3 font-semibold">Ejemplos</td>
+                    <td class="py-3 text-center text-xs">Diner Dash</td>
+                    <td class="py-3 text-center text-xs">Manor Cafe, SimCity</td>
+                    <td class="py-3 text-center text-xs">Papa's Pizzeria</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mi recomendación -->
+    <div class="max-w-4xl mx-auto mt-8 bg-gradient-to-r from-coral to-mango rounded-3xl p-8 text-white text-center">
+        <h3 class="text-2xl font-black mb-4">💡 Mi Recomendación</h3>
+        <p class="text-lg mb-4">
+            Para CalleViva, sugiero <strong>Opción B (Isométrico)</strong> porque:
+        </p>
+        <ul class="text-left max-w-md mx-auto space-y-2">
+            <li>✓ Se ve profesional y moderno</li>
+            <li>✓ Es el estándar en juegos móviles exitosos</li>
+            <li>✓ Permite ver el mundo y los clientes claramente</li>
+            <li>✓ Los assets del creador se pueden adaptar</li>
+        </ul>
+        <p class="mt-4 text-sm opacity-80">
+            Pero si prefieres algo más simple para empezar, <strong>Opción A</strong> es viable.
+        </p>
+    </div>
+
+    <footer class="text-center mt-12 text-gray-500 text-sm">
+        <p>CalleViva.club - Mockup de opciones de perspectiva</p>
+        <p class="mt-2">Abre este archivo en tu navegador: <code class="bg-gray-200 px-2 py-1 rounded">/opt/CalleViva/Mocks/PerspectiveOptions.html</code></p>
+    </footer>
+
+</body>
+</html>

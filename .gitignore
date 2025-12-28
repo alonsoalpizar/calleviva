@@ -107,6 +107,8 @@ uploads/
 .ai-cache/
 
 # Assets generados
+# Large asset zip files (GLB files are extracted)
+frontend/public/assets/models/**/*.zip
 
 # Binaries
 backend/main

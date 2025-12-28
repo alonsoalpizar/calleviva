@@ -1,0 +1,2813 @@
+[
+  {
+    "id": "body",
+    "nombre": "Cuerpo",
+    "icono": "🧍",
+    "requerido": true,
+    "assets": [
+      {
+        "id": "body_blue_001",
+        "nombre": "Body Blue",
+        "archivo": "Body/Body_Blue_001.glb"
+      },
+      {
+        "id": "body_blue_002",
+        "nombre": "Body Blue",
+        "archivo": "Body/Body_Blue_002.glb"
+      },
+      {
+        "id": "body_blue_003",
+        "nombre": "Body Blue",
+        "archivo": "Body/Body_Blue_003.glb"
+      },
+      {
+        "id": "body_brown_001",
+        "nombre": "Body Brown",
+        "archivo": "Body/Body_Brown_001.glb"
+      },
+      {
+        "id": "body_brown_002",
+        "nombre": "Body Brown",
+        "archivo": "Body/Body_Brown_002.glb"
+      },
+      {
+        "id": "body_brown_003",
+        "nombre": "Body Brown",
+        "archivo": "Body/Body_Brown_003.glb"
+      },
+      {
+        "id": "body_orange_001",
+        "nombre": "Body Orange",
+        "archivo": "Body/Body_Orange_001.glb"
+      },
+      {
+        "id": "body_orange_002",
+        "nombre": "Body Orange",
+        "archivo": "Body/Body_Orange_002.glb"
+      },
+      {
+        "id": "body_orange_003",
+        "nombre": "Body Orange",
+        "archivo": "Body/Body_Orange_003.glb"
+      },
+      {
+        "id": "body_red_001",
+        "nombre": "Body Red",
+        "archivo": "Body/Body_Red_001.glb"
+      },
+      {
+        "id": "body_red_002",
+        "nombre": "Body Red",
+        "archivo": "Body/Body_Red_002.glb"
+      },
+      {
+        "id": "body_red_003",
+        "nombre": "Body Red",
+        "archivo": "Body/Body_Red_003.glb"
+      },
+      {
+        "id": "body_white_001",
+        "nombre": "Body White",
+        "archivo": "Body/Body_White_001.glb"
+      },
+      {
+        "id": "body_white_002",
+        "nombre": "Body White",
+        "archivo": "Body/Body_White_002.glb"
+      },
+      {
+        "id": "body_white_003",
+        "nombre": "Body White",
+        "archivo": "Body/Body_White_003.glb"
+      },
+      {
+        "id": "body_yellow_001",
+        "nombre": "Body Yellow",
+        "archivo": "Body/Body_Yellow_001.glb"
+      },
+      {
+        "id": "body_yellow_002",
+        "nombre": "Body Yellow",
+        "archivo": "Body/Body_Yellow_002.glb"
+      },
+      {
+        "id": "body_yellow_003",
+        "nombre": "Body Yellow",
+        "archivo": "Body/Body_Yellow_003.glb"
+      }
+    ]
+  },
+  {
+    "id": "full_body",
+    "nombre": "Disfraz Completo",
+    "icono": "🎭",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "action_figure_001",
+        "nombre": "Action figure",
+        "archivo": "Full_Body/Action_figure_001.glb"
+      },
+      {
+        "id": "alien_001",
+        "nombre": "Alien",
+        "archivo": "Full_Body/Alien_001.glb"
+      },
+      {
+        "id": "astronaut_001",
+        "nombre": "Astronaut",
+        "archivo": "Full_Body/Astronaut_001.glb"
+      },
+      {
+        "id": "banana_001",
+        "nombre": "Banana",
+        "archivo": "Full_Body/Banana_001.glb"
+      },
+      {
+        "id": "crayfish_001",
+        "nombre": "Crayfish",
+        "archivo": "Full_Body/Crayfish_001.glb"
+      },
+      {
+        "id": "demon_001",
+        "nombre": "Demon",
+        "archivo": "Full_Body/Demon_001.glb"
+      },
+      {
+        "id": "eggplant_001",
+        "nombre": "Eggplant",
+        "archivo": "Full_Body/Eggplant_001.glb"
+      },
+      {
+        "id": "flower_001",
+        "nombre": "Flower",
+        "archivo": "Full_Body/Flower_001.glb"
+      },
+      {
+        "id": "ghost_001",
+        "nombre": "Ghost",
+        "archivo": "Full_Body/Ghost_001.glb"
+      },
+      {
+        "id": "gift_001",
+        "nombre": "Gift",
+        "archivo": "Full_Body/Gift_001.glb"
+      },
+      {
+        "id": "hot_dog_001",
+        "nombre": "Hot dog",
+        "archivo": "Full_Body/Hot_dog_001.glb"
+      },
+      {
+        "id": "lego_001",
+        "nombre": "Lego",
+        "archivo": "Full_Body/Lego_001.glb"
+      },
+      {
+        "id": "mushroom_001",
+        "nombre": "Mushroom",
+        "archivo": "Full_Body/Mushroom_001.glb"
+      },
+      {
+        "id": "nightstand_001",
+        "nombre": "Nightstand",
+        "archivo": "Full_Body/Nightstand_001.glb"
+      },
+      {
+        "id": "ostrich_001",
+        "nombre": "Ostrich",
+        "archivo": "Full_Body/Ostrich_001.glb"
+      },
+      {
+        "id": "palm_001",
+        "nombre": "Palm",
+        "archivo": "Full_Body/Palm_001.glb"
+      },
+      {
+        "id": "red_fall_guys_001",
+        "nombre": "Red Fall Guys",
+        "archivo": "Full_Body/Red_Fall_Guys_001.glb"
+      },
+      {
+        "id": "sausage_001",
+        "nombre": "Sausage",
+        "archivo": "Full_Body/Sausage_001.glb"
+      },
+      {
+        "id": "shark_001",
+        "nombre": "Shark",
+        "archivo": "Full_Body/Shark_001.glb"
+      },
+      {
+        "id": "snake_001",
+        "nombre": "Snake",
+        "archivo": "Full_Body/Snake_001.glb"
+      },
+      {
+        "id": "snowman_001",
+        "nombre": "Snowman",
+        "archivo": "Full_Body/Snowman_001.glb"
+      },
+      {
+        "id": "sushi_001",
+        "nombre": "Sushi",
+        "archivo": "Full_Body/Sushi_001.glb"
+      },
+      {
+        "id": "tooth_001",
+        "nombre": "Tooth",
+        "archivo": "Full_Body/Tooth_001.glb"
+      },
+      {
+        "id": "trash_can_001",
+        "nombre": "Trash can",
+        "archivo": "Full_Body/Trash_can_001.glb"
+      },
+      {
+        "id": "ufo_001",
+        "nombre": "UFO",
+        "archivo": "Full_Body/UFO_001.glb"
+      }
+    ]
+  },
+  {
+    "id": "hair",
+    "nombre": "Peinado",
+    "icono": "💇",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "hair_001",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_001.glb"
+      },
+      {
+        "id": "hair_002",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_002.glb"
+      },
+      {
+        "id": "hair_003",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_003.glb"
+      },
+      {
+        "id": "hair_004",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_004.glb"
+      },
+      {
+        "id": "hair_005",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_005.glb"
+      },
+      {
+        "id": "hair_006",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_006.glb"
+      },
+      {
+        "id": "hair_007",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_007.glb"
+      },
+      {
+        "id": "hair_008",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_008.glb"
+      },
+      {
+        "id": "hair_009",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_009.glb"
+      },
+      {
+        "id": "hair_010",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_010.glb"
+      },
+      {
+        "id": "hair_011",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_011.glb"
+      },
+      {
+        "id": "hair_012",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_012.glb"
+      },
+      {
+        "id": "hair_013",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_013.glb"
+      },
+      {
+        "id": "hair_014",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_014.glb"
+      },
+      {
+        "id": "hair_015",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_015.glb"
+      },
+      {
+        "id": "hair_016",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_016.glb"
+      },
+      {
+        "id": "hair_017",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_017.glb"
+      },
+      {
+        "id": "hair_018",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_018.glb"
+      },
+      {
+        "id": "hair_019",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_019.glb"
+      },
+      {
+        "id": "hair_020",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_020.glb"
+      },
+      {
+        "id": "hair_021",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_021.glb"
+      },
+      {
+        "id": "hair_022",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_022.glb"
+      },
+      {
+        "id": "hair_023",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_023.glb"
+      },
+      {
+        "id": "hair_024",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_024.glb"
+      },
+      {
+        "id": "hair_025",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_025.glb"
+      },
+      {
+        "id": "hair_026",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_026.glb"
+      },
+      {
+        "id": "hair_027",
+        "nombre": "Hair",
+        "archivo": "Hair/Hair_027.glb"
+      }
+    ]
+  },
+  {
+    "id": "hat",
+    "nombre": "Sombrero",
+    "icono": "🎩",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "hat_001",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_001.glb"
+      },
+      {
+        "id": "hat_002",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_002.glb"
+      },
+      {
+        "id": "hat_003",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_003.glb"
+      },
+      {
+        "id": "hat_004",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_004.glb"
+      },
+      {
+        "id": "hat_005",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_005.glb"
+      },
+      {
+        "id": "hat_006",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_006.glb"
+      },
+      {
+        "id": "hat_007",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_007.glb"
+      },
+      {
+        "id": "hat_008",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_008.glb"
+      },
+      {
+        "id": "hat_009",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_009.glb"
+      },
+      {
+        "id": "hat_010",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_010.glb"
+      },
+      {
+        "id": "hat_011",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_011.glb"
+      },
+      {
+        "id": "hat_012",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_012.glb"
+      },
+      {
+        "id": "hat_013",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_013.glb"
+      },
+      {
+        "id": "hat_014",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_014.glb"
+      },
+      {
+        "id": "hat_015",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_015.glb"
+      },
+      {
+        "id": "hat_016",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_016.glb"
+      },
+      {
+        "id": "hat_017",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_017.glb"
+      },
+      {
+        "id": "hat_018",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_018.glb"
+      },
+      {
+        "id": "hat_019",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_019.glb"
+      },
+      {
+        "id": "hat_020",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_020.glb"
+      },
+      {
+        "id": "hat_021",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_021.glb"
+      },
+      {
+        "id": "hat_022",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_022.glb"
+      },
+      {
+        "id": "hat_023",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_023.glb"
+      },
+      {
+        "id": "hat_024",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_024.glb"
+      },
+      {
+        "id": "hat_025",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_025.glb"
+      },
+      {
+        "id": "hat_026",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_026.glb"
+      },
+      {
+        "id": "hat_027",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_027.glb"
+      },
+      {
+        "id": "hat_028",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_028.glb"
+      },
+      {
+        "id": "hat_029",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_029.glb"
+      },
+      {
+        "id": "hat_030",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_030.glb"
+      },
+      {
+        "id": "hat_031",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_031.glb"
+      },
+      {
+        "id": "hat_032",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_032.glb"
+      },
+      {
+        "id": "hat_033",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_033.glb"
+      },
+      {
+        "id": "hat_034",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_034.glb"
+      },
+      {
+        "id": "hat_035",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_035.glb"
+      },
+      {
+        "id": "hat_036",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_036.glb"
+      },
+      {
+        "id": "hat_037",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_037.glb"
+      },
+      {
+        "id": "hat_038",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_038.glb"
+      },
+      {
+        "id": "hat_039",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_039.glb"
+      },
+      {
+        "id": "hat_040",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_040.glb"
+      },
+      {
+        "id": "hat_041",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_041.glb"
+      },
+      {
+        "id": "hat_042",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_042.glb"
+      },
+      {
+        "id": "hat_043",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_043.glb"
+      },
+      {
+        "id": "hat_044",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_044.glb"
+      },
+      {
+        "id": "hat_045",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_045.glb"
+      },
+      {
+        "id": "hat_046",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_046.glb"
+      },
+      {
+        "id": "hat_047",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_047.glb"
+      },
+      {
+        "id": "hat_048",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_048.glb"
+      },
+      {
+        "id": "hat_049",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_049.glb"
+      },
+      {
+        "id": "hat_050",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_050.glb"
+      },
+      {
+        "id": "hat_051",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_051.glb"
+      },
+      {
+        "id": "hat_052",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_052.glb"
+      },
+      {
+        "id": "hat_053",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_053.glb"
+      },
+      {
+        "id": "hat_054",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_054.glb"
+      },
+      {
+        "id": "hat_055",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_055.glb"
+      },
+      {
+        "id": "hat_056",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_056.glb"
+      },
+      {
+        "id": "hat_057",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_057.glb"
+      },
+      {
+        "id": "hat_058",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_058.glb"
+      },
+      {
+        "id": "hat_059",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_059.glb"
+      },
+      {
+        "id": "hat_060",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_060.glb"
+      },
+      {
+        "id": "hat_061",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_061.glb"
+      },
+      {
+        "id": "hat_062",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_062.glb"
+      },
+      {
+        "id": "hat_063",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_063.glb"
+      },
+      {
+        "id": "hat_064",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_064.glb"
+      },
+      {
+        "id": "hat_065",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_065.glb"
+      },
+      {
+        "id": "hat_066",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_066.glb"
+      },
+      {
+        "id": "hat_067",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_067.glb"
+      },
+      {
+        "id": "hat_068",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_068.glb"
+      },
+      {
+        "id": "hat_069",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_069.glb"
+      },
+      {
+        "id": "hat_070",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_070.glb"
+      },
+      {
+        "id": "hat_071",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_071.glb"
+      },
+      {
+        "id": "hat_072",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_072.glb"
+      },
+      {
+        "id": "hat_073",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_073.glb"
+      },
+      {
+        "id": "hat_074",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_074.glb"
+      },
+      {
+        "id": "hat_075",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_075.glb"
+      },
+      {
+        "id": "hat_076",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_076.glb"
+      },
+      {
+        "id": "hat_077",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_077.glb"
+      },
+      {
+        "id": "hat_078",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_078.glb"
+      },
+      {
+        "id": "hat_079",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_079.glb"
+      },
+      {
+        "id": "hat_080",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_080.glb"
+      },
+      {
+        "id": "hat_081",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_081.glb"
+      },
+      {
+        "id": "hat_082",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_082.glb"
+      },
+      {
+        "id": "hat_083",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_083.glb"
+      },
+      {
+        "id": "hat_084",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_084.glb"
+      },
+      {
+        "id": "hat_085",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_085.glb"
+      },
+      {
+        "id": "hat_086",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_086.glb"
+      },
+      {
+        "id": "hat_087",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_087.glb"
+      },
+      {
+        "id": "hat_088",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_088.glb"
+      },
+      {
+        "id": "hat_089",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_089.glb"
+      },
+      {
+        "id": "hat_090",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_090.glb"
+      },
+      {
+        "id": "hat_091",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_091.glb"
+      },
+      {
+        "id": "hat_092",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_092.glb"
+      },
+      {
+        "id": "hat_093",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_093.glb"
+      },
+      {
+        "id": "hat_094",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_094.glb"
+      },
+      {
+        "id": "hat_095",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_095.glb"
+      },
+      {
+        "id": "hat_096",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_096.glb"
+      },
+      {
+        "id": "hat_097",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_097.glb"
+      },
+      {
+        "id": "hat_098",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_098.glb"
+      },
+      {
+        "id": "hat_099",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_099.glb"
+      },
+      {
+        "id": "hat_100",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_100.glb"
+      },
+      {
+        "id": "hat_101",
+        "nombre": "Hat",
+        "archivo": "Hat/Hat_101.glb"
+      }
+    ]
+  },
+  {
+    "id": "glasses",
+    "nombre": "Lentes",
+    "icono": "👓",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "glasses_001",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_001.glb"
+      },
+      {
+        "id": "glasses_002",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_002.glb"
+      },
+      {
+        "id": "glasses_003",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_003.glb"
+      },
+      {
+        "id": "glasses_004",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_004.glb"
+      },
+      {
+        "id": "glasses_005",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_005.glb"
+      },
+      {
+        "id": "glasses_006",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_006.glb"
+      },
+      {
+        "id": "glasses_007",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_007.glb"
+      },
+      {
+        "id": "glasses_008",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_008.glb"
+      },
+      {
+        "id": "glasses_009",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_009.glb"
+      },
+      {
+        "id": "glasses_010",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_010.glb"
+      },
+      {
+        "id": "glasses_011",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_011.glb"
+      },
+      {
+        "id": "glasses_012",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_012.glb"
+      },
+      {
+        "id": "glasses_013",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_013.glb"
+      },
+      {
+        "id": "glasses_014",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_014.glb"
+      },
+      {
+        "id": "glasses_015",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_015.glb"
+      },
+      {
+        "id": "glasses_016",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_016.glb"
+      },
+      {
+        "id": "glasses_017",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_017.glb"
+      },
+      {
+        "id": "glasses_018",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_018.glb"
+      },
+      {
+        "id": "glasses_019",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_019.glb"
+      },
+      {
+        "id": "glasses_020",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_020.glb"
+      },
+      {
+        "id": "glasses_021",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_021.glb"
+      },
+      {
+        "id": "glasses_022",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_022.glb"
+      },
+      {
+        "id": "glasses_023",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_023.glb"
+      },
+      {
+        "id": "glasses_024",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_024.glb"
+      },
+      {
+        "id": "glasses_025",
+        "nombre": "Glasses",
+        "archivo": "Glasses/Glasses_025.glb"
+      }
+    ]
+  },
+  {
+    "id": "eyebrow",
+    "nombre": "Cejas",
+    "icono": "🤨",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "eyebrow_001",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_001.glb"
+      },
+      {
+        "id": "eyebrow_002",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_002.glb"
+      },
+      {
+        "id": "eyebrow_003",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_003.glb"
+      },
+      {
+        "id": "eyebrow_004",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_004.glb"
+      },
+      {
+        "id": "eyebrow_005",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_005.glb"
+      },
+      {
+        "id": "eyebrow_006",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_006.glb"
+      },
+      {
+        "id": "eyebrow_007",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_007.glb"
+      },
+      {
+        "id": "eyebrow_008",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_008.glb"
+      },
+      {
+        "id": "eyebrow_009",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_009.glb"
+      },
+      {
+        "id": "eyebrow_010",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_010.glb"
+      },
+      {
+        "id": "eyebrow_011",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_011.glb"
+      },
+      {
+        "id": "eyebrow_012",
+        "nombre": "Eyebrow",
+        "archivo": "Eyebrow/Eyebrow_012.glb"
+      }
+    ]
+  },
+  {
+    "id": "mustache",
+    "nombre": "Bigote",
+    "icono": "🥸",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "mustache_black_001",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_001.glb"
+      },
+      {
+        "id": "mustache_black_002",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_002.glb"
+      },
+      {
+        "id": "mustache_black_003",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_003.glb"
+      },
+      {
+        "id": "mustache_black_004",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_004.glb"
+      },
+      {
+        "id": "mustache_black_005",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_005.glb"
+      },
+      {
+        "id": "mustache_black_006",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_006.glb"
+      },
+      {
+        "id": "mustache_black_007",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_007.glb"
+      },
+      {
+        "id": "mustache_black_008",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_008.glb"
+      },
+      {
+        "id": "mustache_black_009",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_009.glb"
+      },
+      {
+        "id": "mustache_black_010",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_010.glb"
+      },
+      {
+        "id": "mustache_black_011",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_011.glb"
+      },
+      {
+        "id": "mustache_black_012",
+        "nombre": "Mustache Black",
+        "archivo": "Mustache/Mustache_Black_012.glb"
+      },
+      {
+        "id": "mustache_brown_001",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_001.glb"
+      },
+      {
+        "id": "mustache_brown_002",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_002.glb"
+      },
+      {
+        "id": "mustache_brown_003",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_003.glb"
+      },
+      {
+        "id": "mustache_brown_004",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_004.glb"
+      },
+      {
+        "id": "mustache_brown_005",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_005.glb"
+      },
+      {
+        "id": "mustache_brown_006",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_006.glb"
+      },
+      {
+        "id": "mustache_brown_007",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_007.glb"
+      },
+      {
+        "id": "mustache_brown_008",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_008.glb"
+      },
+      {
+        "id": "mustache_brown_009",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_009.glb"
+      },
+      {
+        "id": "mustache_brown_010",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_010.glb"
+      },
+      {
+        "id": "mustache_brown_011",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_011.glb"
+      },
+      {
+        "id": "mustache_brown_012",
+        "nombre": "Mustache Brown",
+        "archivo": "Mustache/Mustache_Brown_012.glb"
+      },
+      {
+        "id": "mustache_white_001",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_001.glb"
+      },
+      {
+        "id": "mustache_white_002",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_002.glb"
+      },
+      {
+        "id": "mustache_white_003",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_003.glb"
+      },
+      {
+        "id": "mustache_white_004",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_004.glb"
+      },
+      {
+        "id": "mustache_white_005",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_005.glb"
+      },
+      {
+        "id": "mustache_white_006",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_006.glb"
+      },
+      {
+        "id": "mustache_white_007",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_007.glb"
+      },
+      {
+        "id": "mustache_white_008",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_008.glb"
+      },
+      {
+        "id": "mustache_white_009",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_009.glb"
+      },
+      {
+        "id": "mustache_white_010",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_010.glb"
+      },
+      {
+        "id": "mustache_white_011",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_011.glb"
+      },
+      {
+        "id": "mustache_white_012",
+        "nombre": "Mustache White",
+        "archivo": "Mustache/Mustache_White_012.glb"
+      }
+    ]
+  },
+  {
+    "id": "outerwear",
+    "nombre": "Ropa",
+    "icono": "👕",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "outerwear_black_001",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_001.glb"
+      },
+      {
+        "id": "outerwear_black_002",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_002.glb"
+      },
+      {
+        "id": "outerwear_black_003",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_003.glb"
+      },
+      {
+        "id": "outerwear_black_004",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_004.glb"
+      },
+      {
+        "id": "outerwear_black_005",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_005.glb"
+      },
+      {
+        "id": "outerwear_black_006",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_006.glb"
+      },
+      {
+        "id": "outerwear_black_007",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_007.glb"
+      },
+      {
+        "id": "outerwear_black_008",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_008.glb"
+      },
+      {
+        "id": "outerwear_black_009",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_009.glb"
+      },
+      {
+        "id": "outerwear_black_010",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_010.glb"
+      },
+      {
+        "id": "outerwear_black_011",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_011.glb"
+      },
+      {
+        "id": "outerwear_black_012",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_012.glb"
+      },
+      {
+        "id": "outerwear_black_013",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_013.glb"
+      },
+      {
+        "id": "outerwear_black_014",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_014.glb"
+      },
+      {
+        "id": "outerwear_black_015",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_015.glb"
+      },
+      {
+        "id": "outerwear_black_016",
+        "nombre": "Outerwear Black",
+        "archivo": "Outerwear/Outerwear_Black_016.glb"
+      },
+      {
+        "id": "outerwear_blue_001",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_001.glb"
+      },
+      {
+        "id": "outerwear_blue_002",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_002.glb"
+      },
+      {
+        "id": "outerwear_blue_003",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_003.glb"
+      },
+      {
+        "id": "outerwear_blue_004",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_004.glb"
+      },
+      {
+        "id": "outerwear_blue_005",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_005.glb"
+      },
+      {
+        "id": "outerwear_blue_006",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_006.glb"
+      },
+      {
+        "id": "outerwear_blue_007",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_007.glb"
+      },
+      {
+        "id": "outerwear_blue_008",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_008.glb"
+      },
+      {
+        "id": "outerwear_blue_009",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_009.glb"
+      },
+      {
+        "id": "outerwear_blue_010",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_010.glb"
+      },
+      {
+        "id": "outerwear_blue_011",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_011.glb"
+      },
+      {
+        "id": "outerwear_blue_012",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_012.glb"
+      },
+      {
+        "id": "outerwear_blue_013",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_013.glb"
+      },
+      {
+        "id": "outerwear_blue_014",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_014.glb"
+      },
+      {
+        "id": "outerwear_blue_015",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_015.glb"
+      },
+      {
+        "id": "outerwear_blue_016",
+        "nombre": "Outerwear Blue",
+        "archivo": "Outerwear/Outerwear_Blue_016.glb"
+      },
+      {
+        "id": "outerwear_brown_001",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_001.glb"
+      },
+      {
+        "id": "outerwear_brown_002",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_002.glb"
+      },
+      {
+        "id": "outerwear_brown_003",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_003.glb"
+      },
+      {
+        "id": "outerwear_brown_004",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_004.glb"
+      },
+      {
+        "id": "outerwear_brown_005",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_005.glb"
+      },
+      {
+        "id": "outerwear_brown_006",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_006.glb"
+      },
+      {
+        "id": "outerwear_brown_007",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_007.glb"
+      },
+      {
+        "id": "outerwear_brown_008",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_008.glb"
+      },
+      {
+        "id": "outerwear_brown_009",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_009.glb"
+      },
+      {
+        "id": "outerwear_brown_010",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_010.glb"
+      },
+      {
+        "id": "outerwear_brown_011",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_011.glb"
+      },
+      {
+        "id": "outerwear_brown_012",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_012.glb"
+      },
+      {
+        "id": "outerwear_brown_013",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_013.glb"
+      },
+      {
+        "id": "outerwear_brown_014",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_014.glb"
+      },
+      {
+        "id": "outerwear_brown_015",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_015.glb"
+      },
+      {
+        "id": "outerwear_brown_016",
+        "nombre": "Outerwear Brown",
+        "archivo": "Outerwear/Outerwear_Brown_016.glb"
+      },
+      {
+        "id": "outerwear_green_001",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_001.glb"
+      },
+      {
+        "id": "outerwear_green_002",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_002.glb"
+      },
+      {
+        "id": "outerwear_green_003",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_003.glb"
+      },
+      {
+        "id": "outerwear_green_004",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_004.glb"
+      },
+      {
+        "id": "outerwear_green_005",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_005.glb"
+      },
+      {
+        "id": "outerwear_green_006",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_006.glb"
+      },
+      {
+        "id": "outerwear_green_007",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_007.glb"
+      },
+      {
+        "id": "outerwear_green_008",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_008.glb"
+      },
+      {
+        "id": "outerwear_green_009",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_009.glb"
+      },
+      {
+        "id": "outerwear_green_010",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_010.glb"
+      },
+      {
+        "id": "outerwear_green_011",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_011.glb"
+      },
+      {
+        "id": "outerwear_green_012",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_012.glb"
+      },
+      {
+        "id": "outerwear_green_013",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_013.glb"
+      },
+      {
+        "id": "outerwear_green_014",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_014.glb"
+      },
+      {
+        "id": "outerwear_green_015",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_015.glb"
+      },
+      {
+        "id": "outerwear_green_016",
+        "nombre": "Outerwear Green",
+        "archivo": "Outerwear/Outerwear_Green_016.glb"
+      },
+      {
+        "id": "outerwear_light_blue_001",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_001.glb"
+      },
+      {
+        "id": "outerwear_light_blue_002",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_002.glb"
+      },
+      {
+        "id": "outerwear_light_blue_003",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_003.glb"
+      },
+      {
+        "id": "outerwear_light_blue_004",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_004.glb"
+      },
+      {
+        "id": "outerwear_light_blue_005",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_005.glb"
+      },
+      {
+        "id": "outerwear_light_blue_006",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_006.glb"
+      },
+      {
+        "id": "outerwear_light_blue_007",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_007.glb"
+      },
+      {
+        "id": "outerwear_light_blue_008",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_008.glb"
+      },
+      {
+        "id": "outerwear_light_blue_009",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_009.glb"
+      },
+      {
+        "id": "outerwear_light_blue_010",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_010.glb"
+      },
+      {
+        "id": "outerwear_light_blue_011",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_011.glb"
+      },
+      {
+        "id": "outerwear_light_blue_012",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_012.glb"
+      },
+      {
+        "id": "outerwear_light_blue_013",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_013.glb"
+      },
+      {
+        "id": "outerwear_light_blue_014",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_014.glb"
+      },
+      {
+        "id": "outerwear_light_blue_015",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_015.glb"
+      },
+      {
+        "id": "outerwear_light_blue_016",
+        "nombre": "Outerwear Light Blue",
+        "archivo": "Outerwear/Outerwear_Light_Blue_016.glb"
+      },
+      {
+        "id": "outerwear_orange_001",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_001.glb"
+      },
+      {
+        "id": "outerwear_orange_002",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_002.glb"
+      },
+      {
+        "id": "outerwear_orange_003",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_003.glb"
+      },
+      {
+        "id": "outerwear_orange_004",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_004.glb"
+      },
+      {
+        "id": "outerwear_orange_005",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_005.glb"
+      },
+      {
+        "id": "outerwear_orange_006",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_006.glb"
+      },
+      {
+        "id": "outerwear_orange_007",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_007.glb"
+      },
+      {
+        "id": "outerwear_orange_008",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_008.glb"
+      },
+      {
+        "id": "outerwear_orange_009",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_009.glb"
+      },
+      {
+        "id": "outerwear_orange_010",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_010.glb"
+      },
+      {
+        "id": "outerwear_orange_011",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_011.glb"
+      },
+      {
+        "id": "outerwear_orange_012",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_012.glb"
+      },
+      {
+        "id": "outerwear_orange_013",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_013.glb"
+      },
+      {
+        "id": "outerwear_orange_014",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_014.glb"
+      },
+      {
+        "id": "outerwear_orange_015",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_015.glb"
+      },
+      {
+        "id": "outerwear_orange_016",
+        "nombre": "Outerwear Orange",
+        "archivo": "Outerwear/Outerwear_Orange_016.glb"
+      },
+      {
+        "id": "outerwear_pink_001",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_001.glb"
+      },
+      {
+        "id": "outerwear_pink_002",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_002.glb"
+      },
+      {
+        "id": "outerwear_pink_003",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_003.glb"
+      },
+      {
+        "id": "outerwear_pink_004",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_004.glb"
+      },
+      {
+        "id": "outerwear_pink_005",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_005.glb"
+      },
+      {
+        "id": "outerwear_pink_006",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_006.glb"
+      },
+      {
+        "id": "outerwear_pink_007",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_007.glb"
+      },
+      {
+        "id": "outerwear_pink_008",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_008.glb"
+      },
+      {
+        "id": "outerwear_pink_009",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_009.glb"
+      },
+      {
+        "id": "outerwear_pink_010",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_010.glb"
+      },
+      {
+        "id": "outerwear_pink_011",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_011.glb"
+      },
+      {
+        "id": "outerwear_pink_012",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_012.glb"
+      },
+      {
+        "id": "outerwear_pink_013",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_013.glb"
+      },
+      {
+        "id": "outerwear_pink_014",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_014.glb"
+      },
+      {
+        "id": "outerwear_pink_015",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_015.glb"
+      },
+      {
+        "id": "outerwear_pink_016",
+        "nombre": "Outerwear Pink",
+        "archivo": "Outerwear/Outerwear_Pink_016.glb"
+      },
+      {
+        "id": "outerwear_red_001",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_001.glb"
+      },
+      {
+        "id": "outerwear_red_002",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_002.glb"
+      },
+      {
+        "id": "outerwear_red_003",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_003.glb"
+      },
+      {
+        "id": "outerwear_red_004",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_004.glb"
+      },
+      {
+        "id": "outerwear_red_005",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_005.glb"
+      },
+      {
+        "id": "outerwear_red_006",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_006.glb"
+      },
+      {
+        "id": "outerwear_red_007",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_007.glb"
+      },
+      {
+        "id": "outerwear_red_008",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_008.glb"
+      },
+      {
+        "id": "outerwear_red_009",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_009.glb"
+      },
+      {
+        "id": "outerwear_red_010",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_010.glb"
+      },
+      {
+        "id": "outerwear_red_011",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_011.glb"
+      },
+      {
+        "id": "outerwear_red_012",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_012.glb"
+      },
+      {
+        "id": "outerwear_red_013",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_013.glb"
+      },
+      {
+        "id": "outerwear_red_014",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_014.glb"
+      },
+      {
+        "id": "outerwear_red_015",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_015.glb"
+      },
+      {
+        "id": "outerwear_red_016",
+        "nombre": "Outerwear Red",
+        "archivo": "Outerwear/Outerwear_Red_016.glb"
+      },
+      {
+        "id": "outerwear_white_001",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_001.glb"
+      },
+      {
+        "id": "outerwear_white_002",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_002.glb"
+      },
+      {
+        "id": "outerwear_white_003",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_003.glb"
+      },
+      {
+        "id": "outerwear_white_004",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_004.glb"
+      },
+      {
+        "id": "outerwear_white_005",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_005.glb"
+      },
+      {
+        "id": "outerwear_white_006",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_006.glb"
+      },
+      {
+        "id": "outerwear_white_007",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_007.glb"
+      },
+      {
+        "id": "outerwear_white_008",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_008.glb"
+      },
+      {
+        "id": "outerwear_white_009",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_009.glb"
+      },
+      {
+        "id": "outerwear_white_010",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_010.glb"
+      },
+      {
+        "id": "outerwear_white_011",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_011.glb"
+      },
+      {
+        "id": "outerwear_white_012",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_012.glb"
+      },
+      {
+        "id": "outerwear_white_013",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_013.glb"
+      },
+      {
+        "id": "outerwear_white_014",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_014.glb"
+      },
+      {
+        "id": "outerwear_white_015",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_015.glb"
+      },
+      {
+        "id": "outerwear_white_016",
+        "nombre": "Outerwear White",
+        "archivo": "Outerwear/Outerwear_White_016.glb"
+      },
+      {
+        "id": "outerwear_yellow_001",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_001.glb"
+      },
+      {
+        "id": "outerwear_yellow_002",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_002.glb"
+      },
+      {
+        "id": "outerwear_yellow_003",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_003.glb"
+      },
+      {
+        "id": "outerwear_yellow_004",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_004.glb"
+      },
+      {
+        "id": "outerwear_yellow_005",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_005.glb"
+      },
+      {
+        "id": "outerwear_yellow_006",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_006.glb"
+      },
+      {
+        "id": "outerwear_yellow_007",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_007.glb"
+      },
+      {
+        "id": "outerwear_yellow_008",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_008.glb"
+      },
+      {
+        "id": "outerwear_yellow_009",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_009.glb"
+      },
+      {
+        "id": "outerwear_yellow_010",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_010.glb"
+      },
+      {
+        "id": "outerwear_yellow_011",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_011.glb"
+      },
+      {
+        "id": "outerwear_yellow_012",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_012.glb"
+      },
+      {
+        "id": "outerwear_yellow_013",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_013.glb"
+      },
+      {
+        "id": "outerwear_yellow_014",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_014.glb"
+      },
+      {
+        "id": "outerwear_yellow_015",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_015.glb"
+      },
+      {
+        "id": "outerwear_yellow_016",
+        "nombre": "Outerwear Yellow",
+        "archivo": "Outerwear/Outerwear_Yellow_016.glb"
+      }
+    ]
+  },
+  {
+    "id": "pants",
+    "nombre": "Pantalón",
+    "icono": "👖",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "pants_black_001",
+        "nombre": "Pants Black",
+        "archivo": "Pants/Pants_Black_001.glb"
+      },
+      {
+        "id": "pants_black_002",
+        "nombre": "Pants Black",
+        "archivo": "Pants/Pants_Black_002.glb"
+      },
+      {
+        "id": "pants_black_003",
+        "nombre": "Pants Black",
+        "archivo": "Pants/Pants_Black_003.glb"
+      },
+      {
+        "id": "pants_black_004",
+        "nombre": "Pants Black",
+        "archivo": "Pants/Pants_Black_004.glb"
+      },
+      {
+        "id": "pants_black_005",
+        "nombre": "Pants Black",
+        "archivo": "Pants/Pants_Black_005.glb"
+      },
+      {
+        "id": "pants_black_006",
+        "nombre": "Pants Black",
+        "archivo": "Pants/Pants_Black_006.glb"
+      },
+      {
+        "id": "pants_blue_001",
+        "nombre": "Pants Blue",
+        "archivo": "Pants/Pants_Blue_001.glb"
+      },
+      {
+        "id": "pants_blue_002",
+        "nombre": "Pants Blue",
+        "archivo": "Pants/Pants_Blue_002.glb"
+      },
+      {
+        "id": "pants_blue_003",
+        "nombre": "Pants Blue",
+        "archivo": "Pants/Pants_Blue_003.glb"
+      },
+      {
+        "id": "pants_blue_004",
+        "nombre": "Pants Blue",
+        "archivo": "Pants/Pants_Blue_004.glb"
+      },
+      {
+        "id": "pants_blue_005",
+        "nombre": "Pants Blue",
+        "archivo": "Pants/Pants_Blue_005.glb"
+      },
+      {
+        "id": "pants_blue_006",
+        "nombre": "Pants Blue",
+        "archivo": "Pants/Pants_Blue_006.glb"
+      },
+      {
+        "id": "pants_brown_001",
+        "nombre": "Pants Brown",
+        "archivo": "Pants/Pants_Brown_001.glb"
+      },
+      {
+        "id": "pants_brown_002",
+        "nombre": "Pants Brown",
+        "archivo": "Pants/Pants_Brown_002.glb"
+      },
+      {
+        "id": "pants_brown_003",
+        "nombre": "Pants Brown",
+        "archivo": "Pants/Pants_Brown_003.glb"
+      },
+      {
+        "id": "pants_brown_004",
+        "nombre": "Pants Brown",
+        "archivo": "Pants/Pants_Brown_004.glb"
+      },
+      {
+        "id": "pants_brown_005",
+        "nombre": "Pants Brown",
+        "archivo": "Pants/Pants_Brown_005.glb"
+      },
+      {
+        "id": "pants_brown_006",
+        "nombre": "Pants Brown",
+        "archivo": "Pants/Pants_Brown_006.glb"
+      },
+      {
+        "id": "pants_green_001",
+        "nombre": "Pants Green",
+        "archivo": "Pants/Pants_Green_001.glb"
+      },
+      {
+        "id": "pants_green_002",
+        "nombre": "Pants Green",
+        "archivo": "Pants/Pants_Green_002.glb"
+      },
+      {
+        "id": "pants_green_003",
+        "nombre": "Pants Green",
+        "archivo": "Pants/Pants_Green_003.glb"
+      },
+      {
+        "id": "pants_green_004",
+        "nombre": "Pants Green",
+        "archivo": "Pants/Pants_Green_004.glb"
+      },
+      {
+        "id": "pants_green_005",
+        "nombre": "Pants Green",
+        "archivo": "Pants/Pants_Green_005.glb"
+      },
+      {
+        "id": "pants_green_006",
+        "nombre": "Pants Green",
+        "archivo": "Pants/Pants_Green_006.glb"
+      },
+      {
+        "id": "pants_light_blue_001",
+        "nombre": "Pants Light Blue",
+        "archivo": "Pants/Pants_Light_Blue_001.glb"
+      },
+      {
+        "id": "pants_light_blue_002",
+        "nombre": "Pants Light Blue",
+        "archivo": "Pants/Pants_Light_Blue_002.glb"
+      },
+      {
+        "id": "pants_light_blue_003",
+        "nombre": "Pants Light Blue",
+        "archivo": "Pants/Pants_Light_Blue_003.glb"
+      },
+      {
+        "id": "pants_light_blue_004",
+        "nombre": "Pants Light Blue",
+        "archivo": "Pants/Pants_Light_Blue_004.glb"
+      },
+      {
+        "id": "pants_light_blue_005",
+        "nombre": "Pants Light Blue",
+        "archivo": "Pants/Pants_Light_Blue_005.glb"
+      },
+      {
+        "id": "pants_light_blue_006",
+        "nombre": "Pants Light Blue",
+        "archivo": "Pants/Pants_Light_Blue_006.glb"
+      },
+      {
+        "id": "pants_orange_001",
+        "nombre": "Pants Orange",
+        "archivo": "Pants/Pants_Orange_001.glb"
+      },
+      {
+        "id": "pants_orange_002",
+        "nombre": "Pants Orange",
+        "archivo": "Pants/Pants_Orange_002.glb"
+      },
+      {
+        "id": "pants_orange_003",
+        "nombre": "Pants Orange",
+        "archivo": "Pants/Pants_Orange_003.glb"
+      },
+      {
+        "id": "pants_orange_004",
+        "nombre": "Pants Orange",
+        "archivo": "Pants/Pants_Orange_004.glb"
+      },
+      {
+        "id": "pants_orange_005",
+        "nombre": "Pants Orange",
+        "archivo": "Pants/Pants_Orange_005.glb"
+      },
+      {
+        "id": "pants_orange_006",
+        "nombre": "Pants Orange",
+        "archivo": "Pants/Pants_Orange_006.glb"
+      },
+      {
+        "id": "pants_pink_001",
+        "nombre": "Pants Pink",
+        "archivo": "Pants/Pants_Pink_001.glb"
+      },
+      {
+        "id": "pants_pink_002",
+        "nombre": "Pants Pink",
+        "archivo": "Pants/Pants_Pink_002.glb"
+      },
+      {
+        "id": "pants_pink_003",
+        "nombre": "Pants Pink",
+        "archivo": "Pants/Pants_Pink_003.glb"
+      },
+      {
+        "id": "pants_pink_004",
+        "nombre": "Pants Pink",
+        "archivo": "Pants/Pants_Pink_004.glb"
+      },
+      {
+        "id": "pants_pink_005",
+        "nombre": "Pants Pink",
+        "archivo": "Pants/Pants_Pink_005.glb"
+      },
+      {
+        "id": "pants_pink_006",
+        "nombre": "Pants Pink",
+        "archivo": "Pants/Pants_Pink_006.glb"
+      },
+      {
+        "id": "pants_red_001",
+        "nombre": "Pants Red",
+        "archivo": "Pants/Pants_Red_001.glb"
+      },
+      {
+        "id": "pants_red_002",
+        "nombre": "Pants Red",
+        "archivo": "Pants/Pants_Red_002.glb"
+      },
+      {
+        "id": "pants_red_003",
+        "nombre": "Pants Red",
+        "archivo": "Pants/Pants_Red_003.glb"
+      },
+      {
+        "id": "pants_red_004",
+        "nombre": "Pants Red",
+        "archivo": "Pants/Pants_Red_004.glb"
+      },
+      {
+        "id": "pants_red_005",
+        "nombre": "Pants Red",
+        "archivo": "Pants/Pants_Red_005.glb"
+      },
+      {
+        "id": "pants_red_006",
+        "nombre": "Pants Red",
+        "archivo": "Pants/Pants_Red_006.glb"
+      },
+      {
+        "id": "pants_white_001",
+        "nombre": "Pants White",
+        "archivo": "Pants/Pants_White_001.glb"
+      },
+      {
+        "id": "pants_white_002",
+        "nombre": "Pants White",
+        "archivo": "Pants/Pants_White_002.glb"
+      },
+      {
+        "id": "pants_white_003",
+        "nombre": "Pants White",
+        "archivo": "Pants/Pants_White_003.glb"
+      },
+      {
+        "id": "pants_white_004",
+        "nombre": "Pants White",
+        "archivo": "Pants/Pants_White_004.glb"
+      },
+      {
+        "id": "pants_white_005",
+        "nombre": "Pants White",
+        "archivo": "Pants/Pants_White_005.glb"
+      },
+      {
+        "id": "pants_white_006",
+        "nombre": "Pants White",
+        "archivo": "Pants/Pants_White_006.glb"
+      },
+      {
+        "id": "pants_yellow_001",
+        "nombre": "Pants Yellow",
+        "archivo": "Pants/Pants_Yellow_001.glb"
+      },
+      {
+        "id": "pants_yellow_002",
+        "nombre": "Pants Yellow",
+        "archivo": "Pants/Pants_Yellow_002.glb"
+      },
+      {
+        "id": "pants_yellow_003",
+        "nombre": "Pants Yellow",
+        "archivo": "Pants/Pants_Yellow_003.glb"
+      },
+      {
+        "id": "pants_yellow_004",
+        "nombre": "Pants Yellow",
+        "archivo": "Pants/Pants_Yellow_004.glb"
+      },
+      {
+        "id": "pants_yellow_005",
+        "nombre": "Pants Yellow",
+        "archivo": "Pants/Pants_Yellow_005.glb"
+      },
+      {
+        "id": "pants_yellow_006",
+        "nombre": "Pants Yellow",
+        "archivo": "Pants/Pants_Yellow_006.glb"
+      }
+    ]
+  },
+  {
+    "id": "shoe",
+    "nombre": "Zapatos",
+    "icono": "👟",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "shoe_boot_001",
+        "nombre": "Shoe Boot",
+        "archivo": "Shoe/Shoe_Boot_001.glb"
+      },
+      {
+        "id": "shoe_boot_002",
+        "nombre": "Shoe Boot",
+        "archivo": "Shoe/Shoe_Boot_002.glb"
+      },
+      {
+        "id": "shoe_boot_003",
+        "nombre": "Shoe Boot",
+        "archivo": "Shoe/Shoe_Boot_003.glb"
+      },
+      {
+        "id": "shoe_boot_004",
+        "nombre": "Shoe Boot",
+        "archivo": "Shoe/Shoe_Boot_004.glb"
+      },
+      {
+        "id": "shoe_skate_001",
+        "nombre": "Shoe Skate",
+        "archivo": "Shoe/Shoe_Skate_001.glb"
+      },
+      {
+        "id": "shoe_skate_002",
+        "nombre": "Shoe Skate",
+        "archivo": "Shoe/Shoe_Skate_002.glb"
+      },
+      {
+        "id": "shoe_slipper_001",
+        "nombre": "Shoe Slipper",
+        "archivo": "Shoe/Shoe_Slipper_001.glb"
+      },
+      {
+        "id": "shoe_slipper_002",
+        "nombre": "Shoe Slipper",
+        "archivo": "Shoe/Shoe_Slipper_002.glb"
+      },
+      {
+        "id": "shoe_slipper_003",
+        "nombre": "Shoe Slipper",
+        "archivo": "Shoe/Shoe_Slipper_003.glb"
+      },
+      {
+        "id": "shoe_slipper_004",
+        "nombre": "Shoe Slipper",
+        "archivo": "Shoe/Shoe_Slipper_004.glb"
+      },
+      {
+        "id": "shoe_slipper_005",
+        "nombre": "Shoe Slipper",
+        "archivo": "Shoe/Shoe_Slipper_005.glb"
+      },
+      {
+        "id": "shoe_slipper_006",
+        "nombre": "Shoe Slipper",
+        "archivo": "Shoe/Shoe_Slipper_006.glb"
+      },
+      {
+        "id": "shoe_slipper_007",
+        "nombre": "Shoe Slipper",
+        "archivo": "Shoe/Shoe_Slipper_007.glb"
+      },
+      {
+        "id": "shoe_sneaker_001",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_001.glb"
+      },
+      {
+        "id": "shoe_sneaker_002",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_002.glb"
+      },
+      {
+        "id": "shoe_sneaker_003",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_003.glb"
+      },
+      {
+        "id": "shoe_sneaker_004",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_004.glb"
+      },
+      {
+        "id": "shoe_sneaker_005",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_005.glb"
+      },
+      {
+        "id": "shoe_sneaker_006",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_006.glb"
+      },
+      {
+        "id": "shoe_sneaker_007",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_007.glb"
+      },
+      {
+        "id": "shoe_sneaker_008",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_008.glb"
+      },
+      {
+        "id": "shoe_sneaker_009",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_009.glb"
+      },
+      {
+        "id": "shoe_sneaker_010",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_010.glb"
+      },
+      {
+        "id": "shoe_sneaker_011",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_011.glb"
+      },
+      {
+        "id": "shoe_sneaker_012",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_012.glb"
+      },
+      {
+        "id": "shoe_sneaker_013",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_013.glb"
+      },
+      {
+        "id": "shoe_sneaker_014",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_014.glb"
+      },
+      {
+        "id": "shoe_sneaker_015",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_015.glb"
+      },
+      {
+        "id": "shoe_sneaker_016",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_016.glb"
+      },
+      {
+        "id": "shoe_sneaker_017",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_017.glb"
+      },
+      {
+        "id": "shoe_sneaker_018",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_018.glb"
+      },
+      {
+        "id": "shoe_sneaker_019",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_019.glb"
+      },
+      {
+        "id": "shoe_sneaker_020",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_020.glb"
+      },
+      {
+        "id": "shoe_sneaker_021",
+        "nombre": "Shoe Sneaker",
+        "archivo": "Shoe/Shoe_Sneaker_021.glb"
+      }
+    ]
+  },
+  {
+    "id": "glove",
+    "nombre": "Guantes",
+    "icono": "🧤",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "glove_001",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_001.glb"
+      },
+      {
+        "id": "glove_002",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_002.glb"
+      },
+      {
+        "id": "glove_003",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_003.glb"
+      },
+      {
+        "id": "glove_004",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_004.glb"
+      },
+      {
+        "id": "glove_005",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_005.glb"
+      },
+      {
+        "id": "glove_006",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_006.glb"
+      },
+      {
+        "id": "glove_007",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_007.glb"
+      },
+      {
+        "id": "glove_008",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_008.glb"
+      },
+      {
+        "id": "glove_009",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_009.glb"
+      },
+      {
+        "id": "glove_010",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_010.glb"
+      },
+      {
+        "id": "glove_011",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_011.glb"
+      },
+      {
+        "id": "glove_012",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_012.glb"
+      },
+      {
+        "id": "glove_013",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_013.glb"
+      },
+      {
+        "id": "glove_014",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_014.glb"
+      },
+      {
+        "id": "glove_015",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_015.glb"
+      },
+      {
+        "id": "glove_016",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_016.glb"
+      },
+      {
+        "id": "glove_017",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_017.glb"
+      },
+      {
+        "id": "glove_018",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_018.glb"
+      },
+      {
+        "id": "glove_019",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_019.glb"
+      },
+      {
+        "id": "glove_020",
+        "nombre": "Glove",
+        "archivo": "Glove/Glove_020.glb"
+      }
+    ]
+  },
+  {
+    "id": "backpack",
+    "nombre": "Mochila",
+    "icono": "🎒",
+    "requerido": false,
+    "assets": [
+      {
+        "id": "backpack_001",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_001.glb"
+      },
+      {
+        "id": "backpack_002",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_002.glb"
+      },
+      {
+        "id": "backpack_003",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_003.glb"
+      },
+      {
+        "id": "backpack_004",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_004.glb"
+      },
+      {
+        "id": "backpack_005",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_005.glb"
+      },
+      {
+        "id": "backpack_006",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_006.glb"
+      },
+      {
+        "id": "backpack_007",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_007.glb"
+      },
+      {
+        "id": "backpack_008",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_008.glb"
+      },
+      {
+        "id": "backpack_009",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_009.glb"
+      },
+      {
+        "id": "backpack_010",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_010.glb"
+      },
+      {
+        "id": "backpack_011",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_011.glb"
+      },
+      {
+        "id": "backpack_012",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_012.glb"
+      },
+      {
+        "id": "backpack_013",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_013.glb"
+      },
+      {
+        "id": "backpack_014",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_014.glb"
+      },
+      {
+        "id": "backpack_015",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_015.glb"
+      },
+      {
+        "id": "backpack_016",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_016.glb"
+      },
+      {
+        "id": "backpack_017",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_017.glb"
+      },
+      {
+        "id": "backpack_018",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_018.glb"
+      },
+      {
+        "id": "backpack_019",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_019.glb"
+      },
+      {
+        "id": "backpack_020",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_020.glb"
+      },
+      {
+        "id": "backpack_021",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_021.glb"
+      },
+      {
+        "id": "backpack_022",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_022.glb"
+      },
+      {
+        "id": "backpack_023",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_023.glb"
+      },
+      {
+        "id": "backpack_024",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_024.glb"
+      },
+      {
+        "id": "backpack_025",
+        "nombre": "Backpack",
+        "archivo": "Backpack/Backpack_025.glb"
+      }
+    ]
+  }
+]

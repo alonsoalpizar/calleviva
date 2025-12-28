@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalleViva - Demo 2D Isométrico Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #87CEEB; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Isometric grid */
+        .iso-world {
+            transform-style: preserve-3d;
+            transform: rotateX(60deg) rotateZ(-45deg);
+        }
+
+        .iso-element {
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+        }
+
+        .iso-element:hover {
+            transform: translateZ(10px);
+        }
+
+        /* Ground tiles */
+        .tile {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            transform-style: preserve-3d;
+        }
+
+        .tile-grass {
+            background: linear-gradient(135deg, #7CB342 0%, #689F38 100%);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .tile-road {
+            background: linear-gradient(135deg, #4A4A4A 0%, #3A3A3A 100%);
+        }
+
+        .tile-sidewalk {
+            background: linear-gradient(135deg, #E0E0E0 0%, #BDBDBD 100%);
+        }
+
+        /* 3D-like elements using CSS */
+        .building-3d {
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .building-front {
+            background: linear-gradient(180deg, #F5E6D3 0%, #E8D5C0 100%);
+            border: 2px solid #C9B8A5;
+        }
+
+        .building-side {
+            background: linear-gradient(180deg, #E8D5C0 0%, #D4C4B0 100%);
+            transform: rotateY(90deg) translateZ(0);
+            transform-origin: left;
+        }
+
+        .building-roof {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+        }
+
+        /* Food Truck 3D-ish */
+        .truck-3d {
+            position: relative;
+            filter: drop-shadow(4px 8px 12px rgba(0,0,0,0.3));
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .truck-3d:hover {
+            transform: translateY(-5px) scale(1.02);
+            filter: drop-shadow(6px 12px 16px rgba(0,0,0,0.35));
+        }
+
+        .truck-body {
+            background: linear-gradient(180deg, #FF6B6B 0%, #E85555 100%);
+            border-radius: 8px 8px 4px 4px;
+            border: 3px solid #CC4444;
+        }
+
+        .truck-window {
+            background: linear-gradient(180deg, #B8E0F7 0%, #87CEEB 100%);
+            border: 2px solid #5BA8D0;
+        }
+
+        .truck-awning {
+            background: linear-gradient(180deg, #FFE66D 0%, #FFD93D 100%);
+            border: 2px solid #E6C930;
+        }
+
+        .truck-wheel {
+            background: radial-gradient(circle at 30% 30%, #555 0%, #222 100%);
+            border: 2px solid #111;
+        }
+
+        /* Customer sprites */
+        .customer-sprite {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.25));
+        }
+
+        .customer-sprite:hover {
+            transform: scale(1.15) translateY(-5px);
+        }
+
+        /* Floating animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .bounce-animation {
+            animation: bounce-subtle 1.5s ease-in-out infinite;
+        }
+
+        /* Tree */
+        .tree {
+            filter: drop-shadow(2px 6px 6px rgba(0,0,0,0.2));
+        }
+
+        .tree-trunk {
+            background: linear-gradient(90deg, #6B4423 0%, #8B5A2B 50%, #6B4423 100%);
+            border-radius: 2px;
+        }
+
+        .tree-foliage {
+            background: radial-gradient(ellipse at center, #4CAF50 0%, #2E7D32 70%, #1B5E20 100%);
+            border-radius: 50%;
+        }
+
+        /* Shadows on ground */
+        .ground-shadow {
+            background: rgba(0,0,0,0.15);
+            border-radius: 50%;
+            filter: blur(4px);
+        }
+
+        /* Pop-up effects */
+        .pop-text {
+            position: fixed;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 9999;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden">
+
+    <!-- SKY GRADIENT -->
+    <div class="absolute inset-0" style="background: linear-gradient(to bottom, #87CEEB 0%, #B8E4F7 50%, #C8F0D4 100%);"></div>
+
+    <!-- CLOUDS -->
+    <div class="absolute top-[8%] left-[10%] text-6xl opacity-60 float-animation">☁️</div>
+    <div class="absolute top-[15%] right-[20%] text-5xl opacity-50 float-animation" style="animation-delay: -1s;">☁️</div>
+    <div class="absolute top-[5%] left-[50%] text-4xl opacity-40 float-animation" style="animation-delay: -2s;">☁️</div>
+
+    <!-- SUN -->
+    <div class="absolute top-[10%] right-[15%] text-7xl float-animation" style="filter: drop-shadow(0 0 30px rgba(255,217,61,0.6));">☀️</div>
+
+    <!-- GAME WORLD CONTAINER -->
+    <div class="absolute inset-0 flex items-center justify-center" style="perspective: 1000px;">
+
+        <!-- ISOMETRIC WORLD -->
+        <div class="relative" style="width: 800px; height: 600px; transform: rotateX(55deg) rotateZ(-45deg); transform-style: preserve-3d;">
+
+            <!-- GROUND LAYER - Grass tiles -->
+            <div class="absolute" style="width: 600px; height: 400px; left: 100px; top: 100px;">
+                <!-- Grass base -->
+                <div class="absolute inset-0 tile-grass rounded-lg" style="box-shadow: 0 20px 0 #558B2F;"></div>
+
+                <!-- Road -->
+                <div class="absolute tile-road" style="width: 100px; height: 400px; left: 250px; top: 0;"></div>
+                <!-- Road markings -->
+                <div class="absolute bg-yellow-400" style="width: 8px; height: 30px; left: 296px; top: 20px;"></div>
+                <div class="absolute bg-yellow-400" style="width: 8px; height: 30px; left: 296px; top: 80px;"></div>
+                <div class="absolute bg-yellow-400" style="width: 8px; height: 30px; left: 296px; top: 140px;"></div>
+                <div class="absolute bg-yellow-400" style="width: 8px; height: 30px; left: 296px; top: 200px;"></div>
+                <div class="absolute bg-yellow-400" style="width: 8px; height: 30px; left: 296px; top: 260px;"></div>
+                <div class="absolute bg-yellow-400" style="width: 8px; height: 30px; left: 296px; top: 320px;"></div>
+
+                <!-- Sidewalks -->
+                <div class="absolute tile-sidewalk" style="width: 40px; height: 400px; left: 210px; top: 0;"></div>
+                <div class="absolute tile-sidewalk" style="width: 40px; height: 400px; left: 350px; top: 0;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ELEMENTS LAYER (not rotated - placed visually) -->
+    <div class="absolute inset-0 pointer-events-none">
+
+        <!-- BUILDINGS (background) -->
+        <div class="absolute pointer-events-auto" style="top: 15%; right: 20%;">
+            <div class="building-3d">
+                <div class="building-front relative" style="width: 150px; height: 120px; border-radius: 4px;">
+                    <!-- Windows -->
+                    <div class="absolute grid grid-cols-3 gap-3 p-4">
+                        <div class="w-8 h-10 bg-blue-200 border-2 border-blue-300 rounded-sm"></div>
+                        <div class="w-8 h-10 bg-blue-200 border-2 border-blue-300 rounded-sm"></div>
+                        <div class="w-8 h-10 bg-blue-200 border-2 border-blue-300 rounded-sm"></div>
+                        <div class="w-8 h-10 bg-blue-200 border-2 border-blue-300 rounded-sm"></div>
+                        <div class="w-8 h-10 bg-blue-200 border-2 border-blue-300 rounded-sm"></div>
+                        <div class="w-8 h-10 bg-blue-200 border-2 border-blue-300 rounded-sm"></div>
+                    </div>
+                    <!-- Door -->
+                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-16 bg-amber-800 border-2 border-amber-900 rounded-t"></div>
+                </div>
+                <!-- Roof -->
+                <div class="building-roof absolute -top-4 left-0 right-0 h-8" style="clip-path: polygon(0% 100%, 50% 0%, 100% 100%);"></div>
+                <!-- Sign -->
+                <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded text-xs font-black shadow">UNIVERSIDAD</div>
+            </div>
+        </div>
+
+        <!-- Secondary building -->
+        <div class="absolute pointer-events-auto" style="top: 25%; right: 8%;">
+            <div class="building-3d opacity-70" style="transform: scale(0.7);">
+                <div class="building-front relative bg-gray-200 border-2 border-gray-300" style="width: 100px; height: 80px; border-radius: 4px;">
+                    <div class="absolute grid grid-cols-2 gap-2 p-3">
+                        <div class="w-6 h-8 bg-blue-200 border border-blue-300 rounded-sm"></div>
+                        <div class="w-6 h-8 bg-blue-200 border border-blue-300 rounded-sm"></div>
+                        <div class="w-6 h-8 bg-blue-200 border border-blue-300 rounded-sm"></div>
+                        <div class="w-6 h-8 bg-blue-200 border border-blue-300 rounded-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TREES -->
+        <div class="tree absolute" style="top: 35%; left: 12%;">
+            <div class="tree-trunk w-4 h-10 mx-auto"></div>
+            <div class="tree-foliage w-16 h-16 -mt-6"></div>
+        </div>
+
+        <div class="tree absolute" style="top: 20%; left: 8%;">
+            <div class="tree-trunk w-3 h-8 mx-auto"></div>
+            <div class="tree-foliage w-12 h-12 -mt-4"></div>
+        </div>
+
+        <div class="tree absolute" style="top: 55%; right: 10%;">
+            <div class="tree-trunk w-5 h-12 mx-auto"></div>
+            <div class="tree-foliage w-20 h-20 -mt-8"></div>
+        </div>
+
+        <!-- SHADOWS ON GROUND -->
+        <div class="ground-shadow absolute" style="width: 180px; height: 40px; top: 72%; left: 28%;"></div>
+        <div class="ground-shadow absolute" style="width: 60px; height: 15px; top: 68%; left: 15%;"></div>
+
+        <!-- FOOD TRUCK -->
+        <div id="food-truck" class="truck-3d absolute pointer-events-auto" style="top: 50%; left: 25%;" onclick="showSale()">
+            <!-- Truck body -->
+            <div class="truck-body relative" style="width: 180px; height: 100px;">
+                <!-- Service window -->
+                <div class="truck-window absolute" style="width: 60px; height: 50px; top: 15px; left: 20px; border-radius: 4px;"></div>
+
+                <!-- Cabin -->
+                <div class="absolute right-0 top-2" style="width: 50px; height: 80px; background: linear-gradient(180deg, #FF6B6B 0%, #E85555 100%); border-radius: 4px 8px 4px 4px; border: 3px solid #CC4444;">
+                    <!-- Windshield -->
+                    <div class="truck-window absolute" style="width: 35px; height: 35px; top: 8px; left: 8px; border-radius: 4px;"></div>
+                </div>
+
+                <!-- Brand name -->
+                <div class="absolute top-1/2 left-1/3 -translate-y-1/2 bg-white px-2 py-0.5 rounded text-[10px] font-black text-gray-800 shadow">
+                    CalleViva
+                </div>
+            </div>
+
+            <!-- Awning -->
+            <div class="truck-awning absolute -top-3 left-2" style="width: 80px; height: 20px; border-radius: 0 0 8px 8px; transform: perspective(50px) rotateX(-10deg);"></div>
+
+            <!-- Wheels -->
+            <div class="truck-wheel absolute rounded-full" style="width: 28px; height: 28px; bottom: -10px; left: 20px;"></div>
+            <div class="truck-wheel absolute rounded-full" style="width: 28px; height: 28px; bottom: -10px; right: 25px;"></div>
+
+            <!-- Menu items visible -->
+            <div class="absolute -top-8 left-10 flex gap-2">
+                <span class="text-xl bounce-animation" style="animation-delay: 0s;">🍳</span>
+                <span class="text-xl bounce-animation" style="animation-delay: 0.2s;">🥟</span>
+                <span class="text-xl bounce-animation" style="animation-delay: 0.4s;">☕</span>
+            </div>
+        </div>
+
+        <!-- CUSTOMERS -->
+        <div class="absolute flex items-end gap-4 pointer-events-auto" style="top: 58%; left: 42%;">
+            <div class="customer-sprite text-5xl bounce-animation" style="animation-delay: 0s;" onclick="serveCustomer(this)">👩‍🎓</div>
+            <div class="customer-sprite text-5xl bounce-animation" style="animation-delay: 0.3s;" onclick="serveCustomer(this)">👨‍💼</div>
+            <div class="customer-sprite text-4xl bounce-animation opacity-80" style="animation-delay: 0.6s;" onclick="serveCustomer(this)">👵</div>
+            <div class="customer-sprite text-4xl bounce-animation opacity-60" style="animation-delay: 0.9s;" onclick="serveCustomer(this)">👷</div>
+        </div>
+
+        <!-- BENCH -->
+        <div class="absolute" style="top: 70%; left: 15%;">
+            <div class="relative" style="width: 50px; height: 25px; background: linear-gradient(180deg, #8B4513 0%, #6B3410 100%); border-radius: 3px; transform: perspective(50px) rotateX(10deg);">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- HUD OVERLAY -->
+    <div class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4">
+
+        <!-- TOP HUD -->
+        <div class="flex justify-between items-start pointer-events-auto">
+
+            <!-- Location -->
+            <div class="glass-panel rounded-2xl p-3 flex gap-3 items-center">
+                <div class="bg-blue-100 p-2 rounded-xl text-2xl">🏫</div>
+                <div>
+                    <h2 class="font-black text-gray-800">Universidad</h2>
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <span>Día 1</span>
+                        <span>•</span>
+                        <span>☀️ Soleado</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clock -->
+            <div class="glass-panel px-6 py-3 rounded-full shadow-xl">
+                <div class="text-2xl font-black tracking-wide text-gray-800">
+                    <span id="clock">08:30</span>
+                    <span class="text-sm text-gray-400 font-normal ml-1">AM</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="glass-panel rounded-2xl p-2 flex gap-2">
+                <div class="bg-green-100 px-4 py-2 rounded-xl text-center">
+                    <div class="text-xs text-green-600 font-bold uppercase">Dinero</div>
+                    <div class="text-xl font-black text-green-700" id="money">₡18,500</div>
+                </div>
+                <div class="bg-amber-100 px-4 py-2 rounded-xl text-center">
+                    <div class="text-xs text-amber-600 font-bold uppercase">Rep</div>
+                    <div class="text-xl font-black text-amber-700">⭐ 3.5</div>
+                </div>
+                <div class="bg-purple-100 px-4 py-2 rounded-xl text-center">
+                    <div class="text-xs text-purple-600 font-bold uppercase">Ventas</div>
+                    <div class="text-xl font-black text-purple-700" id="sales">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM HUD -->
+        <div class="flex justify-between items-end pointer-events-auto">
+
+            <!-- Activity Log -->
+            <div class="glass-panel rounded-2xl p-3 w-72 max-h-40 overflow-hidden">
+                <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">📜 Actividad</h3>
+                <div id="log" class="space-y-1 text-sm max-h-28 overflow-y-auto">
+                    <div class="text-xs text-blue-600">[08:30] 👩‍🎓 Estudiante llegó</div>
+                    <div class="text-xs text-blue-600">[08:28] 👨‍💼 Oficinista llegó</div>
+                    <div class="text-xs text-gray-400 italic">Esperando ventas...</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="glass-panel p-3 rounded-2xl flex items-center gap-3">
+                <button onclick="startDay()" class="bg-coral text-white px-8 py-3 rounded-xl font-black text-lg shadow-lg flex items-center gap-2 hover:scale-105 transition-transform" style="background: #FF6B6B;">
+                    <span>▶️</span>
+                    <span>Iniciar Día</span>
+                </button>
+                <div class="w-px h-10 bg-gray-300"></div>
+                <div class="flex gap-1">
+                    <button class="w-10 h-10 rounded-lg font-bold text-gray-600 hover:bg-gray-100">1x</button>
+                    <button class="w-10 h-10 rounded-lg font-bold text-gray-600 hover:bg-gray-100">2x</button>
+                    <button class="w-10 h-10 rounded-lg font-bold bg-coral text-white" style="background: #FF6B6B;">5x</button>
+                </div>
+            </div>
+
+            <!-- Inventory -->
+            <div class="glass-panel rounded-2xl p-3 flex gap-4">
+                <div class="text-center relative">
+                    <div class="text-3xl" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));">🍳</div>
+                    <div class="text-xs font-bold text-gray-600">Pinto</div>
+                    <div class="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">8</div>
+                </div>
+                <div class="text-center relative">
+                    <div class="text-3xl" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));">🥟</div>
+                    <div class="text-xs font-bold text-gray-600">Empan.</div>
+                    <div class="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">15</div>
+                </div>
+                <div class="text-center relative">
+                    <div class="text-3xl" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));">☕</div>
+                    <div class="text-xs font-bold text-gray-600">Café</div>
+                    <div class="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">20</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFO BADGE -->
+    <div class="absolute top-1/2 left-4 -translate-y-1/2 glass-panel rounded-xl p-3 pointer-events-auto">
+        <p class="text-xs font-bold text-gray-600 mb-1">🎮 Demo 2D Isométrico</p>
+        <p class="text-[10px] text-gray-400">Click en clientes o truck</p>
+    </div>
+
+    <script>
+        let money = 18500;
+        let sales = 0;
+
+        function showSale() {
+            const truck = document.getElementById('food-truck');
+            const rect = truck.getBoundingClientRect();
+
+            const popup = document.createElement('div');
+            popup.className = 'pop-text text-green-500 text-2xl';
+            popup.textContent = '+₡2,500';
+            popup.style.left = (rect.left + rect.width / 2) + 'px';
+            popup.style.top = rect.top + 'px';
+            document.body.appendChild(popup);
+
+            gsap.to(popup, {
+                y: -60,
+                opacity: 0,
+                duration: 1.2,
+                ease: "power1.out",
+                onComplete: () => popup.remove()
+            });
+
+            money += 2500;
+            sales++;
+            document.getElementById('money').textContent = '₡' + money.toLocaleString();
+            document.getElementById('sales').textContent = sales;
+
+            addLog('🍳 Venta de Gallo Pinto', 'text-green-600');
+        }
+
+        function serveCustomer(el) {
+            const rect = el.getBoundingClientRect();
+
+            // Money popup
+            const popup = document.createElement('div');
+            popup.className = 'pop-text text-green-500 text-xl';
+            popup.textContent = '+₡1,500';
+            popup.style.left = (rect.left + rect.width / 2) + 'px';
+            popup.style.top = rect.top + 'px';
+            document.body.appendChild(popup);
+
+            gsap.to(popup, {
+                y: -50,
+                opacity: 0,
+                duration: 1,
+                onComplete: () => popup.remove()
+            });
+
+            // Happy emoji
+            setTimeout(() => {
+                const happy = document.createElement('div');
+                happy.className = 'pop-text text-3xl';
+                happy.textContent = '😋';
+                happy.style.left = (rect.left + rect.width / 2) + 'px';
+                happy.style.top = (rect.top - 20) + 'px';
+                document.body.appendChild(happy);
+
+                gsap.to(happy, {
+                    y: -40,
+                    opacity: 0,
+                    duration: 1,
+                    onComplete: () => happy.remove()
+                });
+            }, 200);
+
+            // Animate customer leaving
+            gsap.to(el, {
+                x: 200,
+                opacity: 0,
+                duration: 0.6,
+                ease: "power2.in"
+            });
+
+            money += 1500;
+            sales++;
+            document.getElementById('money').textContent = '₡' + money.toLocaleString();
+            document.getElementById('sales').textContent = sales;
+
+            addLog(el.textContent + ' compró 🥟 Empanada', 'text-green-600');
+        }
+
+        function addLog(msg, colorClass) {
+            const log = document.getElementById('log');
+            const time = document.getElementById('clock').textContent;
+            const div = document.createElement('div');
+            div.className = `text-xs ${colorClass}`;
+            div.innerHTML = `[${time}] ${msg}`;
+            log.insertBefore(div, log.firstChild);
+
+            while (log.children.length > 8) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        function startDay() {
+            addLog('🌅 ¡El día comienza!', 'text-green-600');
+        }
+
+        // Clock animation
+        let minutes = 30;
+        let hours = 8;
+        setInterval(() => {
+            minutes++;
+            if (minutes >= 60) {
+                minutes = 0;
+                hours++;
+            }
+            const h = hours.toString().padStart(2, '0');
+            const m = minutes.toString().padStart(2, '0');
+            document.getElementById('clock').textContent = `${h}:${m}`;
+        }, 2000);
+    </script>
+
+</body>
+</html>

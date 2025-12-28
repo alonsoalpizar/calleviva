@@ -14,6 +14,8 @@ import { TruckCustomization } from './components/game/TruckCustomization'
 import { DishLaboratorio } from './components/game/DishLaboratorio'
 import { Market } from './components/game/Market'
 import { LocationsPreview } from './pages/LocationsPreview'
+import { GameSimulationDemo } from './components/simulation'
+import { Game3DDemo, CharacterViewer } from './components/game3d'
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -68,6 +70,16 @@ function App() {
 
         {/* Locations Preview - Public (for dev) */}
         <Route path="/locations" element={<LocationsPreview />} />
+
+        {/* Simulation Demo - Public (for dev) */}
+        <Route path="/simulation" element={<GameSimulationDemo />} />
+        <Route path="/simulation/:locationCode" element={<GameSimulationDemo />} />
+
+        {/* 3D Game Demo - Public (for dev) */}
+        <Route path="/game3d" element={<Game3DDemo />} />
+
+        {/* Character Viewer - Public (for dev) */}
+        <Route path="/character-viewer" element={<CharacterViewer />} />
 
         {/* Protected Routes */}
         <Route

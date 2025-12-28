@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalleViva - Demo 3D (Three.js)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; margin: 0; padding: 0; }
+        body { overflow: hidden; }
+        #game-container { width: 100vw; height: 100vh; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .hud {
+            position: fixed;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .hud > * { pointer-events: auto; }
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+
+    <!-- HUD Overlay -->
+    <div class="hud top-4 left-4">
+        <div class="glass-panel rounded-2xl p-4">
+            <div class="flex items-center gap-3">
+                <div class="text-3xl">🏫</div>
+                <div>
+                    <h2 class="font-black text-gray-800">Universidad</h2>
+                    <p class="text-sm text-gray-500">Día 1 • ☀️ Soleado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hud top-4 right-4">
+        <div class="glass-panel rounded-2xl p-3 flex gap-3">
+            <div class="bg-green-100 px-4 py-2 rounded-xl text-center">
+                <div class="text-xs text-green-600 font-bold">DINERO</div>
+                <div class="text-lg font-black text-green-700">₡18,500</div>
+            </div>
+            <div class="bg-amber-100 px-4 py-2 rounded-xl text-center">
+                <div class="text-xs text-amber-600 font-bold">REP</div>
+                <div class="text-lg font-black text-amber-700">⭐ 3.5</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hud bottom-4 left-1/2 -translate-x-1/2">
+        <div class="glass-panel rounded-2xl p-4 text-center">
+            <p class="text-sm text-gray-600 mb-2">🎮 Demo 3D con Three.js</p>
+            <p class="text-xs text-gray-400">Arrastra para rotar • Scroll para zoom</p>
+        </div>
+    </div>
+
+    <div class="hud bottom-4 right-4">
+        <div class="glass-panel rounded-2xl p-3 flex gap-3">
+            <div class="text-center">
+                <div class="text-2xl">🍳</div>
+                <div class="text-xs font-bold text-gray-600">Pinto</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl">🥟</div>
+                <div class="text-xs font-bold text-gray-600">Empan.</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl">☕</div>
+                <div class="text-xs font-bold text-gray-600">Café</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Setup
+        const container = document.getElementById('game-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB); // Cielo
+
+        // Camera (isometric-like)
+        const aspect = window.innerWidth / window.innerHeight;
+        const frustumSize = 15;
+        const camera = new THREE.OrthographicCamera(
+            frustumSize * aspect / -2,
+            frustumSize * aspect / 2,
+            frustumSize / 2,
+            frustumSize / -2,
+            0.1,
+            1000
+        );
+        camera.position.set(10, 10, 10);
+        camera.lookAt(0, 0, 0);
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2.5;
+        controls.minPolarAngle = Math.PI / 4;
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 50;
+        directionalLight.shadow.camera.left = -15;
+        directionalLight.shadow.camera.right = 15;
+        directionalLight.shadow.camera.top = 15;
+        directionalLight.shadow.camera.bottom = -15;
+        scene.add(directionalLight);
+
+        // === GROUND (Césped) ===
+        const groundGeometry = new THREE.PlaneGeometry(20, 20);
+        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x7CB342 });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // === ROAD (Calle) ===
+        const roadGeometry = new THREE.PlaneGeometry(4, 20);
+        const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x4A4A4A });
+        const road = new THREE.Mesh(roadGeometry, roadMaterial);
+        road.rotation.x = -Math.PI / 2;
+        road.position.set(0, 0.01, 0);
+        road.receiveShadow = true;
+        scene.add(road);
+
+        // Road lines
+        const lineGeometry = new THREE.PlaneGeometry(0.2, 1);
+        const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD700 });
+        for (let i = -8; i <= 8; i += 2) {
+            const line = new THREE.Mesh(lineGeometry, lineMaterial);
+            line.rotation.x = -Math.PI / 2;
+            line.position.set(0, 0.02, i);
+            scene.add(line);
+        }
+
+        // === SIDEWALK (Acera) ===
+        const sidewalkGeometry = new THREE.BoxGeometry(2, 0.15, 20);
+        const sidewalkMaterial = new THREE.MeshLambertMaterial({ color: 0xC0C0C0 });
+
+        const sidewalkLeft = new THREE.Mesh(sidewalkGeometry, sidewalkMaterial);
+        sidewalkLeft.position.set(-3, 0.075, 0);
+        sidewalkLeft.castShadow = true;
+        sidewalkLeft.receiveShadow = true;
+        scene.add(sidewalkLeft);
+
+        const sidewalkRight = new THREE.Mesh(sidewalkGeometry, sidewalkMaterial);
+        sidewalkRight.position.set(3, 0.075, 0);
+        sidewalkRight.castShadow = true;
+        sidewalkRight.receiveShadow = true;
+        scene.add(sidewalkRight);
+
+        // === FOOD TRUCK ===
+        function createFoodTruck(x, z) {
+            const truck = new THREE.Group();
+
+            // Body
+            const bodyGeometry = new THREE.BoxGeometry(2.5, 1.5, 1.2);
+            const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0xFF6B6B });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 1;
+            body.castShadow = true;
+            truck.add(body);
+
+            // Cabin
+            const cabinGeometry = new THREE.BoxGeometry(0.8, 1, 1.2);
+            const cabinMaterial = new THREE.MeshLambertMaterial({ color: 0xFF6B6B });
+            const cabin = new THREE.Mesh(cabinGeometry, cabinMaterial);
+            cabin.position.set(1.4, 0.8, 0);
+            cabin.castShadow = true;
+            truck.add(cabin);
+
+            // Windows
+            const windowGeometry = new THREE.BoxGeometry(0.05, 0.5, 0.8);
+            const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87CEEB });
+            const windowFront = new THREE.Mesh(windowGeometry, windowMaterial);
+            windowFront.position.set(1.8, 1, 0);
+            truck.add(windowFront);
+
+            // Service window
+            const serviceGeometry = new THREE.BoxGeometry(0.1, 0.7, 0.9);
+            const serviceMaterial = new THREE.MeshLambertMaterial({ color: 0x87CEEB });
+            const serviceWindow = new THREE.Mesh(serviceGeometry, serviceMaterial);
+            serviceWindow.position.set(-0.5, 1.2, 0.6);
+            truck.add(serviceWindow);
+
+            // Awning
+            const awningGeometry = new THREE.BoxGeometry(1.5, 0.1, 0.6);
+            const awningMaterial = new THREE.MeshLambertMaterial({ color: 0xFFE66D });
+            const awning = new THREE.Mesh(awningGeometry, awningMaterial);
+            awning.position.set(-0.5, 1.8, 0.9);
+            awning.rotation.x = 0.3;
+            awning.castShadow = true;
+            truck.add(awning);
+
+            // Wheels
+            const wheelGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.15, 16);
+            const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+
+            const positions = [
+                [-0.8, 0.25, 0.65],
+                [-0.8, 0.25, -0.65],
+                [1.2, 0.25, 0.65],
+                [1.2, 0.25, -0.65]
+            ];
+
+            positions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.x = Math.PI / 2;
+                wheel.position.set(...pos);
+                wheel.castShadow = true;
+                truck.add(wheel);
+            });
+
+            // Sign
+            const signGeometry = new THREE.BoxGeometry(1, 0.3, 0.05);
+            const signMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
+            const sign = new THREE.Mesh(signGeometry, signMaterial);
+            sign.position.set(0, 1.9, 0.62);
+            truck.add(sign);
+
+            truck.position.set(x, 0, z);
+            return truck;
+        }
+
+        const foodTruck = createFoodTruck(-4, 0);
+        scene.add(foodTruck);
+
+        // === BUILDING (Universidad) ===
+        function createBuilding(x, z, width, height, depth, color) {
+            const building = new THREE.Group();
+
+            const bodyGeometry = new THREE.BoxGeometry(width, height, depth);
+            const bodyMaterial = new THREE.MeshLambertMaterial({ color: color });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = height / 2;
+            body.castShadow = true;
+            body.receiveShadow = true;
+            building.add(body);
+
+            // Windows
+            const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87CEEB });
+            const windowRows = Math.floor(height / 1.2);
+            const windowCols = Math.floor(width / 1.5);
+
+            for (let row = 0; row < windowRows; row++) {
+                for (let col = 0; col < windowCols; col++) {
+                    const windowGeometry = new THREE.BoxGeometry(0.4, 0.5, 0.1);
+                    const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
+                    windowMesh.position.set(
+                        -width/2 + 0.8 + col * 1.2,
+                        0.8 + row * 1.2,
+                        depth/2 + 0.05
+                    );
+                    building.add(windowMesh);
+                }
+            }
+
+            // Roof
+            const roofGeometry = new THREE.BoxGeometry(width + 0.2, 0.3, depth + 0.2);
+            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.y = height + 0.15;
+            roof.castShadow = true;
+            building.add(roof);
+
+            building.position.set(x, 0, z);
+            return building;
+        }
+
+        const mainBuilding = createBuilding(5, -5, 5, 4, 3, 0xE8DCC8);
+        scene.add(mainBuilding);
+
+        const sideBuilding = createBuilding(7, 4, 3, 2.5, 2, 0xD3D3D3);
+        scene.add(sideBuilding);
+
+        // === TREES ===
+        function createTree(x, z, scale = 1) {
+            const tree = new THREE.Group();
+
+            // Trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.1 * scale, 0.15 * scale, 0.8 * scale, 8);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.y = 0.4 * scale;
+            trunk.castShadow = true;
+            tree.add(trunk);
+
+            // Foliage (sphere)
+            const foliageGeometry = new THREE.SphereGeometry(0.5 * scale, 8, 8);
+            const foliageMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+            const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+            foliage.position.y = 1.1 * scale;
+            foliage.castShadow = true;
+            tree.add(foliage);
+
+            tree.position.set(x, 0, z);
+            return tree;
+        }
+
+        scene.add(createTree(-7, -5, 1.2));
+        scene.add(createTree(-6, 6, 1));
+        scene.add(createTree(8, -2, 0.8));
+        scene.add(createTree(6, 7, 1.1));
+
+        // === CUSTOMERS (simple capsules) ===
+        function createCustomer(x, z, color) {
+            const customer = new THREE.Group();
+
+            // Body
+            const bodyGeometry = new THREE.CapsuleGeometry(0.15, 0.4, 4, 8);
+            const bodyMaterial = new THREE.MeshLambertMaterial({ color: color });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0.5;
+            body.castShadow = true;
+            customer.add(body);
+
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.12, 8, 8);
+            const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFDBAC });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = 0.85;
+            head.castShadow = true;
+            customer.add(head);
+
+            customer.position.set(x, 0, z);
+            return customer;
+        }
+
+        const customers = [
+            createCustomer(-4.5, 1.5, 0x4A90D9),
+            createCustomer(-5, 2, 0xFF6B6B),
+            createCustomer(-5.5, 2.5, 0x2EC4B6),
+        ];
+        customers.forEach(c => scene.add(c));
+
+        // === BENCH ===
+        function createBench(x, z, rotation = 0) {
+            const bench = new THREE.Group();
+
+            const seatGeometry = new THREE.BoxGeometry(1, 0.1, 0.4);
+            const woodMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const seat = new THREE.Mesh(seatGeometry, woodMaterial);
+            seat.position.y = 0.35;
+            seat.castShadow = true;
+            bench.add(seat);
+
+            const legGeometry = new THREE.BoxGeometry(0.1, 0.35, 0.1);
+            const leg1 = new THREE.Mesh(legGeometry, woodMaterial);
+            leg1.position.set(-0.4, 0.175, 0);
+            bench.add(leg1);
+
+            const leg2 = new THREE.Mesh(legGeometry, woodMaterial);
+            leg2.position.set(0.4, 0.175, 0);
+            bench.add(leg2);
+
+            bench.position.set(x, 0, z);
+            bench.rotation.y = rotation;
+            return bench;
+        }
+
+        scene.add(createBench(-6, -3, Math.PI / 4));
+        scene.add(createBench(4, 2, -Math.PI / 6));
+
+        // === SUN (visual) ===
+        const sunGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+        const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD93D });
+        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        sun.position.set(8, 12, -8);
+        scene.add(sun);
+
+        // === ANIMATION ===
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            // Animate customers (bobbing)
+            customers.forEach((customer, i) => {
+                customer.position.y = Math.sin(time * 2 + i) * 0.05;
+            });
+
+            // Gentle truck bounce
+            foodTruck.position.y = Math.sin(time * 3) * 0.02;
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.left = frustumSize * aspect / -2;
+            camera.right = frustumSize * aspect / 2;
+            camera.top = frustumSize / 2;
+            camera.bottom = frustumSize / -2;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, lazy, Suspense } from 'react'
+
+// Lazy load 3D Creator para mejor rendimiento
+const Character3DCreator = lazy(() => import('./Character3DCreator'))
 
 // ============================================
 // CALLEVIVA CREATOR - VERSIÓN MEGA EXPANDIDA
@@ -957,7 +960,8 @@ const Gallery: React.FC<GalleryProps> = ({ items, onClear, onLoad, onDelete, onS
 // ==================== MAIN APP ====================
 
 const SECTIONS: Section[] = [
-  { id: 'personajes', name: 'Personajes', icon: '👤', color: 'from-orange-400 to-amber-400', catalog: CATALOGS.personajes, svg: PersonajeSVG },
+  // Personajes 2D desactivado - usar tab 3D en su lugar
+  // { id: 'personajes', name: 'Personajes', icon: '👤', color: 'from-orange-400 to-amber-400', catalog: CATALOGS.personajes, svg: PersonajeSVG },
   { id: 'ingredientes', name: 'Ingredientes', icon: '🥬', color: 'from-green-400 to-emerald-400', catalog: CATALOGS.ingredientes, svg: IngredienteSVG },
   { id: 'artefactos', name: 'Artefactos', icon: '🪑', color: 'from-amber-500 to-yellow-400', catalog: CATALOGS.artefactos, svg: ArtefactoSVG },
 ]
@@ -967,7 +971,7 @@ import { creatorApi } from '../../services/creatorApi'
 const GALLERY_STORAGE_KEY = 'calleviva_creator_gallery'
 
 const CalleVivaCreator = () => {
-  const [activeTab, setActiveTab] = useState('personajes')
+  const [activeTab, setActiveTab] = useState('personajes3d') // 3D por defecto
   const [toast, setToast] = useState<string | null>(null)
   const [loadedData, setLoadedData] = useState<CreationData | null>(null)
   const [submittingIds, setSubmittingIds] = useState<Set<string>>(new Set())
@@ -987,7 +991,8 @@ const CalleVivaCreator = () => {
     localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(gallery))
   }, [gallery])
 
-  const section = SECTIONS.find(s => s.id === activeTab)!
+  const section = SECTIONS.find(s => s.id === activeTab)
+  const bgColor = activeTab === 'personajes3d' ? 'from-sky-400 to-cyan-400' : (section?.color || 'from-orange-400 to-amber-400')
 
   const showToast = (message: string) => {
     setToast(message)
@@ -1070,7 +1075,7 @@ const CalleVivaCreator = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${section.color} p-3 transition-all duration-500`}>
+    <div className={`min-h-screen bg-gradient-to-br ${bgColor} p-3 transition-all duration-500`}>
       <div className="text-center mb-3">
         <h1 className="text-2xl font-black text-white drop-shadow-lg">🚚 CalleViva Creator</h1>
         <p className="text-white/80 text-xs">Crea contenido para el juego</p>
@@ -1083,25 +1088,46 @@ const CalleVivaCreator = () => {
             {s.icon} {s.name}
           </button>
         ))}
+        {/* Tab especial para 3D */}
+        <button
+          onClick={() => { setActiveTab('personajes3d'); setLoadedData(null) }}
+          className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${activeTab === 'personajes3d' ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'}`}
+        >
+          🧍 3D
+        </button>
       </div>
 
       <div className="max-w-5xl mx-auto">
-        <Editor
-          key={activeTab}
-          type={section.id}
-          catalog={section.catalog}
-          SVGComponent={section.svg}
-          onSave={submitToServer}
-          onSaveToGallery={saveToGallery}
-          loadedData={loadedData}
-        />
-        <Gallery
-          items={gallery}
-          onClear={clearGallery}
-          onLoad={loadIntoEditor}
-          onDelete={deleteFromGallery}
-          onSubmit={submitFromGallery}
-        />
+        {activeTab === 'personajes3d' ? (
+          <Suspense fallback={
+            <div className="bg-white rounded-xl p-8 shadow-lg text-center">
+              <div className="animate-pulse text-xl">Cargando editor 3D...</div>
+            </div>
+          }>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: '80vh' }}>
+              <Character3DCreator />
+            </div>
+          </Suspense>
+        ) : section ? (
+          <>
+            <Editor
+              key={activeTab}
+              type={section.id}
+              catalog={section.catalog}
+              SVGComponent={section.svg}
+              onSave={submitToServer}
+              onSaveToGallery={saveToGallery}
+              loadedData={loadedData}
+            />
+            <Gallery
+              items={gallery}
+              onClear={clearGallery}
+              onLoad={loadIntoEditor}
+              onDelete={deleteFromGallery}
+              onSubmit={submitFromGallery}
+            />
+          </>
+        ) : null}
       </div>
 
       {toast && (
