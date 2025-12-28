@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { api, Parameter, CreateParameter } from '../services/api'
-import { PersonajeSVG, IngredienteSVG, ArtefactoSVG, SitioSVG } from '../components/creator/CalleVivaCreator'
+import { PersonajeSVG, IngredienteSVG, ArtefactoSVG } from '../components/creator/CalleVivaCreator'
 
 type AdminTab = 'parameters' | 'users' | 'ai' | 'creator'
 
@@ -630,8 +630,6 @@ function CreationPreview({ creation, large = false }: { creation: ContentCreatio
         return <IngredienteSVG data={data} />
       case 'artefactos':
         return <ArtefactoSVG data={data} />
-      case 'sitios':
-        return <SitioSVG data={data} />
       default:
         return <span className="text-4xl">📦</span>
     }

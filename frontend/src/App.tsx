@@ -13,6 +13,7 @@ import { GamePlay } from './components/game/GamePlay'
 import { TruckCustomization } from './components/game/TruckCustomization'
 import { DishLaboratorio } from './components/game/DishLaboratorio'
 import { Market } from './components/game/Market'
+import { LocationsPreview } from './pages/LocationsPreview'
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -64,6 +65,9 @@ function App() {
 
         {/* Creator - Public (for Nacho!) */}
         <Route path="/creator" element={<CreatorPage />} />
+
+        {/* Locations Preview - Public (for dev) */}
+        <Route path="/locations" element={<LocationsPreview />} />
 
         {/* Protected Routes */}
         <Route

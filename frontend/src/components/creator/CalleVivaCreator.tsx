@@ -21,7 +21,6 @@ interface Catalogs {
   personajes: CatalogSection
   ingredientes: CatalogSection
   artefactos: CatalogSection
-  sitios: CatalogSection
 }
 
 interface CreationData {
@@ -266,56 +265,6 @@ const CATALOGS: Catalogs = {
     condition: [
       { id: 'new', name: 'Nuevo' }, { id: 'good', name: 'Buen Estado' }, { id: 'used', name: 'Usado' },
       { id: 'worn', name: 'Desgastado' }, { id: 'broken', name: 'Roto' }, { id: 'shiny', name: 'Brillante' },
-    ],
-  },
-
-  sitios: {
-    type: [
-      { id: 'plaza', name: 'Plaza', icon: '🏛️' }, { id: 'park', name: 'Parque', icon: '🌳' },
-      { id: 'street', name: 'Calle', icon: '🛣️' }, { id: 'corner', name: 'Esquina', icon: '🏘️' },
-      { id: 'avenue', name: 'Avenida', icon: '🚗' }, { id: 'beach', name: 'Playa', icon: '🏖️' },
-      { id: 'pier', name: 'Muelle', icon: '⚓' }, { id: 'market', name: 'Mercado', icon: '🏪' },
-      { id: 'fair', name: 'Feria', icon: '🎪' }, { id: 'stadium', name: 'Estadio', icon: '🏟️' },
-      { id: 'university', name: 'Universidad', icon: '🎓' }, { id: 'hospital', name: 'Hospital', icon: '🏥' },
-      { id: 'bus_stop', name: 'Parada Bus', icon: '🚏' }, { id: 'mall', name: 'Mall', icon: '🛒' },
-      { id: 'downtown', name: 'Centro', icon: '🏙️' }, { id: 'neighborhood', name: 'Barrio', icon: '🏠' },
-      { id: 'countryside', name: 'Campo', icon: '🌾' }, { id: 'mountain', name: 'Montaña', icon: '⛰️' },
-      { id: 'river', name: 'Río', icon: '🏞️' }, { id: 'bridge', name: 'Puente', icon: '🌉' },
-    ],
-    time: [
-      { id: 'dawn', name: 'Madrugada', color: '#FFE0B2' }, { id: 'morning', name: 'Mañana', color: '#FFF9C4' },
-      { id: 'noon', name: 'Mediodía', color: '#FFECB3' }, { id: 'afternoon', name: 'Tarde', color: '#FFCC80' },
-      { id: 'sunset', name: 'Atardecer', color: '#FFAB91' }, { id: 'evening', name: 'Anochecer', color: '#CE93D8' },
-      { id: 'night', name: 'Noche', color: '#5C6BC0' }, { id: 'midnight', name: 'Medianoche', color: '#283593' },
-    ],
-    weather: [
-      { id: 'sunny', name: 'Soleado', icon: '☀️' }, { id: 'partly_cloudy', name: 'Parcial Nublado', icon: '⛅' },
-      { id: 'cloudy', name: 'Nublado', icon: '☁️' }, { id: 'light_rain', name: 'Llovizna', icon: '🌦️' },
-      { id: 'rainy', name: 'Lluvioso', icon: '🌧️' }, { id: 'stormy', name: 'Tormenta', icon: '⛈️' },
-      { id: 'foggy', name: 'Neblina', icon: '🌫️' }, { id: 'windy', name: 'Ventoso', icon: '💨' },
-      { id: 'hot', name: 'Caluroso', icon: '🥵' },
-    ],
-    crowd: [
-      { id: 'empty', name: 'Vacío' }, { id: 'few', name: 'Poca Gente' }, { id: 'moderate', name: 'Moderado' },
-      { id: 'busy', name: 'Concurrido' }, { id: 'crowded', name: 'Lleno' }, { id: 'packed', name: 'Abarrotado' },
-    ],
-    vibe: [
-      { id: 'peaceful', name: 'Tranquilo' }, { id: 'lively', name: 'Animado' }, { id: 'festive', name: 'Festivo' },
-      { id: 'romantic', name: 'Romántico' }, { id: 'family', name: 'Familiar' }, { id: 'young', name: 'Juvenil' },
-      { id: 'professional', name: 'Profesional' }, { id: 'touristy', name: 'Turístico' }, { id: 'local', name: 'Local' },
-      { id: 'dangerous', name: 'Peligroso' }, { id: 'hipster', name: 'Hipster' },
-    ],
-    music: [
-      { id: 'none', name: 'Sin Música' }, { id: 'salsa', name: 'Salsa', icon: '💃' },
-      { id: 'reggaeton', name: 'Reggaetón', icon: '🎤' }, { id: 'cumbia', name: 'Cumbia', icon: '🪗' },
-      { id: 'rock', name: 'Rock', icon: '🎸' }, { id: 'pop', name: 'Pop', icon: '🎵' },
-      { id: 'traditional', name: 'Tradicional', icon: '🪘' }, { id: 'electronic', name: 'Electrónica', icon: '🎧' },
-    ],
-    special: [
-      { id: 'none', name: 'Normal' }, { id: 'holiday', name: 'Feriado', icon: '🎉' },
-      { id: 'christmas', name: 'Navidad', icon: '🎄' }, { id: 'independence', name: 'Independencia', icon: '🇨🇷' },
-      { id: 'halloween', name: 'Halloween', icon: '🎃' }, { id: 'new_year', name: 'Año Nuevo', icon: '🎆' },
-      { id: 'game_day', name: 'Día de Partido', icon: '⚽' }, { id: 'concert', name: 'Concierto', icon: '🎤' },
     ],
   },
 }
@@ -780,78 +729,6 @@ const ArtefactoSVG: React.FC<{ data: CreationData }> = ({ data }) => {
   )
 }
 
-const SitioSVG: React.FC<{ data: CreationData }> = ({ data }) => {
-  const weatherIcon = CATALOGS.sitios.weather.find(w => w.id === data.weather)?.icon || '☀️'
-  const typeIcon = CATALOGS.sitios.type.find(t => t.id === data.type)?.icon || '🏛️'
-
-  // Time-based sky colors
-  const skyColors: Record<string, [string, string]> = {
-    dawn: ['#FF9800', '#FFECB3'],
-    morning: ['#64B5F6', '#E3F2FD'],
-    noon: ['#42A5F5', '#BBDEFB'],
-    afternoon: ['#FFA726', '#FFE0B2'],
-    sunset: ['#FF5722', '#FFAB91'],
-    evening: ['#5C6BC0', '#9FA8DA'],
-    night: ['#1a237e', '#311B92'],
-    midnight: ['#0D1B2A', '#1B263B'],
-  }
-  const [sky1, sky2] = skyColors[data.time] || skyColors.noon
-  const isNight = ['night', 'midnight', 'evening'].includes(data.time)
-  const grounds: Record<string, string> = { plaza: '#BDBDBD', park: '#81C784', street: '#616161', corner: '#757575', avenue: '#424242', beach: '#FFE0B2', pier: '#8D6E63', market: '#A1887F', fair: '#BCAAA4', stadium: '#4CAF50', university: '#90A4AE', hospital: '#B0BEC5', bus_stop: '#78909C', mall: '#CFD8DC', downtown: '#9E9E9E', neighborhood: '#A5D6A7', countryside: '#AED581', mountain: '#8D6E63', river: '#4FC3F7', bridge: '#9E9E9E' }
-  const ground = grounds[data.type] || '#9E9E9E'
-
-  const scenes: Record<string, JSX.Element> = {
-    plaza: <><rect x="0" y="130" width="200" height="70" fill={ground} /><rect x="80" y="90" width="40" height="55" fill="#8D6E63" stroke="#333" strokeWidth="2" /><ellipse cx="100" cy="85" rx="28" ry="10" fill="#4DB6AC" stroke="#333" strokeWidth="2" /></>,
-    park: <><rect x="0" y="130" width="200" height="70" fill={ground} /><ellipse cx="40" cy="130" rx="25" ry="40" fill="#2E7D32" /><rect x="35" y="130" width="10" height="35" fill="#5D4037" /><ellipse cx="160" cy="135" rx="22" ry="35" fill="#388E3C" /><rect x="155" y="135" width="10" height="30" fill="#5D4037" /></>,
-    street: <><rect x="0" y="120" width="200" height="80" fill={ground} /><rect x="0" y="145" width="200" height="20" fill="#FFC107" /><rect x="20" y="153" width="25" height="4" fill="white" /><rect x="60" y="153" width="25" height="4" fill="white" /><rect x="100" y="153" width="25" height="4" fill="white" /><rect x="140" y="153" width="25" height="4" fill="white" /><rect x="180" y="153" width="15" height="4" fill="white" /></>,
-    beach: <><rect x="0" y="130" width="200" height="70" fill={ground} /><path d="M0 120 Q50 110 100 120 Q150 130 200 115 L200 200 L0 200 Z" fill="#4FC3F7" /><ellipse cx="160" cy="135" rx="12" ry="22" fill="#FF7043" /><line x1="160" y1="115" x2="160" y2="140" stroke="#5D4037" strokeWidth="3" /></>,
-    market: <><rect x="0" y="130" width="200" height="70" fill={ground} /><rect x="15" y="90" width="50" height="55" fill="#E57373" stroke="#333" strokeWidth="2" /><polygon points="15,90 40,65 65,90" fill="#FFCDD2" stroke="#333" strokeWidth="2" /><rect x="135" y="95" width="50" height="50" fill="#64B5F6" stroke="#333" strokeWidth="2" /><polygon points="135,95 160,70 185,95" fill="#BBDEFB" stroke="#333" strokeWidth="2" /></>,
-    stadium: <><rect x="0" y="130" width="200" height="70" fill="#455A64" /><ellipse cx="100" cy="145" rx="75" ry="30" fill="#4CAF50" stroke="white" strokeWidth="2" /><ellipse cx="100" cy="145" rx="35" ry="15" fill="none" stroke="white" strokeWidth="2" /></>,
-    downtown: <><rect x="0" y="150" width="200" height="50" fill={ground} /><rect x="10" y="90" width="35" height="65" fill="#78909C" stroke="#333" strokeWidth="1" /><rect x="55" y="70" width="40" height="85" fill="#90A4AE" stroke="#333" strokeWidth="1" /><rect x="105" y="60" width="45" height="95" fill="#607D8B" stroke="#333" strokeWidth="1" /><rect x="160" y="85" width="35" height="70" fill="#546E7A" stroke="#333" strokeWidth="1" /></>,
-    neighborhood: <><rect x="0" y="140" width="200" height="60" fill={ground} /><rect x="20" y="100" width="45" height="50" fill="#FFCCBC" stroke="#333" strokeWidth="2" /><polygon points="20,100 42,75 65,100" fill="#8D6E63" stroke="#333" strokeWidth="2" /><rect x="135" y="95" width="50" height="55" fill="#C8E6C9" stroke="#333" strokeWidth="2" /><polygon points="135,95 160,70 185,95" fill="#795548" stroke="#333" strokeWidth="2" /></>,
-    mountain: <><rect x="0" y="150" width="200" height="50" fill={ground} /><polygon points="0,150 60,70 120,150" fill="#8D6E63" stroke="#333" strokeWidth="2" /><polygon points="80,150 150,50 200,150" fill="#795548" stroke="#333" strokeWidth="2" /><polygon points="60,70 60,85 75,85" fill="white" /><polygon points="150,50 145,70 160,70" fill="white" /></>,
-    countryside: <><rect x="0" y="135" width="200" height="65" fill={ground} /><path d="M0 140 Q50 130 100 140 Q150 150 200 135" fill="#8BC34A" /><rect x="140" y="100" width="35" height="45" fill="#8D6E63" stroke="#333" strokeWidth="2" /><polygon points="140,100 157,75 175,100" fill="#5D4037" stroke="#333" strokeWidth="2" /></>,
-    river: <><rect x="0" y="120" width="200" height="80" fill={ground} /><path d="M0 140 Q50 160 100 145 Q150 130 200 155 L200 200 L0 200 Z" fill="#4FC3F7" /></>,
-    bridge: <><rect x="0" y="160" width="200" height="40" fill="#4FC3F7" /><rect x="0" y="140" width="200" height="20" fill={ground} /><path d="M0 130 Q50 115 100 130 Q150 145 200 130" fill="none" stroke="#5D4037" strokeWidth="12" /><path d="M0 130 Q50 115 100 130 Q150 145 200 130" fill="none" stroke="#333" strokeWidth="2" /></>,
-    corner: <><rect x="0" y="130" width="200" height="70" fill={ground} /><rect x="0" y="80" width="80" height="70" fill="#8D6E63" stroke="#333" strokeWidth="2" /></>,
-    avenue: <><rect x="0" y="100" width="200" height="100" fill={ground} /><rect x="0" y="130" width="200" height="40" fill="#424242" /><line x1="0" y1="150" x2="200" y2="150" stroke="#FFC107" strokeWidth="3" strokeDasharray="20,10" /></>,
-    pier: <><rect x="0" y="150" width="200" height="50" fill="#4FC3F7" /><rect x="60" y="100" width="80" height="60" fill="#8D6E63" stroke="#333" strokeWidth="2" /></>,
-    fair: <><rect x="0" y="130" width="200" height="70" fill={ground} /><polygon points="100,40 130,100 70,100" fill="#E91E63" stroke="#333" strokeWidth="2" /><ellipse cx="100" cy="100" rx="40" ry="12" fill="#FFC107" stroke="#333" strokeWidth="2" /></>,
-    university: <><rect x="0" y="140" width="200" height="60" fill={ground} /><rect x="50" y="80" width="100" height="70" fill="#ECEFF1" stroke="#333" strokeWidth="2" /><polygon points="50,80 100,50 150,80" fill="#90A4AE" stroke="#333" strokeWidth="2" /></>,
-    hospital: <><rect x="0" y="140" width="200" height="60" fill={ground} /><rect x="40" y="70" width="120" height="80" fill="#ECEFF1" stroke="#333" strokeWidth="2" /><rect x="90" y="85" width="20" height="6" fill="#F44336" /><rect x="97" y="78" width="6" height="20" fill="#F44336" /></>,
-    bus_stop: <><rect x="0" y="140" width="200" height="60" fill={ground} /><rect x="70" y="90" width="60" height="60" fill="#455A64" stroke="#333" strokeWidth="2" /><rect x="75" y="80" width="50" height="15" fill="#1976D2" stroke="#333" strokeWidth="2" /></>,
-    mall: <><rect x="0" y="145" width="200" height="55" fill={ground} /><rect x="25" y="75" width="150" height="75" fill="#ECEFF1" stroke="#333" strokeWidth="2" /><rect x="25" y="75" width="150" height="15" fill="#FF7043" /></>,
-  }
-
-  return (
-    <svg width="200" height="200" viewBox="0 0 200 200">
-      <defs><linearGradient id={`sky${data.time}`} x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor={sky1} /><stop offset="100%" stopColor={sky2} /></linearGradient></defs>
-      <rect width="200" height="200" fill={`url(#sky${data.time})`} rx="10" />
-      {!isNight && <circle cx="160" cy="35" r="20" fill="#FFEB3B" opacity="0.9" />}
-      {isNight && <><circle cx="160" cy="35" r="18" fill="#FFF9C4" /><circle cx="165" cy="30" r="15" fill={sky1} /><circle cx="30" cy="20" r="1.5" fill="white" /><circle cx="80" cy="40" r="1" fill="white" /><circle cx="50" cy="60" r="1.5" fill="white" /><circle cx="120" cy="25" r="1" fill="white" /></>}
-      {/* Weather Effects */}
-      {data.weather === 'sunny' && <><circle cx="165" cy="32" r="6" fill="#FFEB3B" opacity="0.5" /><circle cx="165" cy="32" r="12" fill="#FFEB3B" opacity="0.3" /></>}
-      {data.weather === 'partly_cloudy' && <ellipse cx="130" cy="50" rx="25" ry="14" fill="white" opacity="0.75" />}
-      {data.weather === 'cloudy' && <><ellipse cx="50" cy="45" rx="30" ry="18" fill="white" opacity="0.85" /><ellipse cx="140" cy="55" rx="35" ry="20" fill="white" opacity="0.8" /></>}
-      {data.weather === 'light_rain' && <><ellipse cx="80" cy="35" rx="25" ry="14" fill="#B0BEC5" opacity="0.7" /><line x1="70" y1="55" x2="68" y2="70" stroke="#90CAF9" strokeWidth="1.5" /><line x1="85" y1="50" x2="83" y2="65" stroke="#90CAF9" strokeWidth="1.5" /><line x1="100" y1="55" x2="98" y2="70" stroke="#90CAF9" strokeWidth="1.5" /></>}
-      {data.weather === 'rainy' && <><ellipse cx="50" cy="40" rx="28" ry="16" fill="#78909C" opacity="0.85" /><ellipse cx="130" cy="45" rx="32" ry="18" fill="#78909C" opacity="0.8" /><line x1="20" y1="60" x2="15" y2="85" stroke="#64B5F6" strokeWidth="2" /><line x1="50" y1="55" x2="45" y2="80" stroke="#64B5F6" strokeWidth="2" /><line x1="80" y1="60" x2="75" y2="85" stroke="#64B5F6" strokeWidth="2" /><line x1="110" y1="55" x2="105" y2="80" stroke="#64B5F6" strokeWidth="2" /><line x1="140" y1="60" x2="135" y2="85" stroke="#64B5F6" strokeWidth="2" /><line x1="170" y1="55" x2="165" y2="80" stroke="#64B5F6" strokeWidth="2" /></>}
-      {data.weather === 'stormy' && <><ellipse cx="60" cy="35" rx="35" ry="20" fill="#455A64" opacity="0.9" /><ellipse cx="140" cy="40" rx="40" ry="22" fill="#37474F" opacity="0.9" /><line x1="90" y1="55" x2="85" y2="90" stroke="#64B5F6" strokeWidth="2" /><line x1="120" y1="60" x2="115" y2="95" stroke="#64B5F6" strokeWidth="2" /><line x1="60" y1="55" x2="55" y2="90" stroke="#64B5F6" strokeWidth="2" /><line x1="150" y1="60" x2="145" y2="95" stroke="#64B5F6" strokeWidth="2" /><path d="M100 35 L95 50 L105 50 L98 70" stroke="#FFEB3B" strokeWidth="2" fill="none" /></>}
-      {data.weather === 'foggy' && <><rect x="0" y="60" width="200" height="140" fill="white" opacity="0.4" /><ellipse cx="50" cy="80" rx="60" ry="20" fill="white" opacity="0.5" /><ellipse cx="150" cy="100" rx="70" ry="25" fill="white" opacity="0.45" /></>}
-      {data.weather === 'windy' && <><path d="M10 50 Q40 45 70 55 Q100 65 130 50" stroke="#B0BEC5" strokeWidth="2" fill="none" opacity="0.7" /><path d="M30 70 Q60 60 90 75 Q120 85 150 70" stroke="#B0BEC5" strokeWidth="2" fill="none" opacity="0.6" /><path d="M50 90 Q80 85 110 95" stroke="#B0BEC5" strokeWidth="1.5" fill="none" opacity="0.5" /></>}
-      {data.weather === 'hot' && <><path d="M30 60 Q35 50 30 40" stroke="#FF5722" strokeWidth="2" fill="none" opacity="0.5" /><path d="M100 55 Q105 45 100 35" stroke="#FF5722" strokeWidth="2" fill="none" opacity="0.5" /><path d="M170 60 Q175 50 170 40" stroke="#FF5722" strokeWidth="2" fill="none" opacity="0.5" /></>}
-      {scenes[data.type] || scenes.plaza}
-      {/* Crowd silhouettes */}
-      {data.crowd === 'few' && <><ellipse cx="30" cy="175" rx="6" ry="10" fill="#333" opacity="0.6" /><circle cx="30" cy="162" r="5" fill="#333" opacity="0.6" /></>}
-      {data.crowd === 'moderate' && <><ellipse cx="25" cy="175" rx="6" ry="10" fill="#333" opacity="0.6" /><circle cx="25" cy="162" r="5" fill="#333" opacity="0.6" /><ellipse cx="45" cy="177" rx="5" ry="9" fill="#333" opacity="0.5" /><circle cx="45" cy="165" r="4" fill="#333" opacity="0.5" /><ellipse cx="170" cy="176" rx="5" ry="9" fill="#333" opacity="0.55" /><circle cx="170" cy="164" r="4" fill="#333" opacity="0.55" /></>}
-      {data.crowd === 'busy' && <><ellipse cx="20" cy="175" rx="6" ry="10" fill="#333" opacity="0.6" /><circle cx="20" cy="162" r="5" fill="#333" opacity="0.6" /><ellipse cx="40" cy="177" rx="5" ry="9" fill="#333" opacity="0.5" /><circle cx="40" cy="165" r="4" fill="#333" opacity="0.5" /><ellipse cx="155" cy="176" rx="5" ry="9" fill="#333" opacity="0.55" /><circle cx="155" cy="164" r="4" fill="#333" opacity="0.55" /><ellipse cx="175" cy="178" rx="5" ry="8" fill="#333" opacity="0.5" /><circle cx="175" cy="168" r="4" fill="#333" opacity="0.5" /><ellipse cx="60" cy="180" rx="4" ry="7" fill="#333" opacity="0.4" /><circle cx="60" cy="171" r="3" fill="#333" opacity="0.4" /></>}
-      {data.crowd === 'crowded' && <><ellipse cx="15" cy="175" rx="6" ry="10" fill="#333" opacity="0.6" /><circle cx="15" cy="162" r="5" fill="#333" opacity="0.6" /><ellipse cx="32" cy="177" rx="5" ry="9" fill="#333" opacity="0.55" /><circle cx="32" cy="165" r="4" fill="#333" opacity="0.55" /><ellipse cx="50" cy="178" rx="5" ry="8" fill="#333" opacity="0.5" /><circle cx="50" cy="168" r="4" fill="#333" opacity="0.5" /><ellipse cx="145" cy="176" rx="5" ry="9" fill="#333" opacity="0.55" /><circle cx="145" cy="164" r="4" fill="#333" opacity="0.55" /><ellipse cx="165" cy="177" rx="5" ry="9" fill="#333" opacity="0.5" /><circle cx="165" cy="165" r="4" fill="#333" opacity="0.5" /><ellipse cx="185" cy="178" rx="5" ry="8" fill="#333" opacity="0.5" /><circle cx="185" cy="168" r="4" fill="#333" opacity="0.5" /><ellipse cx="68" cy="182" rx="4" ry="6" fill="#333" opacity="0.4" /><circle cx="68" cy="174" r="3" fill="#333" opacity="0.4" /></>}
-      {data.crowd === 'packed' && <><ellipse cx="12" cy="174" rx="6" ry="10" fill="#333" opacity="0.6" /><circle cx="12" cy="162" r="5" fill="#333" opacity="0.6" /><ellipse cx="26" cy="176" rx="5" ry="9" fill="#333" opacity="0.55" /><circle cx="26" cy="164" r="4" fill="#333" opacity="0.55" /><ellipse cx="40" cy="177" rx="5" ry="8" fill="#333" opacity="0.5" /><circle cx="40" cy="167" r="4" fill="#333" opacity="0.5" /><ellipse cx="54" cy="178" rx="5" ry="8" fill="#333" opacity="0.5" /><circle cx="54" cy="168" r="4" fill="#333" opacity="0.5" /><ellipse cx="70" cy="180" rx="4" ry="7" fill="#333" opacity="0.45" /><circle cx="70" cy="171" r="3" fill="#333" opacity="0.45" /><ellipse cx="130" cy="180" rx="4" ry="7" fill="#333" opacity="0.45" /><circle cx="130" cy="171" r="3" fill="#333" opacity="0.45" /><ellipse cx="145" cy="176" rx="5" ry="9" fill="#333" opacity="0.55" /><circle cx="145" cy="164" r="4" fill="#333" opacity="0.55" /><ellipse cx="160" cy="177" rx="5" ry="8" fill="#333" opacity="0.5" /><circle cx="160" cy="167" r="4" fill="#333" opacity="0.5" /><ellipse cx="174" cy="178" rx="5" ry="8" fill="#333" opacity="0.5" /><circle cx="174" cy="168" r="4" fill="#333" opacity="0.5" /><ellipse cx="188" cy="177" rx="5" ry="9" fill="#333" opacity="0.5" /><circle cx="188" cy="165" r="4" fill="#333" opacity="0.5" /></>}
-      <text x="10" y="25" fontSize="20">{weatherIcon}</text>
-      <text x="170" y="190" fontSize="20">{typeIcon}</text>
-    </svg>
-  )
-}
-
 // ==================== UI COMPONENTS ====================
 
 interface SelectorProps {
@@ -910,14 +787,6 @@ const TEMPLATES: Record<string, { name: string; icon: string; data: Partial<Crea
     { name: 'Comal', icon: '🍳', data: { type: 'griddle', material: 'metal', size: 'large', style: 'traditional', condition: 'seasoned' } },
     { name: 'Letrero', icon: '📋', data: { type: 'sign', material: 'wood', size: 'medium', style: 'handmade', condition: 'weathered' } },
     { name: 'Tanque Gas', icon: '🔥', data: { type: 'tank', material: 'metal', size: 'large', style: 'industrial', condition: 'good' } },
-  ],
-  sitios: [
-    { name: 'Esquina Concurrida', icon: '🏙️', data: { type: 'corner', time: 'noon', weather: 'sunny', crowd: 'busy', vibe: 'lively' } },
-    { name: 'Parque Tranquilo', icon: '🌳', data: { type: 'park', time: 'afternoon', weather: 'partly_cloudy', crowd: 'few', vibe: 'peaceful' } },
-    { name: 'Playa Sunset', icon: '🏖️', data: { type: 'beach', time: 'sunset', weather: 'sunny', crowd: 'moderate', vibe: 'romantic' } },
-    { name: 'Mercado Nocturno', icon: '🌙', data: { type: 'market', time: 'night', weather: 'cloudy', crowd: 'crowded', vibe: 'festive' } },
-    { name: 'Centro Lluvioso', icon: '🌧️', data: { type: 'downtown', time: 'evening', weather: 'rainy', crowd: 'few', vibe: 'peaceful' } },
-    { name: 'Feria Familiar', icon: '🎪', data: { type: 'fair', time: 'afternoon', weather: 'sunny', crowd: 'packed', vibe: 'festive' } },
   ],
 }
 
@@ -978,10 +847,6 @@ const Editor: React.FC<EditorProps> = ({ type, catalog, SVGComponent, onSave, on
     artefactos: [
       ['Tipo', ['type', 'material']],
       ['Estilo', ['size', 'style', 'condition']],
-    ],
-    sitios: [
-      ['Lugar', ['type', 'time', 'weather']],
-      ['Ambiente', ['crowd', 'vibe', 'music', 'special']],
     ],
   }
 
@@ -1057,7 +922,6 @@ const Gallery: React.FC<GalleryProps> = ({ items, onClear, onLoad, onDelete, onS
     personajes: PersonajeSVG,
     ingredientes: IngredienteSVG,
     artefactos: ArtefactoSVG,
-    sitios: SitioSVG,
   }
 
   return (
@@ -1096,7 +960,6 @@ const SECTIONS: Section[] = [
   { id: 'personajes', name: 'Personajes', icon: '👤', color: 'from-orange-400 to-amber-400', catalog: CATALOGS.personajes, svg: PersonajeSVG },
   { id: 'ingredientes', name: 'Ingredientes', icon: '🥬', color: 'from-green-400 to-emerald-400', catalog: CATALOGS.ingredientes, svg: IngredienteSVG },
   { id: 'artefactos', name: 'Artefactos', icon: '🪑', color: 'from-amber-500 to-yellow-400', catalog: CATALOGS.artefactos, svg: ArtefactoSVG },
-  { id: 'sitios', name: 'Sitios', icon: '📍', color: 'from-blue-400 to-cyan-400', catalog: CATALOGS.sitios, svg: SitioSVG },
 ]
 
 import { creatorApi } from '../../services/creatorApi'
@@ -1253,4 +1116,4 @@ const CalleVivaCreator = () => {
 }
 
 export default CalleVivaCreator
-export { PersonajeSVG, IngredienteSVG, ArtefactoSVG, SitioSVG }
+export { PersonajeSVG, IngredienteSVG, ArtefactoSVG }
