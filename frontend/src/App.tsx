@@ -19,8 +19,8 @@ import { Game3DDemo, CharacterViewer, GameScene3D } from './components/game3d'
 
 // Wrapper for GameScene3D with URL params
 function GameScene3DWrapper() {
-  const { locationId } = useParams<{ locationId: string }>()
-  return <GameScene3D locationId={locationId || 'universidad'} />
+  const { zoneId } = useParams<{ zoneId: string }>()
+  return <GameScene3D zoneId={zoneId || 'business'} />
 }
 
 // Protected Route Component
@@ -87,9 +87,9 @@ function App() {
         {/* Character Viewer - Public (for dev) */}
         <Route path="/character-viewer" element={<CharacterViewer />} />
 
-        {/* 3D Location Scene - Public (for dev) */}
+        {/* 3D City Zone Scene - Public (for dev) */}
         <Route path="/scene3d" element={<GameScene3D />} />
-        <Route path="/scene3d/:locationId" element={<GameScene3DWrapper />} />
+        <Route path="/scene3d/:zoneId" element={<GameScene3DWrapper />} />
 
         {/* Protected Routes */}
         <Route

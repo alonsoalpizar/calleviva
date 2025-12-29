@@ -7,7 +7,11 @@ import { OrbitControls, useGLTF, Environment, Html, Grid } from '@react-three/dr
 import * as THREE from 'three'
 
 // ==================== CONFIGURACION ====================
-const CITY_ASSETS_PATH = '/assets/models/City/Separate_assets_glb'
+// Pack de assets: 'original' = Cartoon_City_Free, 'cityfull' = CityFull (427 assets)
+const ASSET_PACK = 'cityfull' as const
+const CITY_ASSETS_PATH = ASSET_PACK === 'cityfull'
+  ? '/assets/models/City/CityFull/Separate_assets_glb'
+  : '/assets/models/City/Separate_assets_glb'
 
 // ==================== TIPOS ====================
 interface Asset3D {
@@ -43,58 +47,187 @@ interface LocationData {
   truckSpot: [number, number, number]
 }
 
-// ==================== CATALOGO DE ASSETS DE CIUDAD ====================
+// ==================== CATALOGO DE ASSETS DE CIUDAD (CityFull Pack - 427 assets) ====================
+// Funcion helper para generar assets numerados
+const generateAssets = (prefix: string, nombre: string, count: number, start = 1): Asset3D[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `${prefix}_${String(i + start).padStart(3, '0')}`,
+    nombre: `${nombre} ${i + start}`,
+    archivo: `${prefix}_${String(i + start).padStart(3, '0')}.glb`,
+  }))
+
 const CATEGORIAS_CIUDAD: Categoria3D[] = [
+  // === EDIFICIOS ===
   {
-    id: 'buildings',
-    nombre: 'Edificios',
+    id: 'skyscrapers',
+    nombre: 'Rascacielos',
+    icono: '🏙️',
+    assets: generateAssets('skyscraper', 'Rascacielos', 10),
+  },
+  {
+    id: 'hotels',
+    nombre: 'Hoteles',
+    icono: '🏨',
+    assets: generateAssets('hotel', 'Hotel', 10),
+  },
+  {
+    id: 'business',
+    nombre: 'Oficinas',
     icono: '🏢',
+    assets: generateAssets('business_center', 'Centro Empresarial', 10),
+  },
+  {
+    id: 'houses_small',
+    nombre: 'Casas',
+    icono: '🏠',
     assets: [
-      { id: 'eco_grid', nombre: 'Eco Grid', archivo: 'Eco_Building_Grid.glb' },
-      { id: 'eco_slope', nombre: 'Eco Slope', archivo: 'Eco_Building_Slope.glb' },
-      { id: 'eco_terrace', nombre: 'Eco Terrace', archivo: 'Eco_Building_Terrace.glb' },
-      { id: 'tower', nombre: 'Torre', archivo: 'Regular_Building_TwistedTower_Large.glb' },
+      ...generateAssets('house_small_1', 'Casa Pequeña A', 10),
+      ...generateAssets('house_small_2', 'Casa Pequeña B', 10),
+      ...generateAssets('cottage', 'Cottage', 10),
     ],
   },
+  {
+    id: 'houses_medium',
+    nombre: 'Casas Medianas',
+    icono: '🏡',
+    assets: [
+      ...generateAssets('house_middle', 'Casa Mediana', 10),
+      ...generateAssets('house_high', 'Casa Alta', 10),
+      ...generateAssets('house_art', 'Casa Artística', 10),
+      ...generateAssets('house_purpose', 'Casa Especial', 10),
+    ],
+  },
+  {
+    id: 'commercial',
+    nombre: 'Comercios',
+    icono: '🛒',
+    assets: [
+      ...generateAssets('supermarket', 'Supermercado', 10),
+      ...generateAssets('cafe', 'Café', 10),
+      ...generateAssets('services_store', 'Tienda', 10),
+      ...generateAssets('bank', 'Banco', 10),
+    ],
+  },
+  {
+    id: 'special',
+    nombre: 'Especiales',
+    icono: '⛪',
+    assets: [
+      ...generateAssets('temple', 'Templo', 10),
+      ...generateAssets('stadium', 'Estadio', 10),
+    ],
+  },
+  // === VEHICULOS ===
+  {
+    id: 'cars_sport',
+    nombre: 'Autos Deportivos',
+    icono: '🏎️',
+    assets: [
+      ...generateAssets('transport_sport', 'Deportivo', 9),
+      ...generateAssets('transport_cool', 'Auto Cool', 10),
+    ],
+  },
+  {
+    id: 'cars_classic',
+    nombre: 'Autos Clásicos',
+    icono: '🚗',
+    assets: generateAssets('transport_old', 'Clásico', 13),
+  },
+  {
+    id: 'trucks',
+    nombre: 'Camiones',
+    icono: '🚚',
+    assets: [
+      ...generateAssets('transport_truck', 'Camión', 15),
+      ...generateAssets('transport_purpose', 'Utilitario', 10),
+    ],
+  },
+  {
+    id: 'buses',
+    nombre: 'Buses/Jeeps',
+    icono: '🚌',
+    assets: [
+      ...generateAssets('transport_bus', 'Bus', 10),
+      ...generateAssets('transport_jeep', 'Jeep', 11),
+    ],
+  },
+  {
+    id: 'boats',
+    nombre: 'Barcos',
+    icono: '🚤',
+    assets: generateAssets('transport_water', 'Barco', 10),
+  },
+  {
+    id: 'aircraft',
+    nombre: 'Aéreos',
+    icono: '✈️',
+    assets: generateAssets('transport_air', 'Aeronave', 10),
+  },
+  // === TILES Y CALLES ===
   {
     id: 'roads',
     nombre: 'Calles',
     icono: '🛣️',
     assets: [
-      { id: 'road_001', nombre: 'Calle Recta', archivo: 'road_001.glb' },
-      { id: 'road_003', nombre: 'Calle Curva', archivo: 'road_003.glb' },
-      { id: 'road_009', nombre: 'Intersección', archivo: 'road_009.glb' },
-      { id: 'road_013', nombre: 'T-Junction', archivo: 'road_013.glb' },
-      { id: 'road_019', nombre: 'Cruce', archivo: 'road_019.glb' },
-      { id: 'road_020', nombre: 'Esquina', archivo: 'road_020.glb' },
-      { id: 'road_022', nombre: 'Fin Calle', archivo: 'road_022.glb' },
-      { id: 'tiles_01', nombre: 'Tile Plaza 1', archivo: 'Set_B_Tiles_01.glb' },
-      { id: 'tiles_04', nombre: 'Tile Plaza 2', archivo: 'Set_B_Tiles_04.glb' },
-      { id: 'tiles_05', nombre: 'Tile Plaza 3', archivo: 'Set_B_Tiles_05.glb' },
+      ...generateAssets('road_tile_1x1', 'Calle 1x1', 13),
+      ...generateAssets('road_tile_2x2', 'Calle 2x2', 8),
     ],
   },
+  {
+    id: 'bridges',
+    nombre: 'Puentes',
+    icono: '🌉',
+    assets: [
+      ...generateAssets('road_tile_bridge_1x1', 'Puente 1x1', 5),
+      ...generateAssets('road_tile_bridge_2x2', 'Puente 2x2', 9),
+      ...generateAssets('bridge_road', 'Camino Puente', 3),
+      ...generateAssets('bridge_shroud', 'Cubierta Puente', 2),
+      ...generateAssets('bridge_tower', 'Torre Puente', 2),
+    ],
+  },
+  {
+    id: 'rivers',
+    nombre: 'Ríos',
+    icono: '🌊',
+    assets: [
+      ...generateAssets('road_tile_river_1x1', 'Río 1x1', 4),
+      ...generateAssets('road_tile_river_2x2', 'Río 2x2', 11),
+    ],
+  },
+  {
+    id: 'tiles_home',
+    nombre: 'Tiles Casa',
+    icono: '🏗️',
+    assets: [
+      ...generateAssets('tile_for_home_1x1', 'Tile Casa 1x1', 23),
+      ...generateAssets('tile_for_home_2x2', 'Tile Casa 2x2', 8),
+    ],
+  },
+  {
+    id: 'tiles_special',
+    nombre: 'Tiles Especiales',
+    icono: '🏖️',
+    assets: [
+      ...generateAssets('beach_tile_1x1', 'Playa', 9),
+      ...generateAssets('parking_tile_2x2', 'Parking', 4),
+      ...generateAssets('port_tile_1x1', 'Puerto 1x1', 6),
+      ...generateAssets('port_tile_2x2', 'Puerto 2x2', 3),
+    ],
+  },
+  // === VEGETACION Y PROPS ===
   {
     id: 'vegetation',
-    nombre: 'Vegetacion',
-    icono: '🌴',
-    assets: [
-      { id: 'palm', nombre: 'Palmera', archivo: 'Palm_03.glb' },
-      { id: 'bush_06', nombre: 'Arbusto 1', archivo: 'Bush_06.glb' },
-      { id: 'bush_07', nombre: 'Arbusto 2', archivo: 'Bush_07.glb' },
-      { id: 'bush_10', nombre: 'Arbusto 3', archivo: 'Bush_10.glb' },
-    ],
+    nombre: 'Vegetación',
+    icono: '🌳',
+    assets: generateAssets('vegetation', 'Vegetación', 12),
   },
   {
-    id: 'vehicles',
-    nombre: 'Vehiculos',
-    icono: '🚗',
+    id: 'parks',
+    nombre: 'Parques',
+    icono: '🌲',
     assets: [
-      { id: 'car_06', nombre: 'Auto 1', archivo: 'Car_06.glb' },
-      { id: 'car_13', nombre: 'Auto 2', archivo: 'Car_13.glb' },
-      { id: 'car_16', nombre: 'Auto 3', archivo: 'Car_16.glb' },
-      { id: 'car_19', nombre: 'Auto 4', archivo: 'Car_19.glb' },
-      { id: 'van', nombre: 'Van', archivo: 'Van.glb' },
-      { id: 'futuristic', nombre: 'Futurista', archivo: 'Futuristic_Car_1.glb' },
+      ...generateAssets('park', 'Parque', 10),
+      ...generateAssets('landscape_entertainment', 'Entretenimiento', 10),
     ],
   },
   {
@@ -102,31 +235,20 @@ const CATEGORIAS_CIUDAD: Categoria3D[] = [
     nombre: 'Mobiliario',
     icono: '🪑',
     assets: [
-      { id: 'bus_stop', nombre: 'Parada Bus', archivo: 'Bus_Stop_02.glb' },
-      { id: 'fountain', nombre: 'Fuente', archivo: 'Fountain_03.glb' },
-      { id: 'trash_can_04', nombre: 'Basurero 1', archivo: 'Trash_Can_04.glb' },
-      { id: 'trash_can_05', nombre: 'Basurero 2', archivo: 'Trash_Can_05.glb' },
-      { id: 'trash_can_06', nombre: 'Basurero 3', archivo: 'Trash_Can_06.glb' },
-      { id: 'signboard', nombre: 'Letrero', archivo: 'Signboard_01.glb' },
-      { id: 'traffic_light_1', nombre: 'Semaforo 1', archivo: 'traffic_light_001.glb' },
-      { id: 'traffic_light_2', nombre: 'Semaforo 2', archivo: 'traffic_light_002.glb' },
-      { id: 'spotlight_1', nombre: 'Spotlight 1', archivo: 'Spotlight_01.glb' },
-      { id: 'spotlight_2', nombre: 'Spotlight 2', archivo: 'Spotlight_02.glb' },
+      ...generateAssets('bench', 'Banca', 3),
+      ...generateAssets('pillar', 'Pilar', 10),
+      ...generateAssets('phone_box', 'Cabina Tel.', 2),
+      ...generateAssets('trash', 'Basurero', 5),
+      { id: 'fire_hydrant_001', nombre: 'Hidrante', archivo: 'fire_hydrant_001.glb' },
+      { id: 'table_001', nombre: 'Mesa', archivo: 'table_001.glb' },
+      { id: 'sunbed_001', nombre: 'Camastro', archivo: 'sunbed_001.glb' },
     ],
   },
   {
-    id: 'decorative',
-    nombre: 'Decorativo',
-    icono: '🎨',
-    assets: [
-      { id: 'billboard_2x1_03', nombre: 'Billboard 2x1 A', archivo: 'Billboard_2x1_03.glb' },
-      { id: 'billboard_2x1_05', nombre: 'Billboard 2x1 B', archivo: 'Billboard_2x1_05.glb' },
-      { id: 'billboard_4x1_03', nombre: 'Billboard 4x1 A', archivo: 'Billboard_4x1_03.glb' },
-      { id: 'billboard_4x1_04', nombre: 'Billboard 4x1 B', archivo: 'Billboard_4x1_04.glb' },
-      { id: 'graffiti', nombre: 'Graffiti', archivo: 'Graffiti_03.glb' },
-      { id: 'trash_02', nombre: 'Basura 1', archivo: 'Trash_02.glb' },
-      { id: 'trash_03', nombre: 'Basura 2', archivo: 'Trash_03.glb' },
-    ],
+    id: 'rails',
+    nombre: 'Vías',
+    icono: '🚃',
+    assets: generateAssets('rail', 'Vía', 4),
   },
 ]
 
@@ -177,6 +299,21 @@ const Ground: React.FC<{
   </mesh>
 )
 
+// Ciudad completa pre-armada (City_2.glb)
+const CompleteCityModel: React.FC<{
+  position?: [number, number, number]
+  scale?: number
+}> = ({ position = [0, 0, 0], scale = 1 }) => {
+  const { scene } = useGLTF('/assets/models/City/CityFull/City_2.glb')
+  return (
+    <primitive
+      object={scene}
+      position={position}
+      scale={scale}
+    />
+  )
+}
+
 // Marcador de posicion del truck
 const TruckSpotMarker: React.FC<{ position: [number, number, number] }> = ({ position }) => (
   <group position={position}>
@@ -206,8 +343,9 @@ export const LocationCreator: React.FC = () => {
   const [truckSpot, setTruckSpot] = useState<[number, number, number]>([0, 0, 0])
 
   // UI state
-  const [activeCategory, setActiveCategory] = useState('buildings')
+  const [activeCategory, setActiveCategory] = useState('skyscrapers')
   const [showGrid, setShowGrid] = useState(true)
+  const [showCompleteCity, setShowCompleteCity] = useState(false)
 
   // Contador para IDs unicos
   const objectIdCounter = useRef(0)
@@ -272,155 +410,241 @@ export const LocationCreator: React.FC = () => {
     )
   }, [])
 
-  // Cargar escena de ejemplo (extraida del Cartoon_City_Free.glb)
-  const loadExampleScene = useCallback(() => {
-    // Escena simplificada basada en el modelo original
-    const exampleObjects: PlacedObject[] = [
-      // EDIFICIOS - Posiciones del modelo original
-      { id: 'ex_1', assetId: 'eco_slope', archivo: 'Eco_Building_Slope.glb', position: [-29, 0, 52], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'ex_2', assetId: 'eco_grid', archivo: 'Eco_Building_Grid.glb', position: [34, 0, -7], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'ex_3', assetId: 'eco_slope', archivo: 'Eco_Building_Slope.glb', position: [-29, 0, -37], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'ex_4', assetId: 'eco_terrace', archivo: 'Eco_Building_Terrace.glb', position: [33, 0, -40], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'ex_5', assetId: 'eco_slope', archivo: 'Eco_Building_Slope.glb', position: [-29, 0, 8], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'ex_6', assetId: 'tower', archivo: 'Regular_Building_TwistedTower_Large.glb', position: [32, 0, 48], rotation: [0, 1.66, 0], scale: 1 },
+  // ==================== GENERADOR DE CIUDAD PROCEDURAL ====================
+  // Genera una ciudad completa con calles, edificios y decoración conectados
+  const generateProceduralCity = useCallback((gridSize: number = 7, cellSize: number = 8) => {
+    const objects: PlacedObject[] = []
+    let id = 0
+    const nextId = () => `city_${++id}`
 
-      // TILES/CALLES - Grid de la ciudad
-      { id: 'ex_10', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [-22.5, 0, -52.5], rotation: [0, -1.57, 0], scale: 1 },
-      { id: 'ex_11', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [-7.5, 0, -52.5], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'ex_12', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [7.5, 0, -52.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_13', assetId: 'tiles_04', archivo: 'Set_B_Tiles_04.glb', position: [-22.5, 0, -37.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_14', assetId: 'tiles_05', archivo: 'Set_B_Tiles_05.glb', position: [-7.5, 0, -37.5], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'ex_15', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [7.5, 0, -37.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_16', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [-22.5, 0, 7.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_17', assetId: 'tiles_04', archivo: 'Set_B_Tiles_04.glb', position: [-7.5, 0, 7.5], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'ex_18', assetId: 'tiles_05', archivo: 'Set_B_Tiles_05.glb', position: [7.5, 0, 7.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_19', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [-22.5, 0, 37.5], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'ex_20', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [-7.5, 0, 37.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_21', assetId: 'tiles_04', archivo: 'Set_B_Tiles_04.glb', position: [7.5, 0, 37.5], rotation: [0, -1.57, 0], scale: 1 },
-
-      // VEHICULOS - Posiciones reales
-      { id: 'ex_30', assetId: 'car_06', archivo: 'Car_06.glb', position: [5.86, 0, -2.72], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_31', assetId: 'car_13', archivo: 'Car_13.glb', position: [5.87, 0, -19.13], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_32', assetId: 'car_19', archivo: 'Car_19.glb', position: [-54, 0, 16], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_33', assetId: 'car_16', archivo: 'Car_16.glb', position: [2.78, 0, -12.68], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_34', assetId: 'futuristic', archivo: 'Futuristic_Car_1.glb', position: [5.87, 0, 6.99], rotation: [0, 0, 0], scale: 1 },
-
-      // MOBILIARIO URBANO
-      { id: 'ex_40', assetId: 'bus_stop', archivo: 'Bus_Stop_02.glb', position: [46, 0, -23], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'ex_41', assetId: 'fountain', archivo: 'Fountain_03.glb', position: [-12.5, 0, 30], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_42', assetId: 'fountain', archivo: 'Fountain_03.glb', position: [-12.5, 0, -15], rotation: [0, 0, 0], scale: 1 },
-
-      // VEGETACION - Palmeras
-      { id: 'ex_50', assetId: 'palm', archivo: 'Palm_03.glb', position: [16.5, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'ex_51', assetId: 'palm', archivo: 'Palm_03.glb', position: [16.5, 0, 14], rotation: [0, -1.57, 0], scale: 1 },
-      { id: 'ex_52', assetId: 'palm', archivo: 'Palm_03.glb', position: [-31, 0, -15], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_53', assetId: 'palm', archivo: 'Palm_03.glb', position: [-31, 0, 30], rotation: [0, -1.4, 0], scale: 1 },
-
-      // ARBUSTOS - Lineas decorativas
-      { id: 'ex_60', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [38, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'ex_61', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [42, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'ex_62', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [25, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'ex_63', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [33, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'ex_64', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [29, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'ex_65', assetId: 'bush_06', archivo: 'Bush_06.glb', position: [-1, 0, -30], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'ex_66', assetId: 'bush_06', archivo: 'Bush_06.glb', position: [-1, 0, -33], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'ex_67', assetId: 'bush_07', archivo: 'Bush_07.glb', position: [-1, 0, 48], rotation: [0, 0, 0], scale: 1 },
-      { id: 'ex_68', assetId: 'bush_07', archivo: 'Bush_07.glb', position: [-1, 0, 45], rotation: [0, 0, 0], scale: 1 },
-    ]
-
-    setPlacedObjects(exampleObjects)
-    setSelectedObjectId(null)
-    setLocationName('Ciudad Demo')
-    setLocationDesc('Escena basada en Cartoon_City_Free.glb')
-    setGroundSize(150)
-    setGroundColor('#8B9556')
-    setTruckSpot([0, 0, 20])
-    objectIdCounter.current = 100
-  }, [])
-
-  // Generar escena random basada en el ejemplo real
-  const generateRandomScene = useCallback(() => {
-    // Obtener assets por categoria
+    // Helpers
     const getAssets = (catId: string) => CATEGORIAS_CIUDAD.find(c => c.id === catId)?.assets || []
-    const randomFrom = (arr: Asset3D[]) => arr[Math.floor(Math.random() * arr.length)]
-    const randomBuilding = () => randomFrom(getAssets('buildings'))
-    const randomVehicle = () => randomFrom(getAssets('vehicles'))
-    const randomVegetation = () => randomFrom(getAssets('vegetation'))
-    const randomTile = () => {
-      const tiles = getAssets('roads').filter(r => r.id.includes('tiles'))
-      return randomFrom(tiles) || getAssets('roads')[0]
+    const randomFrom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
+    const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
+
+    // Offset para centrar la ciudad
+    const offset = (gridSize * cellSize) / 2
+
+    // 1. DEFINIR LAYOUT DE LA CIUDAD (qué hay en cada celda)
+    // 'R' = Road, 'B' = Building, 'P' = Park, 'X' = Intersection
+    const layout: string[][] = []
+    for (let z = 0; z < gridSize; z++) {
+      layout[z] = []
+      for (let x = 0; x < gridSize; x++) {
+        // Calles principales en filas 2 y 4, columnas 2 y 4
+        const isMainRoadX = x === 2 || x === 4
+        const isMainRoadZ = z === 2 || z === 4
+
+        if (isMainRoadX && isMainRoadZ) {
+          layout[z][x] = 'X' // Intersección
+        } else if (isMainRoadX || isMainRoadZ) {
+          layout[z][x] = 'R' // Calle
+        } else if ((x === 3 && z === 3)) {
+          layout[z][x] = 'P' // Parque central
+        } else {
+          layout[z][x] = 'B' // Edificio
+        }
+      }
     }
 
-    // Usar la estructura del ejemplo pero variar los tipos
-    const b1 = randomBuilding(), b2 = randomBuilding(), b3 = randomBuilding()
-    const b4 = randomBuilding(), b5 = randomBuilding(), b6 = randomBuilding()
-    const v1 = randomVehicle(), v2 = randomVehicle(), v3 = randomVehicle()
-    const v4 = randomVehicle(), v5 = randomVehicle()
-    const veg = randomVegetation()
-    const t1 = randomTile(), t2 = randomTile(), t3 = randomTile()
+    // 2. COLOCAR TILES DE SUELO según el layout
+    for (let z = 0; z < gridSize; z++) {
+      for (let x = 0; x < gridSize; x++) {
+        const posX = x * cellSize - offset + cellSize / 2
+        const posZ = z * cellSize - offset + cellSize / 2
+        const cell = layout[z][x]
 
-    const randomObjects: PlacedObject[] = [
-      // EDIFICIOS - Mismas posiciones del ejemplo, tipos aleatorios
-      { id: 'rnd_1', assetId: b1?.id || 'eco_slope', archivo: b1?.archivo || 'Eco_Building_Slope.glb', position: [-29, 0, 52], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'rnd_2', assetId: b2?.id || 'eco_grid', archivo: b2?.archivo || 'Eco_Building_Grid.glb', position: [34, 0, -7], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'rnd_3', assetId: b3?.id || 'eco_slope', archivo: b3?.archivo || 'Eco_Building_Slope.glb', position: [-29, 0, -37], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'rnd_4', assetId: b4?.id || 'eco_terrace', archivo: b4?.archivo || 'Eco_Building_Terrace.glb', position: [33, 0, -40], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'rnd_5', assetId: b5?.id || 'eco_slope', archivo: b5?.archivo || 'Eco_Building_Slope.glb', position: [-29, 0, 8], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'rnd_6', assetId: b6?.id || 'tower', archivo: b6?.archivo || 'Regular_Building_TwistedTower_Large.glb', position: [32, 0, 48], rotation: [0, 1.66, 0], scale: 1 },
+        if (cell === 'X') {
+          // Intersección - usar tile 2x2
+          const tile = randomFrom(getAssets('roads').filter(a => a.id.includes('2x2')))
+          if (tile) {
+            objects.push({
+              id: nextId(), assetId: tile.id, archivo: tile.archivo,
+              position: [posX, 0, posZ], rotation: [0, 0, 0], scale: 1
+            })
+          }
+        } else if (cell === 'R') {
+          // Calle - determinar orientación
+          const isVertical = x === 2 || x === 4
+          const tile = randomFrom(getAssets('roads').filter(a => a.id.includes('1x1')))
+          if (tile) {
+            objects.push({
+              id: nextId(), assetId: tile.id, archivo: tile.archivo,
+              position: [posX, 0, posZ], rotation: [0, isVertical ? 0 : Math.PI / 2, 0], scale: 1
+            })
+          }
+        } else if (cell === 'P') {
+          // Parque
+          const park = randomFrom(getAssets('parks'))
+          if (park) {
+            objects.push({
+              id: nextId(), assetId: park.id, archivo: park.archivo,
+              position: [posX, 0, posZ], rotation: [0, 0, 0], scale: 1
+            })
+          }
+        } else {
+          // Tile de casa/edificio
+          const tile = randomFrom(getAssets('tiles_home').filter(a => a.id.includes('1x1')))
+          if (tile) {
+            objects.push({
+              id: nextId(), assetId: tile.id, archivo: tile.archivo,
+              position: [posX, 0, posZ], rotation: [0, Math.random() * Math.PI * 2, 0], scale: 1
+            })
+          }
+        }
+      }
+    }
 
-      // TILES - Estructura fija del grid de ciudad (siempre igual)
-      { id: 'rnd_10', assetId: t1?.id || 'tiles_01', archivo: t1?.archivo || 'Set_B_Tiles_01.glb', position: [-22.5, 0, -52.5], rotation: [0, -1.57, 0], scale: 1 },
-      { id: 'rnd_11', assetId: t2?.id || 'tiles_01', archivo: t2?.archivo || 'Set_B_Tiles_01.glb', position: [-7.5, 0, -52.5], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'rnd_12', assetId: t3?.id || 'tiles_01', archivo: t3?.archivo || 'Set_B_Tiles_01.glb', position: [7.5, 0, -52.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_13', assetId: 'tiles_04', archivo: 'Set_B_Tiles_04.glb', position: [-22.5, 0, -37.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_14', assetId: 'tiles_05', archivo: 'Set_B_Tiles_05.glb', position: [-7.5, 0, -37.5], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'rnd_15', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [7.5, 0, -37.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_16', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [-22.5, 0, 7.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_17', assetId: 'tiles_04', archivo: 'Set_B_Tiles_04.glb', position: [-7.5, 0, 7.5], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'rnd_18', assetId: 'tiles_05', archivo: 'Set_B_Tiles_05.glb', position: [7.5, 0, 7.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_19', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [-22.5, 0, 37.5], rotation: [0, 3.14, 0], scale: 1 },
-      { id: 'rnd_20', assetId: 'tiles_01', archivo: 'Set_B_Tiles_01.glb', position: [-7.5, 0, 37.5], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_21', assetId: 'tiles_04', archivo: 'Set_B_Tiles_04.glb', position: [7.5, 0, 37.5], rotation: [0, -1.57, 0], scale: 1 },
+    // 3. COLOCAR EDIFICIOS en las celdas 'B'
+    for (let z = 0; z < gridSize; z++) {
+      for (let x = 0; x < gridSize; x++) {
+        if (layout[z][x] !== 'B') continue
 
-      // VEHICULOS - Mismas posiciones, tipos aleatorios
-      { id: 'rnd_30', assetId: v1?.id || 'car_06', archivo: v1?.archivo || 'Car_06.glb', position: [5.86, 0, -2.72], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_31', assetId: v2?.id || 'car_13', archivo: v2?.archivo || 'Car_13.glb', position: [5.87, 0, -19.13], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_32', assetId: v3?.id || 'car_19', archivo: v3?.archivo || 'Car_19.glb', position: [-54, 0, 16], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_33', assetId: v4?.id || 'car_16', archivo: v4?.archivo || 'Car_16.glb', position: [2.78, 0, -12.68], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_34', assetId: v5?.id || 'futuristic', archivo: v5?.archivo || 'Futuristic_Car_1.glb', position: [5.87, 0, 6.99], rotation: [0, 0, 0], scale: 1 },
+        const posX = x * cellSize - offset + cellSize / 2
+        const posZ = z * cellSize - offset + cellSize / 2
 
-      // MOBILIARIO - Fijo
-      { id: 'rnd_40', assetId: 'bus_stop', archivo: 'Bus_Stop_02.glb', position: [46, 0, -23], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'rnd_41', assetId: 'fountain', archivo: 'Fountain_03.glb', position: [-12.5, 0, 30], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_42', assetId: 'fountain', archivo: 'Fountain_03.glb', position: [-12.5, 0, -15], rotation: [0, 0, 0], scale: 1 },
+        // Determinar tipo de edificio según zona
+        let building: Asset3D | undefined
+        const distFromCenter = Math.abs(x - 3) + Math.abs(z - 3)
 
-      // VEGETACION - Tipo aleatorio en las mismas posiciones
-      { id: 'rnd_50', assetId: veg?.id || 'palm', archivo: veg?.archivo || 'Palm_03.glb', position: [16.5, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'rnd_51', assetId: veg?.id || 'palm', archivo: veg?.archivo || 'Palm_03.glb', position: [16.5, 0, 14], rotation: [0, -1.57, 0], scale: 1 },
-      { id: 'rnd_52', assetId: veg?.id || 'palm', archivo: veg?.archivo || 'Palm_03.glb', position: [-31, 0, -15], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_53', assetId: veg?.id || 'palm', archivo: veg?.archivo || 'Palm_03.glb', position: [-31, 0, 30], rotation: [0, -1.4, 0], scale: 1 },
+        if (distFromCenter <= 1) {
+          // Centro: edificios altos
+          const options = [...getAssets('skyscrapers'), ...getAssets('hotels'), ...getAssets('business')]
+          building = randomFrom(options)
+        } else if (distFromCenter <= 2) {
+          // Zona media: comercios
+          building = randomFrom(getAssets('commercial'))
+        } else {
+          // Periferia: casas
+          const options = [...getAssets('houses_small'), ...getAssets('houses_medium')]
+          building = randomFrom(options)
+        }
 
-      // ARBUSTOS - Lineas fijas
-      { id: 'rnd_60', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [38, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'rnd_61', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [42, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'rnd_62', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [25, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'rnd_63', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [33, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'rnd_64', assetId: 'bush_10', archivo: 'Bush_10.glb', position: [29, 0, 31], rotation: [0, -3.14, 0], scale: 1 },
-      { id: 'rnd_65', assetId: 'bush_06', archivo: 'Bush_06.glb', position: [-1, 0, -30], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'rnd_66', assetId: 'bush_06', archivo: 'Bush_06.glb', position: [-1, 0, -33], rotation: [0, 1.57, 0], scale: 1 },
-      { id: 'rnd_67', assetId: 'bush_07', archivo: 'Bush_07.glb', position: [-1, 0, 48], rotation: [0, 0, 0], scale: 1 },
-      { id: 'rnd_68', assetId: 'bush_07', archivo: 'Bush_07.glb', position: [-1, 0, 45], rotation: [0, 0, 0], scale: 1 },
-    ]
+        if (building) {
+          // Orientar edificio hacia la calle más cercana
+          let rotation = 0
+          if (x < 2) rotation = Math.PI / 2  // Mira hacia derecha
+          else if (x > 4) rotation = -Math.PI / 2  // Mira hacia izquierda
+          else if (z < 2) rotation = Math.PI  // Mira hacia abajo
+          // else rotation = 0  // Mira hacia arriba (default)
 
-    setPlacedObjects(randomObjects)
-    setSelectedObjectId(null)
-    setLocationName('Ciudad Random')
-    setLocationDesc('Variacion aleatoria de la escena base')
-    setGroundSize(150)
-    setGroundColor('#8B9556')
-    setTruckSpot([0, 0, 20])
-    objectIdCounter.current = 100
+          objects.push({
+            id: nextId(), assetId: building.id, archivo: building.archivo,
+            position: [posX, 0, posZ], rotation: [0, rotation, 0], scale: 1
+          })
+        }
+      }
+    }
+
+    // 4. AÑADIR VEGETACIÓN alrededor de edificios y parque
+    const vegAssets = getAssets('vegetation')
+    for (let z = 0; z < gridSize; z++) {
+      for (let x = 0; x < gridSize; x++) {
+        if (layout[z][x] !== 'B' && layout[z][x] !== 'P') continue
+
+        const posX = x * cellSize - offset + cellSize / 2
+        const posZ = z * cellSize - offset + cellSize / 2
+
+        // Añadir 1-3 árboles/plantas alrededor
+        const numVeg = layout[z][x] === 'P' ? randomInt(3, 5) : randomInt(1, 2)
+        for (let v = 0; v < numVeg; v++) {
+          const veg = randomFrom(vegAssets)
+          if (veg) {
+            const offsetX = (Math.random() - 0.5) * (cellSize * 0.6)
+            const offsetZ = (Math.random() - 0.5) * (cellSize * 0.6)
+            objects.push({
+              id: nextId(), assetId: veg.id, archivo: veg.archivo,
+              position: [posX + offsetX, 0, posZ + offsetZ],
+              rotation: [0, Math.random() * Math.PI * 2, 0], scale: 0.8 + Math.random() * 0.4
+            })
+          }
+        }
+      }
+    }
+
+    // 5. AÑADIR VEHÍCULOS en las calles
+    const carAssets = [...getAssets('cars_sport'), ...getAssets('cars_classic'), ...getAssets('trucks')]
+    for (let z = 0; z < gridSize; z++) {
+      for (let x = 0; x < gridSize; x++) {
+        if (layout[z][x] !== 'R') continue
+        if (Math.random() > 0.4) continue // 40% de calles tienen carro
+
+        const posX = x * cellSize - offset + cellSize / 2
+        const posZ = z * cellSize - offset + cellSize / 2
+        const isVertical = x === 2 || x === 4
+
+        const car = randomFrom(carAssets)
+        if (car) {
+          const laneOffset = (Math.random() - 0.5) * 2
+          objects.push({
+            id: nextId(), assetId: car.id, archivo: car.archivo,
+            position: [
+              posX + (isVertical ? laneOffset : 0),
+              0,
+              posZ + (isVertical ? 0 : laneOffset)
+            ],
+            rotation: [0, isVertical ? 0 : Math.PI / 2, 0], scale: 1
+          })
+        }
+      }
+    }
+
+    // 6. AÑADIR MOBILIARIO URBANO
+    const furnitureAssets = getAssets('furniture')
+    for (let z = 0; z < gridSize; z++) {
+      for (let x = 0; x < gridSize; x++) {
+        // Solo cerca de calles
+        if (layout[z][x] !== 'R' && layout[z][x] !== 'X') continue
+        if (Math.random() > 0.3) continue
+
+        const posX = x * cellSize - offset + cellSize / 2
+        const posZ = z * cellSize - offset + cellSize / 2
+
+        const furniture = randomFrom(furnitureAssets)
+        if (furniture) {
+          const sideOffset = (Math.random() > 0.5 ? 1 : -1) * (cellSize * 0.4)
+          objects.push({
+            id: nextId(), assetId: furniture.id, archivo: furniture.archivo,
+            position: [posX + sideOffset, 0, posZ + sideOffset * 0.5],
+            rotation: [0, Math.random() * Math.PI * 2, 0], scale: 1
+          })
+        }
+      }
+    }
+
+    return objects
   }, [])
+
+  // Cargar escena de ejemplo - Ciudad completa City_2.glb
+  const loadExampleScene = useCallback(() => {
+    setShowCompleteCity(true)
+    setPlacedObjects([]) // Limpiar objetos individuales
+    setSelectedObjectId(null)
+    setLocationName('Ciudad Completa')
+    setLocationDesc('Ciudad pre-armada City_2.glb (3600+ objetos)')
+    setGroundSize(200)
+    setGroundColor('#5a6a3a')
+    setTruckSpot([0, 0, 20])
+  }, [])
+
+  // Generar nueva ciudad random con el generador procedural
+  const generateRandomScene = useCallback(() => {
+    setShowCompleteCity(false) // Cambiar a modo assets individuales
+    // Generar con tamaño aleatorio entre 5x5 y 9x9
+    const sizes = [5, 7, 9]
+    const gridSize = sizes[Math.floor(Math.random() * sizes.length)]
+    const cellSize = gridSize <= 5 ? 10 : 8
+
+    const cityObjects = generateProceduralCity(gridSize, cellSize)
+    setPlacedObjects(cityObjects)
+    setSelectedObjectId(null)
+    setLocationName(`Ciudad Random ${gridSize}x${gridSize}`)
+    setLocationDesc(`Ciudad procedural de ${gridSize}x${gridSize} bloques`)
+    setGroundSize(gridSize * cellSize + 20)
+    setGroundColor('#5a6a3a')
+    setTruckSpot([0, 0, 0])
+    objectIdCounter.current = cityObjects.length + 1
+  }, [generateProceduralCity])
 
   // Click en el suelo para mover objeto seleccionado
   const handleGroundClick = useCallback((point: THREE.Vector3) => {
@@ -532,8 +756,15 @@ export const LocationCreator: React.FC = () => {
             {/* Marcador de Food Truck */}
             <TruckSpotMarker position={truckSpot} />
 
-            {/* Objetos colocados */}
-            {placedObjects.map(obj => (
+            {/* Ciudad completa pre-armada */}
+            {showCompleteCity && (
+              <Suspense fallback={null}>
+                <CompleteCityModel position={[0, 0, 0]} scale={1} />
+              </Suspense>
+            )}
+
+            {/* Objetos colocados (modo individual) */}
+            {!showCompleteCity && placedObjects.map(obj => (
               <Suspense key={obj.id} fallback={null}>
                 <PlacedAsset
                   objeto={obj}
@@ -565,9 +796,13 @@ export const LocationCreator: React.FC = () => {
         <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
           <button
             onClick={loadExampleScene}
-            className="px-3 py-2 rounded font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-lg"
+            className={`px-3 py-2 rounded font-bold text-sm shadow-lg ${
+              showCompleteCity
+                ? 'bg-emerald-700 text-white ring-2 ring-white'
+                : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600'
+            }`}
           >
-            📁 Cargar Ejemplo
+            🏙️ Ciudad Completa
           </button>
           <button
             onClick={generateRandomScene}
@@ -575,6 +810,19 @@ export const LocationCreator: React.FC = () => {
           >
             🎲 Random
           </button>
+          {showCompleteCity && (
+            <button
+              onClick={() => {
+                setShowCompleteCity(false)
+                setPlacedObjects([])
+                setLocationName('Nueva Locacion')
+                setLocationDesc('Descripcion de la locacion')
+              }}
+              className="px-3 py-2 rounded font-bold text-sm bg-gray-600 text-white hover:bg-gray-700 shadow-lg"
+            >
+              ✏️ Modo Editor
+            </button>
+          )}
           <button
             onClick={() => setShowGrid(!showGrid)}
             className={`px-3 py-2 rounded font-bold text-sm ${
@@ -583,7 +831,7 @@ export const LocationCreator: React.FC = () => {
           >
             # Grid
           </button>
-          {selectedObjectId && (
+          {selectedObjectId && !showCompleteCity && (
             <>
               <button
                 onClick={duplicateSelected}
@@ -601,8 +849,16 @@ export const LocationCreator: React.FC = () => {
           )}
         </div>
 
+        {/* Banner ciudad completa */}
+        {showCompleteCity && (
+          <div className="absolute top-16 left-4 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg max-w-md">
+            🏙️ <strong>Ciudad Completa (City_2.glb)</strong><br/>
+            <span className="text-emerald-100 text-xs">3600+ objetos pre-armados. Click "Modo Editor" para crear tu propia escena.</span>
+          </div>
+        )}
+
         {/* Instrucciones */}
-        {selectedObjectId && (
+        {selectedObjectId && !showCompleteCity && (
           <div className="absolute top-16 left-4 bg-yellow-100 text-yellow-800 px-3 py-2 rounded text-xs font-medium">
             💡 Click en el suelo para mover el objeto
           </div>
@@ -786,7 +1042,10 @@ export const LocationCreator: React.FC = () => {
             💾 Exportar JSON
           </button>
           <button
-            onClick={() => setPlacedObjects([])}
+            onClick={() => {
+              setPlacedObjects([])
+              setShowCompleteCity(false)
+            }}
             className="w-full py-2 bg-gray-200 text-gray-700 rounded-lg font-bold text-sm hover:bg-gray-300"
           >
             🗑️ Limpiar Todo
