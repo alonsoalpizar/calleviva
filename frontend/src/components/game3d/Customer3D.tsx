@@ -59,13 +59,14 @@ export const Customer3D: React.FC<Customer3DProps> = ({ customer, onReachTarget 
 
   const legOffset = Math.sin(walkPhase.current) * 0.15
   const armOffset = Math.sin(walkPhase.current + Math.PI) * 0.2
+  const bodyColor = customer.type?.color || '#4FC3F7'
 
   return (
     <group ref={groupRef} position={[customer.position.x, customer.position.y, customer.position.z]}>
       {/* Body */}
       <mesh position={[0, 0.5, 0]} castShadow>
         <capsuleGeometry args={[0.15, 0.3, 4, 8]} />
-        <meshStandardMaterial color={customer.type.color} />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
 
       {/* Head */}
@@ -95,13 +96,13 @@ export const Customer3D: React.FC<Customer3DProps> = ({ customer, onReachTarget 
       {/* Left arm */}
       <mesh position={[-0.22, 0.5, armOffset * 0.5]} rotation={[armOffset, 0, 0.3]} castShadow>
         <capsuleGeometry args={[0.04, 0.15, 4, 8]} />
-        <meshStandardMaterial color={customer.type.color} />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
 
       {/* Right arm */}
       <mesh position={[0.22, 0.5, -armOffset * 0.5]} rotation={[-armOffset, 0, -0.3]} castShadow>
         <capsuleGeometry args={[0.04, 0.15, 4, 8]} />
-        <meshStandardMaterial color={customer.type.color} />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
 
       {/* Speech bubble when ordering */}

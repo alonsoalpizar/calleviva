@@ -1,7 +1,8 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react'
 
-// Lazy load 3D Creator para mejor rendimiento
+// Lazy load 3D Creators para mejor rendimiento
 const Character3DCreator = lazy(() => import('./Character3DCreator'))
+const LocationCreator = lazy(() => import('./LocationCreator'))
 
 // ============================================
 // CALLEVIVA CREATOR - VERSIÓN MEGA EXPANDIDA
@@ -992,7 +993,7 @@ const CalleVivaCreator = () => {
   }, [gallery])
 
   const section = SECTIONS.find(s => s.id === activeTab)
-  const bgColor = activeTab === 'personajes3d' ? 'from-sky-400 to-cyan-400' : (section?.color || 'from-orange-400 to-amber-400')
+  const bgColor = activeTab === 'personajes3d' ? 'from-sky-400 to-cyan-400' : activeTab === 'locaciones3d' ? 'from-emerald-400 to-teal-400' : (section?.color || 'from-orange-400 to-amber-400')
 
   const showToast = (message: string) => {
     setToast(message)
@@ -1088,16 +1089,23 @@ const CalleVivaCreator = () => {
             {s.icon} {s.name}
           </button>
         ))}
-        {/* Tab especial para 3D */}
+        {/* Tab especial para Personajes 3D */}
         <button
           onClick={() => { setActiveTab('personajes3d'); setLoadedData(null) }}
           className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${activeTab === 'personajes3d' ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'}`}
         >
-          🧍 3D
+          🧍 Personajes 3D
+        </button>
+        {/* Tab especial para Locaciones 3D */}
+        <button
+          onClick={() => { setActiveTab('locaciones3d'); setLoadedData(null) }}
+          className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${activeTab === 'locaciones3d' ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'}`}
+        >
+          🏙️ Locaciones 3D
         </button>
       </div>
 
-      <div className="max-w-5xl mx-auto">
+      <div className={activeTab === 'locaciones3d' ? 'max-w-7xl mx-auto' : 'max-w-5xl mx-auto'}>
         {activeTab === 'personajes3d' ? (
           <Suspense fallback={
             <div className="bg-white rounded-xl p-8 shadow-lg text-center">
@@ -1106,6 +1114,16 @@ const CalleVivaCreator = () => {
           }>
             <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: '80vh' }}>
               <Character3DCreator />
+            </div>
+          </Suspense>
+        ) : activeTab === 'locaciones3d' ? (
+          <Suspense fallback={
+            <div className="bg-white rounded-xl p-8 shadow-lg text-center">
+              <div className="animate-pulse text-xl">Cargando editor de locaciones...</div>
+            </div>
+          }>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: '85vh' }}>
+              <LocationCreator />
             </div>
           </Suspense>
         ) : section ? (

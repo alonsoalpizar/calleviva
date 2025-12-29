@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api, GameSession, Parameter } from '../../services/api'
 import { labApi, PlayerDish } from '../../services/labApi'
-import { TruckSVG } from './TruckSVG'
+import { TruckViewer3D, TruckCustomization as TruckConfig3D } from './CustomizableTruck3D'
 
 type TabType = 'vehicle' | 'equipment' | 'appearance' | 'menu'
 
@@ -282,6 +282,44 @@ export function TruckCustomization() {
     return (colorParam?.config as { hex?: string })?.hex || '#FF6B6B'
   }
 
+  // Genera configuración 3D basada en las opciones del usuario
+  const get3DConfig = (): Partial<TruckConfig3D> => {
+    const mainColor = getThemeColor()
+    // Generar color de acento complementario
+    const accentColor = config.theme === 'coral' ? '#4ECDC4' :
+                       config.theme === 'agua' ? '#FF6B6B' :
+                       config.theme === 'mango' ? '#FF6B6B' :
+                       config.theme === 'verde' ? '#FFE66D' :
+                       config.theme === 'purple' ? '#FFE66D' : '#4ECDC4'
+
+    // Detectar bandera por país
+    const hasFlag = config.decorations.some(d => d.startsWith('flag_'))
+    const flagCountry = config.decorations.includes('flag_cr') ? 'cr' as const :
+                       config.decorations.includes('flag_mx') ? 'mx' as const :
+                       config.decorations.includes('flag_us') ? 'us' as const : undefined
+
+    return {
+      bodyColor: mainColor,
+      accentColor: accentColor,
+      awningColor: config.theme === 'mango' ? '#FF6B6B' : '#FFE66D',
+      awningStyle: config.decorations.includes('umbrella') ? 'none' : 'striped',
+      windowOpen: true,
+      // Decoraciones mapeadas desde la DB
+      hasSign: config.decorations.includes('sign'),
+      hasLights: config.decorations.includes('lights'),
+      hasPlants: config.decorations.includes('plants'),
+      hasBalloon: config.decorations.includes('balloon'),
+      hasUmbrella: config.decorations.includes('umbrella'),
+      hasMenuBoard: config.decorations.includes('menu_board'),
+      hasSpeaker: config.decorations.includes('music'),
+      hasNeon: config.decorations.includes('neon'),
+      hasStar: config.decorations.includes('star'),
+      hasFlag: hasFlag,
+      flagCountry: flagCountry,
+      signText: config.name.substring(0, 8).toUpperCase(),
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-400 via-rose-400 to-amber-300 flex items-center justify-center">
@@ -327,64 +365,44 @@ export function TruckCustomization() {
           </div>
         </header>
 
-        {/* Content Grid */}
-        <div className="flex-1 grid grid-cols-12 gap-4 lg:gap-6 min-h-0 overflow-hidden">
+        {/* Content - Vertical Layout with scroll */}
+        <div className="flex-1 flex flex-col gap-4 min-h-0 overflow-y-auto">
 
-          {/* Left: Preview Panel */}
-          <aside className="col-span-12 lg:col-span-4 flex flex-col gap-4">
-            <div className="glass-panel rounded-3xl p-1 flex-1 flex flex-col overflow-hidden">
-              <div className="text-center pt-4 pb-2">
-                <h2 className="font-black text-gray-400 text-sm tracking-widest uppercase">Vista Previa</h2>
-              </div>
-
-              {/* Preview Stage */}
-              <div className="preview-stage flex-1 rounded-2xl m-2 flex flex-col items-center justify-center relative overflow-hidden">
-                {/* SVG Truck */}
-                <div className="relative z-10 group cursor-pointer transform transition-transform duration-300 hover:scale-105">
-                  <TruckSVG
-                    vehicleType={config.type as 'cart' | 'stand' | 'food_truck' | 'bus' | 'restaurant'}
-                    color={getThemeColor()}
-                    equipment={config.equipment}
-                    decorations={config.decorations}
-                    name={config.name || 'Mi Food Truck'}
-                    width={320}
-                    height={220}
-                    animated={true}
-                    showSmoke={config.equipment.includes('improved_kitchen') || config.equipment.includes('grill')}
-                  />
-                </div>
-
-                {/* Floor Grid */}
-                <div
-                  className="absolute bottom-0 w-full h-16 opacity-10 pointer-events-none"
-                  style={{
-                    background: 'repeating-linear-gradient(transparent, transparent 8px, #000 8px, #000 9px)',
-                    transform: 'perspective(400px) rotateX(60deg)'
-                  }}
+          {/* Top: Preview Panel with 3D Viewer */}
+          <div className="glass-panel rounded-2xl overflow-hidden shrink-0">
+            <div className="flex flex-col lg:flex-row">
+              {/* Visor 3D Premium - responsive height */}
+              <div className="h-[280px] sm:h-[320px] lg:h-[380px] lg:flex-1 relative bg-gradient-to-b from-sky-300 via-sky-200 to-emerald-100 rounded-xl m-1 overflow-hidden">
+                <TruckViewer3D
+                  config={get3DConfig()}
+                  showControls={true}
                 />
               </div>
 
-              {/* Live Stats */}
-              <div className="p-4 lg:p-6 grid grid-cols-2 gap-3">
-                <StatBar label="Capacidad" value={stats.capacity} max={150} color="coral" />
-                <StatBar label="Velocidad" value={stats.speed} max={200} color="agua" />
-                <StatBar label="Atractivo" value={stats.appeal} max={100} color="mango" />
-                <StatBar label="Protección" value={stats.weatherProtection} max={100} color="purple" />
-              </div>
+              {/* Stats Panel - al lado en desktop, abajo en mobile */}
+              <div className="lg:w-72 p-4 flex flex-col justify-center">
+                {/* Live Stats - 2x2 grid */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <StatBar label="Capacidad" value={stats.capacity} max={150} color="coral" />
+                  <StatBar label="Velocidad" value={stats.speed} max={200} color="agua" />
+                  <StatBar label="Atractivo" value={stats.appeal} max={100} color="mango" />
+                  <StatBar label="Protección" value={stats.weatherProtection} max={100} color="purple" />
+                </div>
 
-              {/* Value */}
-              <div className="px-6 pb-4 pt-2 border-t border-gray-100 text-center">
-                <div className="text-xs text-gray-500 font-bold uppercase">Valor del Negocio</div>
-                <div className="text-xl font-black text-green-600">{formatMoney(truckValue)}</div>
+                {/* Value */}
+                <div className="pt-3 border-t border-gray-100 text-center">
+                  <div className="text-xs text-gray-500 font-bold uppercase">Valor del Negocio</div>
+                  <div className="text-xl font-black text-green-600">{formatMoney(truckValue)}</div>
+                </div>
               </div>
             </div>
-          </aside>
+          </div>
 
-          {/* Right: Configuration Panel */}
-          <main className="col-span-12 lg:col-span-8 flex flex-col gap-4 min-h-0">
+          {/* Bottom: Configuration Panel */}
+          <main className="flex flex-col gap-3 shrink-0">
 
             {/* Navigation Tabs */}
-            <nav className="glass-panel p-2 rounded-2xl flex gap-1">
+            <nav className="glass-panel p-2 rounded-2xl flex gap-1 shrink-0">
               {[
                 { id: 'vehicle', icon: '🚛', label: 'Vehículo' },
                 { id: 'equipment', icon: '🔧', label: 'Equipo' },
@@ -406,7 +424,7 @@ export function TruckCustomization() {
             </nav>
 
             {/* Tab Content */}
-            <div className="glass-panel rounded-3xl p-6 lg:p-8 flex-1 overflow-y-auto">
+            <div className="glass-panel rounded-3xl p-6 lg:p-8">
 
               {/* Vehicle Tab */}
               {activeTab === 'vehicle' && (

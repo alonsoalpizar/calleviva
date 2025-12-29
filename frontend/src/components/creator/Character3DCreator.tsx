@@ -1,12 +1,16 @@
 // Character3DCreator.tsx - Creador de Personajes 3D para CalleViva
-// Pack: Modular Funny Characters (543 assets)
+// Soporta dos packs: Funny Characters (543 assets) y Modular Pack
 
 import React, { useState, Suspense, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Environment, Html } from '@react-three/drei'
 import { creatorApi } from '../../services/creatorApi'
 
-const ASSET_PATH = '/assets/models/funny_characters_pack/Assets_glb'
+// ==================== PATHS DE ASSETS ====================
+const ASSET_PATH_FUNNY = '/assets/models/funny_characters_pack/Assets_glb'
+const ASSET_PATH_MODULAR = '/assets/models/character_pack/Separate_assets_glb'
+
+type PackType = 'funny' | 'modular'
 
 // ==================== CATÁLOGO DE ASSETS 3D ====================
 
@@ -25,7 +29,7 @@ interface Categoria3D {
 }
 
 // Catálogo completo - 543 assets del pack Funny Characters
-const CATEGORIAS_3D: Categoria3D[] = [
+const CATEGORIAS_FUNNY: Categoria3D[] = [
   {
     id: 'body',
     nombre: 'Cuerpo',
@@ -216,6 +220,136 @@ const CATEGORIAS_3D: Categoria3D[] = [
   },
 ]
 
+// Catálogo del pack Modular (ithappy Modular Pack)
+const CATEGORIAS_MODULAR: Categoria3D[] = [
+  {
+    id: 'body',
+    nombre: 'Cuerpo',
+    icono: '📦',
+    requerido: true,
+    assets: [{ id: 'body_modular', nombre: 'Cuerpo Base', archivo: 'Body_010.glb' }],
+  },
+  {
+    id: 'face',
+    nombre: 'Cara',
+    icono: '😀',
+    requerido: true,
+    assets: [
+      { id: 'face_usual', nombre: 'Normal', archivo: 'Male_emotion_usual_001.glb' },
+      { id: 'face_happy', nombre: 'Feliz', archivo: 'Male_emotion_happy_002.glb' },
+      { id: 'face_angry', nombre: 'Enojado', archivo: 'Male_emotion_angry_003.glb' },
+    ],
+  },
+  {
+    id: 'hairstyle',
+    nombre: 'Peinado',
+    icono: '💇',
+    assets: [
+      { id: 'hair_10', nombre: 'Peinado 1', archivo: 'Hairstyle_male_010.glb' },
+      { id: 'hair_12', nombre: 'Peinado 2', archivo: 'Hairstyle_male_012.glb' },
+    ],
+  },
+  {
+    id: 'hat',
+    nombre: 'Sombrero',
+    icono: '🎩',
+    assets: [
+      { id: 'hat_10', nombre: 'Sombrero 1', archivo: 'Hat_010.glb' },
+      { id: 'hat_49', nombre: 'Sombrero 2', archivo: 'Hat_049.glb' },
+      { id: 'hat_57', nombre: 'Sombrero 3', archivo: 'Hat_057.glb' },
+    ],
+  },
+  {
+    id: 'glasses',
+    nombre: 'Lentes',
+    icono: '👓',
+    assets: [
+      { id: 'glasses_4', nombre: 'Lentes 1', archivo: 'Glasses_004.glb' },
+      { id: 'glasses_6', nombre: 'Lentes 2', archivo: 'Glasses_006.glb' },
+    ],
+  },
+  {
+    id: 'outwear',
+    nombre: 'Abrigo',
+    icono: '🧥',
+    assets: [
+      { id: 'outwear_29', nombre: 'Abrigo 1', archivo: 'Outwear_029.glb' },
+      { id: 'outwear_36', nombre: 'Abrigo 2', archivo: 'Outwear_036.glb' },
+    ],
+  },
+  {
+    id: 'tshirt',
+    nombre: 'Camiseta',
+    icono: '👕',
+    assets: [{ id: 'tshirt_9', nombre: 'Camiseta 1', archivo: 'T-Shirt_009.glb' }],
+  },
+  {
+    id: 'pants',
+    nombre: 'Pantalón',
+    icono: '👖',
+    assets: [
+      { id: 'pants_10', nombre: 'Pantalón 1', archivo: 'Pants_010.glb' },
+      { id: 'pants_14', nombre: 'Pantalón 2', archivo: 'Pants_014.glb' },
+      { id: 'shorts_3', nombre: 'Shorts', archivo: 'Shorts_003.glb' },
+    ],
+  },
+  {
+    id: 'shoes',
+    nombre: 'Zapatos',
+    icono: '👟',
+    assets: [
+      { id: 'slippers_2', nombre: 'Chanclas 1', archivo: 'Shoe_Slippers_002.glb' },
+      { id: 'slippers_5', nombre: 'Chanclas 2', archivo: 'Shoe_Slippers_005.glb' },
+      { id: 'sneakers_9', nombre: 'Tenis', archivo: 'Shoe_Sneakers_009.glb' },
+    ],
+  },
+  {
+    id: 'socks',
+    nombre: 'Calcetines',
+    icono: '🧦',
+    assets: [{ id: 'socks_8', nombre: 'Calcetines', archivo: 'Socks_008.glb' }],
+  },
+  {
+    id: 'gloves',
+    nombre: 'Guantes',
+    icono: '🧤',
+    assets: [
+      { id: 'gloves_6', nombre: 'Guantes 1', archivo: 'Gloves_006.glb' },
+      { id: 'gloves_14', nombre: 'Guantes 2', archivo: 'Gloves_014.glb' },
+    ],
+  },
+  {
+    id: 'costume',
+    nombre: 'Disfraz',
+    icono: '🎭',
+    assets: [
+      { id: 'costume_6', nombre: 'Disfraz 1', archivo: 'Costume_6_001.glb' },
+      { id: 'costume_10', nombre: 'Disfraz 2', archivo: 'Costume_10_001.glb' },
+    ],
+  },
+  {
+    id: 'accessories',
+    nombre: 'Accesorios',
+    icono: '🎪',
+    assets: [
+      { id: 'moustache_1', nombre: 'Bigote 1', archivo: 'Moustache_001.glb' },
+      { id: 'moustache_2', nombre: 'Bigote 2', archivo: 'Moustache_002.glb' },
+      { id: 'headphones', nombre: 'Audífonos', archivo: 'Headphones_002.glb' },
+      { id: 'clown_nose', nombre: 'Nariz Payaso', archivo: 'Clown_nose_001.glb' },
+      { id: 'pacifier', nombre: 'Chupón', archivo: 'Pacifier_001.glb' },
+    ],
+  },
+]
+
+// Helper para obtener categorías según el pack
+const getCategorias = (pack: PackType): Categoria3D[] => {
+  return pack === 'funny' ? CATEGORIAS_FUNNY : CATEGORIAS_MODULAR
+}
+
+const getAssetPath = (pack: PackType): string => {
+  return pack === 'funny' ? ASSET_PATH_FUNNY : ASSET_PATH_MODULAR
+}
+
 // ==================== TIPOS ====================
 
 interface RecetaPersonaje3D {
@@ -233,11 +367,12 @@ interface CreacionPersonaje3D {
 }
 
 const STORAGE_KEY = 'calleviva_personajes_3d'
+const CURRENT_KEY = 'calleviva_personaje_actual'
 
 // ==================== COMPONENTES 3D ====================
 
-const Modelo3D: React.FC<{ archivo: string }> = ({ archivo }) => {
-  const { scene } = useGLTF(`${ASSET_PATH}/${archivo}`)
+const Modelo3D: React.FC<{ archivo: string; basePath: string }> = ({ archivo, basePath }) => {
+  const { scene } = useGLTF(`${basePath}/${archivo}`)
   return <primitive object={scene.clone()} />
 }
 
@@ -247,10 +382,17 @@ const Cargando = () => (
   </Html>
 )
 
-const EscenaPersonaje: React.FC<{ receta: RecetaPersonaje3D }> = ({ receta }) => {
+interface EscenaProps {
+  receta: RecetaPersonaje3D
+  pack: PackType
+}
+
+const EscenaPersonaje: React.FC<EscenaProps> = ({ receta, pack }) => {
+  const categorias = getCategorias(pack)
+  const basePath = getAssetPath(pack)
   const archivosSeleccionados: string[] = []
 
-  CATEGORIAS_3D.forEach((categoria) => {
+  categorias.forEach((categoria) => {
     const assetId = receta[categoria.id]
     if (assetId) {
       const asset = categoria.assets.find((a) => a.id === assetId)
@@ -273,10 +415,11 @@ const EscenaPersonaje: React.FC<{ receta: RecetaPersonaje3D }> = ({ receta }) =>
         enablePan={false}
       />
 
+      {/* Partes del personaje */}
       <group position={[0, 0, 0]}>
         {archivosSeleccionados.map((archivo) => (
           <Suspense key={archivo} fallback={null}>
-            <Modelo3D archivo={archivo} />
+            <Modelo3D archivo={archivo} basePath={basePath} />
           </Suspense>
         ))}
       </group>
@@ -292,6 +435,7 @@ const EscenaPersonaje: React.FC<{ receta: RecetaPersonaje3D }> = ({ receta }) =>
 // ==================== COMPONENTE PRINCIPAL ====================
 
 export const Character3DCreator: React.FC = () => {
+  const [pack, setPack] = useState<PackType>('funny')
   const [nombre, setNombre] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [receta, setReceta] = useState<RecetaPersonaje3D>({
@@ -304,16 +448,34 @@ export const Character3DCreator: React.FC = () => {
   const [categoriaActiva, setCategoriaActiva] = useState('body')
   const [busqueda, setBusqueda] = useState('')
 
+  // Categorías actuales según el pack seleccionado
+  const categorias = getCategorias(pack)
+
+  // Cargar galería y personaje actual al iniciar
   useEffect(() => {
     try {
       const guardado = localStorage.getItem(STORAGE_KEY)
       if (guardado) {
         setGaleria(JSON.parse(guardado))
       }
+      // Cargar personaje actual (auto-guardado)
+      const actual = localStorage.getItem(CURRENT_KEY)
+      if (actual) {
+        const data = JSON.parse(actual)
+        setReceta(data.receta || { body: 'body_blue_1' })
+        setNombre(data.nombre || '')
+        setDescripcion(data.descripcion || '')
+      }
     } catch (e) {
-      console.error('Error cargando galería:', e)
+      console.error('Error cargando:', e)
     }
   }, [])
+
+  // Auto-guardar personaje actual cuando cambia
+  useEffect(() => {
+    const dataActual = { nombre, descripcion, receta }
+    localStorage.setItem(CURRENT_KEY, JSON.stringify(dataActual))
+  }, [receta, nombre, descripcion])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(galeria))
@@ -329,7 +491,7 @@ export const Character3DCreator: React.FC = () => {
   const aleatorio = () => {
     const nueva: RecetaPersonaje3D = {}
 
-    CATEGORIAS_3D.forEach((cat) => {
+    categorias.forEach((cat) => {
       if (cat.requerido || Math.random() > 0.6) {
         nueva[cat.id] = cat.assets[Math.floor(Math.random() * cat.assets.length)].id
       }
@@ -340,15 +502,43 @@ export const Character3DCreator: React.FC = () => {
       delete nueva.outerwear
       delete nueva.pants
     }
+    // Para modular, si hay costume quitar ropa
+    if (nueva.costume) {
+      delete nueva.outwear
+      delete nueva.tshirt
+    }
 
     setReceta(nueva)
   }
 
+  const getDefaultReceta = (): RecetaPersonaje3D => {
+    if (pack === 'funny') {
+      return { body: 'body_blue_1' }
+    } else {
+      return { body: 'body_modular', face: 'face_usual' }
+    }
+  }
+
   const limpiar = () => {
-    setReceta({ body: 'body_blue_1' })
+    setReceta(getDefaultReceta())
     setNombre('')
     setDescripcion('')
     setEditandoId(null)
+    localStorage.removeItem(CURRENT_KEY)
+  }
+
+  const cambiarPack = (nuevoPack: PackType) => {
+    if (nuevoPack !== pack) {
+      setPack(nuevoPack)
+      setCategoriaActiva('body')
+      setBusqueda('')
+      // Resetear receta con valores por defecto del nuevo pack
+      if (nuevoPack === 'funny') {
+        setReceta({ body: 'body_blue_1' })
+      } else {
+        setReceta({ body: 'body_modular', face: 'face_usual' })
+      }
+    }
   }
 
   const guardar = () => {
@@ -427,7 +617,7 @@ export const Character3DCreator: React.FC = () => {
     }
   }
 
-  const categoriaSeleccionada = CATEGORIAS_3D.find((c) => c.id === categoriaActiva)
+  const categoriaSeleccionada = categorias.find((c) => c.id === categoriaActiva)
   const assetsFiltrados = categoriaSeleccionada?.assets.filter((a) =>
     a.nombre.toLowerCase().includes(busqueda.toLowerCase())
   ) || []
@@ -435,43 +625,75 @@ export const Character3DCreator: React.FC = () => {
   return (
     <div className="flex flex-col lg:flex-row h-full bg-crema">
       {/* Panel izquierdo - Vista 3D */}
-      <div className="lg:w-1/2 h-[350px] lg:h-full relative bg-gradient-to-b from-sky-100 to-sky-200">
-        <Canvas shadows camera={{ position: [2, 1.5, 2], fov: 45 }}>
-          <Suspense fallback={<Cargando />}>
-            <EscenaPersonaje receta={receta} />
-          </Suspense>
-        </Canvas>
-
-        {/* Controles flotantes */}
-        <div className="absolute bottom-4 left-4 right-4 flex justify-center gap-2">
-          <button
-            onClick={aleatorio}
-            className="bg-coral hover:bg-coral/80 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors"
-          >
-            🎲 Aleatorio
-          </button>
-          <button
-            onClick={limpiar}
-            className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors"
-          >
-            🗑️ Limpiar
-          </button>
+      <div className="lg:w-1/2 flex flex-col">
+        {/* Título y selector de pack */}
+        <div className="bg-gray-900 text-white p-3">
+          <h1 className="text-xl font-bold text-center mb-2">Personajes</h1>
+          <div className="flex justify-center gap-2">
+            <button
+              onClick={() => cambiarPack('funny')}
+              className={`px-4 py-1.5 rounded-lg font-medium text-sm transition-all ${
+                pack === 'funny'
+                  ? 'bg-coral text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Funny Pack (543)
+            </button>
+            <button
+              onClick={() => cambiarPack('modular')}
+              className={`px-4 py-1.5 rounded-lg font-medium text-sm transition-all ${
+                pack === 'modular'
+                  ? 'bg-agua text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Modular Pack
+            </button>
+          </div>
         </div>
 
-        {/* Mensaje */}
-        {mensaje && (
-          <div
-            className={`absolute top-4 left-4 right-4 py-2 px-4 rounded-lg text-center font-bold ${
-              mensaje.tipo === 'exito' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-            }`}
-          >
-            {mensaje.texto}
-          </div>
-        )}
+        {/* Canvas 3D - área principal */}
+        <div className="h-[280px] lg:flex-1 relative bg-gradient-to-b from-sky-100 to-sky-200">
+          <Canvas shadows camera={{ position: [2, 1.5, 2], fov: 45 }}>
+            <Suspense fallback={<Cargando />}>
+              <EscenaPersonaje receta={receta} pack={pack} />
+            </Suspense>
+          </Canvas>
 
-        {/* Contador de partes */}
-        <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-          {Object.values(receta).filter(Boolean).length} partes
+          {/* Mensaje */}
+          {mensaje && (
+            <div
+              className={`absolute top-4 left-4 right-4 py-2 px-4 rounded-lg text-center font-bold ${
+                mensaje.tipo === 'exito' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+              }`}
+            >
+              {mensaje.texto}
+            </div>
+          )}
+
+          {/* Contador de partes */}
+          <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+            {Object.values(receta).filter(Boolean).length} partes
+          </div>
+        </div>
+
+        {/* Controles debajo del canvas */}
+        <div className="bg-gray-800 p-3">
+          <div className="flex justify-center gap-2">
+            <button
+              onClick={aleatorio}
+              className="bg-coral hover:bg-coral/80 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm"
+            >
+              🎲 Aleatorio
+            </button>
+            <button
+              onClick={limpiar}
+              className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm"
+            >
+              🗑️ Limpiar
+            </button>
+          </div>
         </div>
       </div>
 
@@ -505,7 +727,7 @@ export const Character3DCreator: React.FC = () => {
 
         {/* Tabs de categorías */}
         <div className="flex flex-wrap gap-1 p-2 bg-gray-100 border-b">
-          {CATEGORIAS_3D.map((cat) => (
+          {categorias.map((cat) => (
             <button
               key={cat.id}
               onClick={() => { setCategoriaActiva(cat.id); setBusqueda('') }}

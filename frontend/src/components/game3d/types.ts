@@ -11,8 +11,10 @@ export interface Customer3DState {
   position: Position3D
   targetPosition: Position3D
   state: 'walking' | 'waiting' | 'ordering' | 'leaving'
-  type: CustomerType3D
+  type?: CustomerType3D
   orderTime?: number
+  satisfaction?: number
+  order?: unknown
 }
 
 export interface CustomerType3D {

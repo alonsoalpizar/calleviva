@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
 
 // Pages
@@ -15,7 +15,13 @@ import { DishLaboratorio } from './components/game/DishLaboratorio'
 import { Market } from './components/game/Market'
 import { LocationsPreview } from './pages/LocationsPreview'
 import { GameSimulationDemo } from './components/simulation'
-import { Game3DDemo, CharacterViewer } from './components/game3d'
+import { Game3DDemo, CharacterViewer, GameScene3D } from './components/game3d'
+
+// Wrapper for GameScene3D with URL params
+function GameScene3DWrapper() {
+  const { locationId } = useParams<{ locationId: string }>()
+  return <GameScene3D locationId={locationId || 'universidad'} />
+}
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -80,6 +86,10 @@ function App() {
 
         {/* Character Viewer - Public (for dev) */}
         <Route path="/character-viewer" element={<CharacterViewer />} />
+
+        {/* 3D Location Scene - Public (for dev) */}
+        <Route path="/scene3d" element={<GameScene3D />} />
+        <Route path="/scene3d/:locationId" element={<GameScene3DWrapper />} />
 
         {/* Protected Routes */}
         <Route
