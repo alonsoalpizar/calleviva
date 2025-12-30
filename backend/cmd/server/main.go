@@ -23,6 +23,7 @@ import (
 	"github.com/alonsoalpizar/calleviva/backend/internal/market"
 	"github.com/alonsoalpizar/calleviva/backend/internal/parameters"
 	"github.com/alonsoalpizar/calleviva/backend/internal/players"
+	"github.com/alonsoalpizar/calleviva/backend/internal/scenarios"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -135,6 +136,15 @@ func main() {
 			r.Get("/{worldType}/products", handleNotImplemented)
 			r.Get("/{worldType}/locations", handleNotImplemented)
 			r.Get("/{worldType}/events", handleNotImplemented)
+		})
+
+		// Scenarios (público - escenarios 3D)
+		r.Route("/scenarios", func(r chi.Router) {
+			r.Get("/", scenarios.HandleList)
+			r.Get("/{code}", scenarios.HandleGet)
+			r.Post("/", scenarios.HandleCreate)
+			r.Put("/{code}", scenarios.HandleUpdate)
+			r.Delete("/{code}", scenarios.HandleDelete)
 		})
 
 		// Creator Mode - Public Routes

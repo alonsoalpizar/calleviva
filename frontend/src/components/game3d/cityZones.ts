@@ -17,6 +17,21 @@ export interface CityZone {
 }
 
 export const CITY_ZONES: Record<string, CityZone> = {
+  // PANORAMICA - Vista general de toda la ciudad
+  panoramica: {
+    id: 'panoramica',
+    nombre: 'Vista Panoramica',
+    descripcion: 'Vista aerea de toda la ciudad.',
+    icono: '🌆',
+    center: [70, 0, -15],
+    radius: 300,
+    cameraPosition: [70, 250, 200],
+    spawnPoints: [],
+    truckSpot: [0, 0, 0],
+    customerRate: 0,
+    priceMultiplier: 1.0,
+  },
+
   // CENTRO - Area central de la ciudad
   centro: {
     id: 'centro',
@@ -141,7 +156,7 @@ export const CITY_ZONES: Record<string, CityZone> = {
 // Lista ordenada de zonas para UI
 export const ZONE_LIST = Object.values(CITY_ZONES)
 
-// Obtener zona por ID, con fallback a centro
+// Obtener zona por ID, con fallback a panoramica
 export const getZone = (zoneId: string): CityZone => {
-  return CITY_ZONES[zoneId] || CITY_ZONES.centro
+  return CITY_ZONES[zoneId] || CITY_ZONES.panoramica
 }

@@ -1,8 +1,8 @@
 // GameScene3D.tsx - City exploration with zone selection
 // Clean 3D city viewer without post-processing (for stability)
 
-import React, { useState, Suspense, useCallback } from 'react'
-import { Canvas, ThreeEvent } from '@react-three/fiber'
+import React, { useState, Suspense, useCallback, useRef, useEffect } from 'react'
+import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, Html, useGLTF, useProgress } from '@react-three/drei'
 import * as THREE from 'three'
 import { getZone, CityZone, ZONE_LIST } from './cityZones'
@@ -1703,6 +1703,87 @@ interface MapPlacement {
   customName?: string // nombre personalizado editable
 }
 
+// Scenario type for persistence
+interface ScenarioData {
+  id: string
+  code: string
+  name: string
+  worldType: string
+  scene: {
+    baseModel: string
+    placements: MapPlacement[]
+  }
+  createdAt: string
+  updatedAt: string
+  version: number
+}
+
+// localStorage helpers
+const STORAGE_KEY = 'calleviva_scenarios'
+
+const scenarioStorage = {
+  save: (scenario: ScenarioData) => {
+    const scenarios = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+    scenarios[scenario.code] = { ...scenario, updatedAt: new Date().toISOString() }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios))
+  },
+  load: (code: string): ScenarioData | null => {
+    const scenarios = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+    return scenarios[code] || null
+  },
+  list: (): ScenarioData[] => {
+    const scenarios = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+    return Object.values(scenarios)
+  },
+  remove: (code: string) => {
+    const scenarios = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+    delete scenarios[code]
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios))
+  }
+}
+
+// API helpers for backend sync
+const API_BASE = '/api/v1'
+
+const scenarioAPI = {
+  list: async (): Promise<ScenarioData[]> => {
+    const res = await fetch(`${API_BASE}/scenarios`)
+    if (!res.ok) throw new Error('Failed to fetch scenarios')
+    const data = await res.json()
+    return data.scenarios || []
+  },
+  get: async (code: string): Promise<ScenarioData | null> => {
+    const res = await fetch(`${API_BASE}/scenarios/${code}`)
+    if (!res.ok) return null
+    return res.json()
+  },
+  create: async (scenario: Omit<ScenarioData, 'id' | 'createdAt' | 'updatedAt' | 'version'>): Promise<ScenarioData> => {
+    const res = await fetch(`${API_BASE}/scenarios`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scenario)
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err.error || 'Failed to create scenario')
+    }
+    return res.json()
+  },
+  update: async (code: string, data: Partial<ScenarioData>): Promise<ScenarioData> => {
+    const res = await fetch(`${API_BASE}/scenarios/${code}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    if (!res.ok) throw new Error('Failed to update scenario')
+    return res.json()
+  },
+  delete: async (code: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/scenarios/${code}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete scenario')
+  }
+}
+
 // Loading component with progress
 const Loader = () => {
   const { progress } = useProgress()
@@ -1731,6 +1812,82 @@ const CoordMarker: React.FC<{ position: [number, number, number] }> = ({ positio
   </mesh>
 )
 
+// Cinematic Intro Camera - sweeping entrance animation
+const IntroCamera: React.FC<{
+  targetPosition: [number, number, number]
+  targetLookAt: [number, number, number]
+  onComplete: () => void
+}> = ({ targetPosition, targetLookAt, onComplete }) => {
+  const { camera } = useThree()
+  const progressRef = useRef(0)
+  const completedRef = useRef(false)
+
+  // Configuración de la animación - MÁS LENTA Y DRAMÁTICA
+  const duration = 7.0 // segundos
+  const startHeight = 600 // más alto
+  const startRadius = 500 // más lejos
+  const startAngle = -Math.PI * 0.7 // empieza más atrás
+
+  useEffect(() => {
+    // Posición inicial: muy alta y a un lado
+    camera.position.set(
+      targetLookAt[0] + Math.cos(startAngle) * startRadius,
+      startHeight,
+      targetLookAt[2] + Math.sin(startAngle) * startRadius
+    )
+    camera.lookAt(targetLookAt[0], 0, targetLookAt[2])
+  }, [camera, targetLookAt])
+
+  useFrame((_, delta) => {
+    if (completedRef.current) return
+
+    progressRef.current += delta / duration
+
+    if (progressRef.current >= 1) {
+      // Animación completa
+      camera.position.set(...targetPosition)
+      camera.lookAt(targetLookAt[0], 0, targetLookAt[2])
+      completedRef.current = true
+      onComplete()
+      return
+    }
+
+    const t = progressRef.current
+
+    // Easing: ease-in-out para entrada suave y aterrizaje suave
+    const ease = t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2
+
+    // Interpolar altura (baja suavemente)
+    const currentHeight = startHeight + (targetPosition[1] - startHeight) * ease
+
+    // Interpolar radio (se acerca gradualmente)
+    const targetRadius = Math.sqrt(
+      Math.pow(targetPosition[0] - targetLookAt[0], 2) +
+      Math.pow(targetPosition[2] - targetLookAt[2], 2)
+    )
+    const currentRadius = startRadius + (targetRadius - startRadius) * ease
+
+    // Rotar alrededor - vuelta más amplia (casi completa)
+    const targetAngle = Math.atan2(
+      targetPosition[2] - targetLookAt[2],
+      targetPosition[0] - targetLookAt[0]
+    )
+    const rotationAmount = Math.PI * 1.2 // más de media vuelta
+    const currentAngle = startAngle + (targetAngle - startAngle + rotationAmount) * ease
+
+    // Calcular posición
+    const x = targetLookAt[0] + Math.cos(currentAngle) * currentRadius
+    const z = targetLookAt[2] + Math.sin(currentAngle) * currentRadius
+
+    camera.position.set(x, currentHeight, z)
+    camera.lookAt(targetLookAt[0], 0, targetLookAt[2])
+  })
+
+  return null
+}
+
 // 3D Scene - city and controls
 const Scene: React.FC<{
   zone: CityZone
@@ -1738,7 +1895,10 @@ const Scene: React.FC<{
   onCoordCapture: (coord: [number, number, number]) => void
   markers: [number, number, number][]
   placements: MapPlacement[]
-}> = ({ zone, editorMode, onCoordCapture, markers, placements }) => {
+  showIntro: boolean
+  onIntroComplete: () => void
+}> = ({ zone, editorMode, onCoordCapture, markers, placements, showIntro, onIntroComplete }) => {
+  const controlsRef = useRef<any>(null)
 
   const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     if (!editorMode) return
@@ -1754,15 +1914,24 @@ const Scene: React.FC<{
 
   return (
     <>
-      {/* Camera - positioned based on zone */}
-      <PerspectiveCamera
-        makeDefault
-        position={zone.cameraPosition}
-        fov={60}
-      />
+      {/* Intro animation or static camera */}
+      {showIntro ? (
+        <IntroCamera
+          targetPosition={zone.cameraPosition}
+          targetLookAt={zone.center}
+          onComplete={onIntroComplete}
+        />
+      ) : (
+        <PerspectiveCamera
+          makeDefault
+          position={zone.cameraPosition}
+          fov={60}
+        />
+      )}
 
-      {/* Controls - extended zoom for city overview */}
+      {/* Controls - disabled during intro */}
       <OrbitControls
+        ref={controlsRef}
         target={zone.center}
         minDistance={10}
         maxDistance={300}
@@ -1770,6 +1939,7 @@ const Scene: React.FC<{
         minPolarAngle={0.1}
         enablePan={true}
         panSpeed={0.8}
+        enabled={!showIntro}
       />
 
       {/* Background sky color */}
@@ -2042,7 +2212,7 @@ const AssetSelectorPopup: React.FC<{
 export const GameScene3D: React.FC<{
   zoneId?: string
 }> = ({
-  zoneId = 'centro',
+  zoneId = 'panoramica',
 }) => {
   const [currentZoneId, setCurrentZoneId] = useState(zoneId)
   const [editorMode, setEditorMode] = useState(false)
@@ -2050,6 +2220,29 @@ export const GameScene3D: React.FC<{
   const [pendingPosition, setPendingPosition] = useState<[number, number, number] | null>(null)
   const [markers, setMarkers] = useState<[number, number, number][]>([])
   const zone = getZone(currentZoneId)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Metadata del escenario
+  const [scenarioName, setScenarioName] = useState('')
+  const [scenarioCode, setScenarioCode] = useState('')
+  const [savedScenarios, setSavedScenarios] = useState<ScenarioData[]>([])
+  const [serverScenarios, setServerScenarios] = useState<ScenarioData[]>([])
+  const [showSavedList, setShowSavedList] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  // Intro animation state - only on first load with panoramica
+  const [showIntro, setShowIntro] = useState(zoneId === 'panoramica')
+
+  // Cargar lista de escenarios al montar
+  React.useEffect(() => {
+    setSavedScenarios(scenarioStorage.list())
+    // Cargar escenarios del servidor
+    scenarioAPI.list().then(setServerScenarios).catch(console.error)
+  }, [])
+
+  const handleIntroComplete = useCallback(() => {
+    setShowIntro(false)
+  }, [])
 
   const handleCoordCapture = useCallback((coord: [number, number, number]) => {
     setPendingPosition(coord)
@@ -2101,15 +2294,215 @@ export const GameScene3D: React.FC<{
   }, [placements])
 
   const downloadJSON = useCallback(() => {
-    const json = JSON.stringify(placements, null, 2)
+    const code = scenarioCode || `escenario_${Date.now()}`
+    const scenario = {
+      id: crypto.randomUUID(),
+      code,
+      name: scenarioName || 'Sin nombre',
+      worldType: 'costa_rica',
+      scene: {
+        baseModel: '/assets/models/City/CityFull/City_2.glb',
+        placements
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1
+    }
+    const json = JSON.stringify(scenario, null, 2)
     const blob = new Blob([json], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `city-placements-${Date.now()}.json`
+    a.download = `${code}.json`
     a.click()
     URL.revokeObjectURL(url)
-  }, [placements])
+  }, [placements, scenarioName, scenarioCode])
+
+  const handleImportJSON = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string)
+
+        // Soportar formato viejo (solo array) y nuevo (con metadata)
+        let importedPlacements: MapPlacement[]
+        if (Array.isArray(data)) {
+          importedPlacements = data
+        } else if (data.scene?.placements && Array.isArray(data.scene.placements)) {
+          importedPlacements = data.scene.placements
+        } else {
+          throw new Error('Formato inválido: no se encontró array de placements')
+        }
+
+        // Validar que cada placement tenga los campos requeridos
+        const validPlacements = importedPlacements.filter(p =>
+          p.id && p.category && p.assetKey && Array.isArray(p.position)
+        )
+
+        if (validPlacements.length === 0) {
+          throw new Error('No se encontraron placements válidos')
+        }
+
+        setPlacements(validPlacements)
+        setMarkers([]) // Limpiar markers
+
+        // Cargar metadata si existe
+        if (data.name) setScenarioName(data.name)
+        if (data.code) setScenarioCode(data.code)
+
+        const name = data.name || 'sin nombre'
+        alert(`Escenario "${name}" cargado: ${validPlacements.length} elementos`)
+      } catch (err) {
+        alert('Error al cargar JSON: ' + (err as Error).message)
+      }
+    }
+    reader.readAsText(file)
+
+    // Reset input para poder cargar el mismo archivo de nuevo
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }, [])
+
+  const saveToLocal = useCallback(() => {
+    if (!scenarioCode.trim()) {
+      alert('Ingresa un código para el escenario')
+      return
+    }
+    const scenario: ScenarioData = {
+      id: crypto.randomUUID(),
+      code: scenarioCode,
+      name: scenarioName || 'Sin nombre',
+      worldType: 'costa_rica',
+      scene: {
+        baseModel: '/assets/models/City/CityFull/City_2.glb',
+        placements
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1
+    }
+    scenarioStorage.save(scenario)
+    setSavedScenarios(scenarioStorage.list())
+    alert(`Escenario "${scenario.name}" guardado localmente`)
+  }, [placements, scenarioName, scenarioCode])
+
+  const loadFromLocal = useCallback((code: string) => {
+    const scenario = scenarioStorage.load(code)
+    if (!scenario) {
+      alert('Escenario no encontrado')
+      return
+    }
+    setPlacements(scenario.scene.placements)
+    setScenarioName(scenario.name)
+    setScenarioCode(scenario.code)
+    setMarkers([])
+    setShowSavedList(false)
+    alert(`Escenario "${scenario.name}" cargado`)
+  }, [])
+
+  const deleteFromLocal = useCallback((code: string) => {
+    if (!confirm(`¿Eliminar escenario "${code}"?`)) return
+    scenarioStorage.remove(code)
+    setSavedScenarios(scenarioStorage.list())
+  }, [])
+
+  // === SERVER SYNC FUNCTIONS ===
+
+  const saveToServer = useCallback(async () => {
+    if (!scenarioCode.trim()) {
+      alert('Ingresa un código para el escenario')
+      return
+    }
+    setIsSyncing(true)
+    try {
+      const scenarioData = {
+        code: scenarioCode,
+        name: scenarioName || 'Sin nombre',
+        worldType: 'costa_rica',
+        scene: {
+          baseModel: '/assets/models/City/CityFull/City_2.glb',
+          placements
+        }
+      }
+
+      // Check if exists on server
+      const existing = await scenarioAPI.get(scenarioCode)
+      let saved: ScenarioData
+
+      if (existing) {
+        // Update existing
+        saved = await scenarioAPI.update(scenarioCode, {
+          name: scenarioData.name,
+          scene: scenarioData.scene
+        })
+        alert(`Escenario "${saved.name}" actualizado en servidor (v${saved.version})`)
+      } else {
+        // Create new
+        saved = await scenarioAPI.create(scenarioData)
+        alert(`Escenario "${saved.name}" guardado en servidor`)
+      }
+
+      // Update server list
+      const updated = await scenarioAPI.list()
+      setServerScenarios(updated)
+    } catch (err) {
+      alert('Error: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [placements, scenarioName, scenarioCode])
+
+  const loadFromServer = useCallback(async (code: string) => {
+    setIsSyncing(true)
+    try {
+      const scenario = await scenarioAPI.get(code)
+      if (!scenario) {
+        alert('Escenario no encontrado en servidor')
+        return
+      }
+      setPlacements(scenario.scene.placements)
+      setScenarioName(scenario.name)
+      setScenarioCode(scenario.code)
+      setMarkers([])
+      setShowSavedList(false)
+      alert(`Escenario "${scenario.name}" (v${scenario.version}) cargado desde servidor`)
+    } catch (err) {
+      alert('Error al cargar: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [])
+
+  const deleteFromServer = useCallback(async (code: string) => {
+    if (!confirm(`¿Eliminar escenario "${code}" del servidor?`)) return
+    setIsSyncing(true)
+    try {
+      await scenarioAPI.delete(code)
+      const updated = await scenarioAPI.list()
+      setServerScenarios(updated)
+      alert('Escenario eliminado del servidor')
+    } catch (err) {
+      alert('Error: ' + (err instanceof Error ? err.message : 'Unknown error'))
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [])
+
+  const refreshServerList = useCallback(async () => {
+    setIsSyncing(true)
+    try {
+      const list = await scenarioAPI.list()
+      setServerScenarios(list)
+    } catch (err) {
+      console.error('Error fetching server scenarios:', err)
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [])
 
   const removePlacement = useCallback((id: string) => {
     setPlacements(prev => prev.filter(p => p.id !== id))
@@ -2141,6 +2534,8 @@ export const GameScene3D: React.FC<{
             onCoordCapture={handleCoordCapture}
             markers={markers}
             placements={placements}
+            showIntro={showIntro}
+            onIntroComplete={handleIntroComplete}
           />
         </Suspense>
       </Canvas>
@@ -2211,6 +2606,25 @@ export const GameScene3D: React.FC<{
       {editorMode && (
         <div className="absolute top-20 left-4 bg-black/90 backdrop-blur-sm rounded-xl px-4 py-3 text-white w-72">
           <div className="font-bold mb-2">🎯 Editor de Mapa</div>
+
+          {/* Metadata del escenario */}
+          <div className="space-y-2 mb-3 pb-3 border-b border-gray-700">
+            <input
+              type="text"
+              value={scenarioName}
+              onChange={(e) => setScenarioName(e.target.value)}
+              placeholder="Nombre del escenario..."
+              className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded border border-gray-600 focus:border-coral focus:outline-none"
+            />
+            <input
+              type="text"
+              value={scenarioCode}
+              onChange={(e) => setScenarioCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
+              placeholder="codigo_escenario"
+              className="w-full bg-gray-800 text-gray-300 text-xs px-3 py-1.5 rounded border border-gray-600 focus:border-coral focus:outline-none font-mono"
+            />
+          </div>
+
           <div className="text-xs text-gray-400 mb-3">Click en el mapa para agregar elementos</div>
 
           {placements.length > 0 && (
@@ -2251,23 +2665,142 @@ export const GameScene3D: React.FC<{
                 })}
               </div>
 
-              <div className="flex gap-2">
+              {/* Botones de archivo */}
+              <div className="flex gap-1 mb-2">
                 <button
                   onClick={exportJSON}
-                  className="flex-1 bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded text-sm"
+                  className="flex-1 bg-blue-600 hover:bg-blue-500 px-2 py-1.5 rounded text-xs"
+                  title="Copiar JSON al clipboard"
                 >
-                  📋 Copiar JSON
+                  📋
                 </button>
                 <button
                   onClick={downloadJSON}
-                  className="flex-1 bg-green-600 hover:bg-green-500 px-3 py-2 rounded text-sm"
+                  className="flex-1 bg-green-600 hover:bg-green-500 px-2 py-1.5 rounded text-xs"
+                  title="Descargar archivo JSON"
                 >
-                  💾 Descargar
+                  ⬇️
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 bg-purple-600 hover:bg-purple-500 px-2 py-1.5 rounded text-xs"
+                  title="Cargar archivo JSON"
+                >
+                  📂
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportJSON}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Botones de localStorage */}
+              <div className="flex gap-1 mb-2">
+                <button
+                  onClick={saveToLocal}
+                  className="flex-1 bg-cyan-600 hover:bg-cyan-500 px-2 py-1.5 rounded text-xs"
+                >
+                  💾 Guardar Local
+                </button>
+                <button
+                  onClick={() => setShowSavedList(!showSavedList)}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs ${
+                    showSavedList ? 'bg-cyan-700' : 'bg-gray-600 hover:bg-gray-500'
+                  }`}
+                >
+                  📁 Mis Escenarios ({savedScenarios.length})
                 </button>
               </div>
+
+              {/* Lista de escenarios guardados */}
+              {showSavedList && savedScenarios.length > 0 && (
+                <div className="bg-gray-800 rounded p-2 mb-2 max-h-40 overflow-y-auto">
+                  {savedScenarios.map((s) => (
+                    <div key={s.code} className="flex items-center justify-between py-1 border-b border-gray-700 last:border-0">
+                      <button
+                        onClick={() => loadFromLocal(s.code)}
+                        className="flex-1 text-left text-xs hover:text-cyan-400 truncate"
+                        title={`${s.name} (${s.scene.placements.length} elementos)`}
+                      >
+                        {s.name || s.code}
+                      </button>
+                      <button
+                        onClick={() => deleteFromLocal(s.code)}
+                        className="text-red-400 hover:text-red-300 text-xs ml-2"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {showSavedList && savedScenarios.length === 0 && (
+                <div className="text-gray-500 text-xs text-center py-2 mb-2">
+                  No hay escenarios guardados localmente
+                </div>
+              )}
+
+              {/* Separador */}
+              <div className="border-t border-gray-600 my-2" />
+
+              {/* Botones de servidor */}
+              <div className="flex gap-1 mb-2">
+                <button
+                  onClick={saveToServer}
+                  disabled={isSyncing}
+                  className={`flex-1 px-2 py-1.5 rounded text-xs ${
+                    isSyncing ? 'bg-gray-600 cursor-wait' : 'bg-orange-600 hover:bg-orange-500'
+                  }`}
+                >
+                  ☁️ {isSyncing ? '...' : 'Guardar Servidor'}
+                </button>
+                <button
+                  onClick={refreshServerList}
+                  disabled={isSyncing}
+                  className={`px-2 py-1.5 rounded text-xs ${
+                    isSyncing ? 'bg-gray-600 cursor-wait' : 'bg-gray-600 hover:bg-gray-500'
+                  }`}
+                  title="Refrescar lista del servidor"
+                >
+                  🔄
+                </button>
+              </div>
+
+              {/* Lista de escenarios del servidor */}
+              {serverScenarios.length > 0 && (
+                <div className="bg-gray-800 rounded p-2 mb-2">
+                  <div className="text-xs text-orange-400 mb-1">☁️ Servidor ({serverScenarios.length}):</div>
+                  <div className="max-h-32 overflow-y-auto">
+                    {serverScenarios.map((s) => (
+                      <div key={s.code} className="flex items-center justify-between py-1 border-b border-gray-700 last:border-0">
+                        <button
+                          onClick={() => loadFromServer(s.code)}
+                          disabled={isSyncing}
+                          className="flex-1 text-left text-xs hover:text-orange-400 truncate"
+                          title={`${s.name} v${s.version} (${s.scene.placements.length} elementos)`}
+                        >
+                          {s.name || s.code} <span className="text-gray-500">v{s.version}</span>
+                        </button>
+                        <button
+                          onClick={() => deleteFromServer(s.code)}
+                          disabled={isSyncing}
+                          className="text-red-400 hover:text-red-300 text-xs ml-2"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={clearAll}
-                className="mt-2 w-full bg-red-600 hover:bg-red-500 px-3 py-2 rounded text-sm"
+                className="w-full bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded text-xs"
               >
                 🗑️ Limpiar Todo
               </button>
