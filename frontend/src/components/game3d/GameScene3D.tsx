@@ -1805,14 +1805,6 @@ const Loader = () => {
   )
 }
 
-// Coordinate Marker - visual indicator where you clicked
-const CoordMarker: React.FC<{ position: [number, number, number] }> = ({ position }) => (
-  <mesh position={position}>
-    <sphereGeometry args={[0.5, 16, 16]} />
-    <meshBasicMaterial color="#ff0000" />
-  </mesh>
-)
-
 // Cinematic Intro Camera - sweeping entrance animation
 const IntroCamera: React.FC<{
   targetPosition: [number, number, number]
@@ -1897,7 +1889,6 @@ const Scene: React.FC<{
   zone: CityZone
   editorMode: boolean
   onCoordCapture: (coord: [number, number, number]) => void
-  markers: [number, number, number][]
   placements: MapPlacement[]
   showIntro: boolean
   onIntroComplete: () => void
@@ -1913,9 +1904,69 @@ const Scene: React.FC<{
   onDragStart: (id: string, y: number) => void
   onDragMove: (x: number, z: number) => void
   onDragEnd: () => void
-}> = ({ zone, editorMode, onCoordCapture, markers, placements, showIntro, onIntroComplete, baseMode, groundColor, groundSize, selectedPlacementId, selectedIds, onSelectPlacement, onRightClickPlacement, isDragging, onDragStart, onDragMove, onDragEnd }) => {
+}> = ({ zone, editorMode, onCoordCapture, placements, showIntro, onIntroComplete, baseMode, groundColor, groundSize, selectedPlacementId, selectedIds, onSelectPlacement, onRightClickPlacement, isDragging, onDragStart, onDragMove, onDragEnd }) => {
   const controlsRef = useRef<any>(null)
   const { camera, raycaster, pointer } = useThree()
+
+  // Focus target for double-click navigation
+  const [focusTarget, setFocusTarget] = useState<[number, number, number] | null>(null)
+  const [isAnimatingFocus, setIsAnimatingFocus] = useState(false)
+  const focusStartTime = useRef(0)
+  const focusStartPos = useRef<THREE.Vector3>(new THREE.Vector3())
+  const focusEndPos = useRef<THREE.Vector3>(new THREE.Vector3())
+
+  // Animate camera to focus target
+  useFrame(() => {
+    if (!isAnimatingFocus || !focusTarget) return
+
+    const elapsed = (Date.now() - focusStartTime.current) / 1000
+    const duration = 0.6 // segundos
+    const t = Math.min(elapsed / duration, 1)
+
+    // Easing: ease-out cubic
+    const ease = 1 - Math.pow(1 - t, 3)
+
+    // Interpolar posición de cámara
+    camera.position.lerpVectors(focusStartPos.current, focusEndPos.current, ease)
+
+    // Actualizar target de OrbitControls
+    if (controlsRef.current) {
+      controlsRef.current.target.set(
+        focusTarget[0],
+        focusTarget[1],
+        focusTarget[2]
+      )
+    }
+
+    if (t >= 1) {
+      setIsAnimatingFocus(false)
+    }
+  })
+
+  // Handle focus on object (double-click)
+  const handleFocusObject = useCallback((position: [number, number, number]) => {
+    if (!editorMode) return
+
+    // Calcular nueva posición de cámara (offset desde el objeto)
+    const distance = 40 // distancia al objeto
+    const currentDir = new THREE.Vector3()
+    currentDir.subVectors(camera.position, new THREE.Vector3(...position)).normalize()
+
+    // Mantener dirección actual pero acercarse
+    const newCamPos = new THREE.Vector3(
+      position[0] + currentDir.x * distance,
+      position[1] + Math.max(currentDir.y * distance, 20), // mínimo 20 de altura
+      position[2] + currentDir.z * distance
+    )
+
+    // Guardar posiciones para animación
+    focusStartPos.current.copy(camera.position)
+    focusEndPos.current.copy(newCamPos)
+    focusStartTime.current = Date.now()
+
+    setFocusTarget(position)
+    setIsAnimatingFocus(true)
+  }, [camera, editorMode])
 
   // Click en el suelo/ciudad - solo con Shift para colocar assets
   const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
@@ -1986,14 +2037,17 @@ const Scene: React.FC<{
       {/* Controls - disabled during intro */}
       <OrbitControls
         ref={controlsRef}
-        target={zone.center}
-        minDistance={10}
-        maxDistance={300}
+        target={focusTarget || zone.center}
+        minDistance={5}
+        maxDistance={600}
         maxPolarAngle={Math.PI / 2.1}
         minPolarAngle={0.1}
         enablePan={true}
         panSpeed={0.8}
         enabled={!showIntro}
+        enableDamping={true}
+        dampingFactor={0.08}
+        zoomSpeed={1.2}
       />
 
       {/* Background sky color */}
@@ -2053,16 +2107,12 @@ const Scene: React.FC<{
           selectedIds={selectedIds}
           onSelect={onSelectPlacement}
           onRightClick={onRightClickPlacement}
+          onFocus={handleFocusObject}
           editorMode={editorMode}
           onDragStart={onDragStart}
           isDragging={isDragging}
         />
       </group>
-
-      {/* Editor mode markers */}
-      {editorMode && markers.map((pos, i) => (
-        <CoordMarker key={i} position={pos} />
-      ))}
     </>
   )
 }
@@ -2100,10 +2150,11 @@ const ClickableAsset: React.FC<{
   isSelected: boolean
   onClick: (id: string, ctrlKey?: boolean) => void
   onRightClick: (id: string, screenX: number, screenY: number) => void
+  onFocus: (position: [number, number, number]) => void
   editorMode: boolean
   onDragStart: (id: string, y: number) => void
   isDragging: boolean
-}> = ({ placement, isSelected, onClick, onRightClick, editorMode, onDragStart, isDragging }) => {
+}> = ({ placement, isSelected, onClick, onRightClick, onFocus, editorMode, onDragStart, isDragging }) => {
   const url = getAssetUrl(placement.category, placement.assetKey)
   if (!url) return null
 
@@ -2115,6 +2166,12 @@ const ClickableAsset: React.FC<{
         if (editorMode && !isDragging) {
           e.stopPropagation()
           onClick(placement.id, e.nativeEvent.ctrlKey || e.nativeEvent.metaKey)
+        }
+      }}
+      onDoubleClick={(e) => {
+        if (editorMode) {
+          e.stopPropagation()
+          onFocus(placement.position)
         }
       }}
       onPointerDown={(e) => {
@@ -2167,10 +2224,11 @@ const PlacedAssets: React.FC<{
   selectedIds: Set<string>
   onSelect: (id: string | null, ctrlKey?: boolean) => void
   onRightClick: (id: string, x: number, y: number) => void
+  onFocus: (position: [number, number, number]) => void
   editorMode: boolean
   onDragStart: (id: string, y: number) => void
   isDragging: boolean
-}> = ({ placements, selectedId, selectedIds, onSelect, onRightClick, editorMode, onDragStart, isDragging }) => {
+}> = ({ placements, selectedId, selectedIds, onSelect, onRightClick, onFocus, editorMode, onDragStart, isDragging }) => {
   const handleClick = useCallback((id: string, ctrlKey: boolean = false) => {
     onSelect(id, ctrlKey)
   }, [onSelect])
@@ -2189,6 +2247,7 @@ const PlacedAssets: React.FC<{
             isSelected={selectedId === p.id || selectedIds.has(p.id)}
             onClick={handleClick}
             onRightClick={handleRightClick}
+            onFocus={onFocus}
             editorMode={editorMode}
             onDragStart={onDragStart}
             isDragging={isDragging}
@@ -2456,7 +2515,6 @@ export const GameScene3D: React.FC<{
       setPlacementsInternal(history[newIndex])
     }
   }, [historyIndex, history])
-  const [markers, setMarkers] = useState<[number, number, number][]>([])
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set()) // Multi-selection
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
@@ -2727,7 +2785,6 @@ export const GameScene3D: React.FC<{
       snapValue(coord[2])
     ]
     setPendingPosition(snappedCoord)
-    setMarkers(prev => [...prev, snappedCoord])
   }, [snapValue])
 
   const handleAssetSelect = useCallback((category: AssetCategory, assetKey: string, rotation: number, heightOffset: number) => {
@@ -2759,13 +2816,10 @@ export const GameScene3D: React.FC<{
 
   const handleCancelSelect = useCallback(() => {
     setPendingPosition(null)
-    // Remove last marker
-    setMarkers(prev => prev.slice(0, -1))
   }, [])
 
   const clearAll = useCallback(() => {
     setPlacements([])
-    setMarkers([])
   }, [])
 
   const exportJSON = useCallback(() => {
@@ -2828,7 +2882,6 @@ export const GameScene3D: React.FC<{
         }
 
         setPlacements(validPlacements)
-        setMarkers([]) // Limpiar markers
 
         // Cargar metadata si existe
         if (data.name) setScenarioName(data.name)
@@ -2880,7 +2933,6 @@ export const GameScene3D: React.FC<{
     setPlacements(scenario.scene.placements)
     setScenarioName(scenario.name)
     setScenarioCode(scenario.code)
-    setMarkers([])
     setShowSavedList(false)
     alert(`Escenario "${scenario.name}" cargado`)
   }, [])
@@ -2948,7 +3000,6 @@ export const GameScene3D: React.FC<{
       setPlacements(scenario.scene.placements)
       setScenarioName(scenario.name)
       setScenarioCode(scenario.code)
-      setMarkers([])
       setShowSavedList(false)
       alert(`Escenario "${scenario.name}" (v${scenario.version}) cargado desde servidor`)
     } catch (err) {
@@ -3143,11 +3194,10 @@ export const GameScene3D: React.FC<{
       >
         <Suspense fallback={<Loader />}>
           <Scene
-            key={`${zone.id}-${baseMode}-${groundColor}-${groundSize}`}
+            key={`${zone.id}-${baseMode}-${groundSize}`}
             zone={zone}
             editorMode={editorMode}
             onCoordCapture={handleCoordCapture}
-            markers={markers}
             placements={placements}
             showIntro={showIntro}
             onIntroComplete={handleIntroComplete}
@@ -3290,6 +3340,10 @@ export const GameScene3D: React.FC<{
             <div className="flex items-center gap-1 mb-0.5">
               <span className="text-orange-400">Alt+Arrastrar</span>
               <span>= Mover objeto</span>
+            </div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="text-blue-400">Doble-click</span>
+              <span>= Enfocar</span>
             </div>
             <div className="flex items-center gap-1 mb-0.5">
               <span className="text-pink-400">R</span>
