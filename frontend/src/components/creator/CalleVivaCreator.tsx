@@ -2,7 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react'
 
 // Lazy load 3D Creators para mejor rendimiento
 const Character3DCreator = lazy(() => import('./Character3DCreator'))
-const LocationCreator = lazy(() => import('./LocationCreator'))
+const GameScene3D = lazy(() => import('../game3d/GameScene3D'))
 
 // ============================================
 // CALLEVIVA CREATOR - VERSIÓN MEGA EXPANDIDA
@@ -1122,8 +1122,8 @@ const CalleVivaCreator = () => {
               <div className="animate-pulse text-xl">Cargando editor de locaciones...</div>
             </div>
           }>
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: '85vh' }}>
-              <LocationCreator />
+            <div className="rounded-xl shadow-lg overflow-hidden" style={{ height: '85vh' }}>
+              <GameScene3D />
             </div>
           </Suspense>
         ) : section ? (

@@ -1701,6 +1701,7 @@ interface MapPlacement {
   scale: number
   megacity?: boolean  // true = necesita textura externa (MegaCity pack)
   customName?: string // nombre personalizado editable
+  customTag?: string  // etiqueta/clasificación: edificio, decoracion, vegetacion, etc.
 }
 
 // Scenario type for persistence
@@ -1888,6 +1889,9 @@ const IntroCamera: React.FC<{
   return null
 }
 
+// Base mode types
+type BaseMode = 'city' | 'empty' | 'generated'
+
 // 3D Scene - city and controls
 const Scene: React.FC<{
   zone: CityZone
@@ -1897,12 +1901,27 @@ const Scene: React.FC<{
   placements: MapPlacement[]
   showIntro: boolean
   onIntroComplete: () => void
-}> = ({ zone, editorMode, onCoordCapture, markers, placements, showIntro, onIntroComplete }) => {
+  baseMode: BaseMode
+  groundColor: string
+  groundSize: number
+  selectedPlacementId: string | null
+  onSelectPlacement: (id: string | null) => void
+  onRightClickPlacement: (id: string, x: number, y: number) => void
+}> = ({ zone, editorMode, onCoordCapture, markers, placements, showIntro, onIntroComplete, baseMode, groundColor, groundSize, selectedPlacementId, onSelectPlacement, onRightClickPlacement }) => {
   const controlsRef = useRef<any>(null)
 
+  // Click en el suelo/ciudad - solo con Shift para colocar assets
   const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     if (!editorMode) return
     e.stopPropagation()
+
+    // Solo permitir colocar con Shift+Click (evita placement accidental al navegar)
+    if (!e.nativeEvent.shiftKey) {
+      // Sin Shift: deseleccionar cualquier objeto
+      onSelectPlacement(null)
+      return
+    }
+
     const point = e.point
     const coord: [number, number, number] = [
       Math.round(point.x * 10) / 10,
@@ -1910,7 +1929,7 @@ const Scene: React.FC<{
       Math.round(point.z * 10) / 10
     ]
     onCoordCapture(coord)
-  }, [editorMode, onCoordCapture])
+  }, [editorMode, onCoordCapture, onSelectPlacement])
 
   return (
     <>
@@ -1967,15 +1986,34 @@ const Scene: React.FC<{
         args={['#87ceeb', '#90785a', 0.35]}
       />
 
-      {/* Complete City Scene */}
-      <Suspense fallback={null}>
-        <CityScene position={[0, 0, 0]} scale={1} onClick={handleClick} />
-      </Suspense>
+      {/* Complete City Scene - only in 'city' mode */}
+      {baseMode === 'city' && (
+        <Suspense fallback={null}>
+          <CityScene position={[0, 0, 0]} scale={1} onClick={handleClick} />
+        </Suspense>
+      )}
 
-      {/* Assets placed via editor */}
+      {/* Ground plane for empty/generated modes - Y=-0.5 para no tapar objetos en Y=0 */}
+      {baseMode !== 'city' && (
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, -0.5, 0]}
+          receiveShadow
+          onClick={handleClick}
+        >
+          <planeGeometry args={[groundSize, groundSize]} />
+          <meshStandardMaterial color={groundColor} roughness={0.9} />
+        </mesh>
+      )}
 
-      {/* Editor placed assets */}
-      <PlacedAssets placements={placements} />
+      {/* Editor placed assets - clickable for selection */}
+      <PlacedAssets
+        placements={placements}
+        selectedId={selectedPlacementId}
+        onSelect={onSelectPlacement}
+        onRightClick={onRightClickPlacement}
+        editorMode={editorMode}
+      />
 
       {/* Editor mode markers */}
       {editorMode && markers.map((pos, i) => (
@@ -2012,28 +2050,82 @@ const getAssetLabel = (category: AssetCategory, assetKey: string): string => {
   return item.displayName || item.label
 }
 
+// Clickable wrapper for placed assets (for selection in editor mode)
+const ClickableAsset: React.FC<{
+  placement: MapPlacement
+  isSelected: boolean
+  onClick: (id: string) => void
+  onRightClick: (id: string, screenX: number, screenY: number) => void
+  editorMode: boolean
+}> = ({ placement, isSelected, onClick, onRightClick, editorMode }) => {
+  const url = getAssetUrl(placement.category, placement.assetKey)
+  if (!url) return null
+
+  const VehicleComponent = placement.megacity ? MegaCityVehicle : StaticVehicle
+
+  return (
+    <group
+      onClick={(e) => {
+        if (editorMode) {
+          e.stopPropagation()
+          onClick(placement.id)
+        }
+      }}
+      onPointerDown={(e) => {
+        // Right click (button 2)
+        if (editorMode && e.nativeEvent.button === 2) {
+          e.stopPropagation()
+          onRightClick(placement.id, e.nativeEvent.clientX, e.nativeEvent.clientY)
+        }
+      }}
+    >
+      <VehicleComponent
+        url={url}
+        position={placement.position}
+        rotation={placement.rotation}
+        scale={placement.scale}
+      />
+      {/* Selection indicator - glowing ring around selected object */}
+      {isSelected && (
+        <mesh position={[placement.position[0], placement.position[1] + 0.1, placement.position[2]]}>
+          <ringGeometry args={[3 * placement.scale, 4 * placement.scale, 32]} />
+          <meshBasicMaterial color="#ffcc00" transparent opacity={0.8} side={THREE.DoubleSide} />
+        </mesh>
+      )}
+    </group>
+  )
+}
+
 // Render placed assets from editor
-const PlacedAssets: React.FC<{ placements: MapPlacement[] }> = ({ placements }) => {
+const PlacedAssets: React.FC<{
+  placements: MapPlacement[]
+  selectedId: string | null
+  onSelect: (id: string | null) => void
+  onRightClick: (id: string, x: number, y: number) => void
+  editorMode: boolean
+}> = ({ placements, selectedId, onSelect, onRightClick, editorMode }) => {
+  const handleClick = useCallback((id: string) => {
+    onSelect(id)
+  }, [onSelect])
+
+  const handleRightClick = useCallback((id: string, x: number, y: number) => {
+    onSelect(id) // También seleccionar al hacer click derecho
+    onRightClick(id, x, y)
+  }, [onSelect, onRightClick])
+
   return (
     <>
-      {placements.map(p => {
-        const url = getAssetUrl(p.category, p.assetKey)
-        if (!url) return null
-
-        // Usar MegaCityVehicle si el asset necesita textura externa
-        const VehicleComponent = p.megacity ? MegaCityVehicle : StaticVehicle
-
-        return (
-          <Suspense key={p.id} fallback={null}>
-            <VehicleComponent
-              url={url}
-              position={p.position}
-              rotation={p.rotation}
-              scale={p.scale}
-            />
-          </Suspense>
-        )
-      })}
+      {placements.map(p => (
+        <Suspense key={p.id} fallback={null}>
+          <ClickableAsset
+            placement={p}
+            isSelected={selectedId === p.id}
+            onClick={handleClick}
+            onRightClick={handleRightClick}
+            editorMode={editorMode}
+          />
+        </Suspense>
+      ))}
     </>
   )
 }
@@ -2219,8 +2311,23 @@ export const GameScene3D: React.FC<{
   const [placements, setPlacements] = useState<MapPlacement[]>([])
   const [pendingPosition, setPendingPosition] = useState<[number, number, number] | null>(null)
   const [markers, setMarkers] = useState<[number, number, number][]>([])
+  const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const [editorPanelCollapsed, setEditorPanelCollapsed] = useState(false)
   const zone = getZone(currentZoneId)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Obtener el placement seleccionado
+  const selectedPlacement = placements.find(p => p.id === selectedPlacementId)
+
+  // Cerrar menú contextual al hacer click fuera
+  const closeContextMenu = useCallback(() => setContextMenu(null), [])
+
+  // Abrir menú contextual al hacer click derecho en un objeto
+  const handleRightClickPlacement = useCallback((id: string, x: number, y: number) => {
+    setSelectedPlacementId(id)
+    setContextMenu({ x, y })
+  }, [])
 
   // Metadata del escenario
   const [scenarioName, setScenarioName] = useState('')
@@ -2232,6 +2339,33 @@ export const GameScene3D: React.FC<{
 
   // Intro animation state - only on first load with panoramica
   const [showIntro, setShowIntro] = useState(zoneId === 'panoramica')
+
+  // Base mode: 'city' (with City_2.glb), 'generated' (tiles), 'empty' (just ground)
+  const [baseMode, setBaseMode] = useState<BaseMode>('city')
+
+  // Ground color for empty/generated modes
+  const [groundColor, setGroundColor] = useState('#4a7c59') // verde por defecto
+
+  // Ground size for empty/generated modes
+  const [groundSize, setGroundSize] = useState(400) // 400x400 por defecto
+
+  // Tamaños predefinidos para el canvas
+  const GROUND_SIZES = [
+    { size: 100, name: 'Pequeño', icon: '🔲' },
+    { size: 200, name: 'Mediano', icon: '⬜' },
+    { size: 400, name: 'Grande', icon: '🟩' },
+    { size: 800, name: 'Extra Grande', icon: '🗺️' },
+  ]
+
+  // Colores predefinidos para el terreno
+  const GROUND_COLORS = [
+    { color: '#4a7c59', name: 'Césped', icon: '🌿' },
+    { color: '#1e3a5f', name: 'Mar', icon: '🌊' },
+    { color: '#5bb3d0', name: 'Lago', icon: '💧' },
+    { color: '#6b7280', name: 'Concreto', icon: '🏗️' },
+    { color: '#8b6914', name: 'Arena', icon: '🏖️' },
+    { color: '#4a3728', name: 'Tierra', icon: '🪨' },
+  ]
 
   // Cargar lista de escenarios al montar
   React.useEffect(() => {
@@ -2514,6 +2648,140 @@ export const GameScene3D: React.FC<{
     ))
   }, [])
 
+  const updatePlacementTag = useCallback((id: string, customTag: string) => {
+    setPlacements(prev => prev.map(p =>
+      p.id === id ? { ...p, customTag } : p
+    ))
+  }, [])
+
+  // Mover placement (ajustar posición)
+  const movePlacement = useCallback((id: string, axis: 'x' | 'y' | 'z', delta: number) => {
+    setPlacements(prev => prev.map(p => {
+      if (p.id !== id) return p
+      const newPos: [number, number, number] = [...p.position]
+      const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2
+      newPos[axisIndex] = Math.round((newPos[axisIndex] + delta) * 10) / 10
+      return { ...p, position: newPos }
+    }))
+  }, [])
+
+  // Rotar placement
+  const rotatePlacement = useCallback((id: string, rotation: number) => {
+    setPlacements(prev => prev.map(p =>
+      p.id === id ? { ...p, rotation } : p
+    ))
+  }, [])
+
+  // Escalar placement
+  const scalePlacement = useCallback((id: string, scale: number) => {
+    setPlacements(prev => prev.map(p =>
+      p.id === id ? { ...p, scale: Math.max(0.1, Math.min(5, scale)) } : p
+    ))
+  }, [])
+
+  // Duplicar placement
+  const duplicatePlacement = useCallback((id: string) => {
+    const original = placements.find(p => p.id === id)
+    if (!original) return
+
+    const newPlacement: MapPlacement = {
+      ...original,
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      position: [
+        original.position[0] + 5,
+        original.position[1],
+        original.position[2] + 5
+      ],
+      customName: original.customName ? `${original.customName} (copia)` : undefined,
+    }
+    setPlacements(prev => [...prev, newPlacement])
+    setSelectedPlacementId(newPlacement.id)
+  }, [placements])
+
+  // ==== GENERADOR DE TERRENO BASE ====
+  const TERRAIN_TILES = {
+    road: [
+      'roadTile1x1001', 'roadTile1x1002', 'roadTile1x1003', 'roadTile1x1004',
+      'roadTile1x1005', 'roadTile1x1006', 'roadTile1x1007', 'roadTile1x1008',
+      'roadTile1x1009', 'roadTile1x1010', 'roadTile1x1011', 'roadTile1x1012',
+      'roadTile2x2001', 'roadTile2x2002', 'roadTile2x2003', 'roadTile2x2004',
+      'roadTile2x2005', 'roadTile2x2006', 'roadTile2x2007', 'roadTile2x2008',
+    ],
+    home: [
+      'tileForHome1x1001', 'tileForHome1x1002', 'tileForHome1x1003', 'tileForHome1x1004',
+      'tileForHome1x1005', 'tileForHome1x1006', 'tileForHome1x1007', 'tileForHome1x1008',
+      'tileForHome1x1009', 'tileForHome1x1010', 'tileForHome1x1011', 'tileForHome1x1012',
+      'tileForHome1x1013', 'tileForHome1x1014', 'tileForHome1x1015', 'tileForHome1x1016',
+    ],
+    beach: [
+      'beachTile1x1001', 'beachTile1x1002', 'beachTile1x1003', 'beachTile1x1004',
+      'beachTile1x1005', 'beachTile1x1006', 'beachTile1x1007', 'beachTile1x1008',
+      'beachTile1x1009',
+    ],
+    parking: [
+      'parkingTile2x2001', 'parkingTile2x2002', 'parkingTile2x2003', 'parkingTile2x2004',
+    ],
+    port: [
+      'portTile1x1001', 'portTile1x1003', 'portTile1x1004', 'portTile1x1005',
+      'portTile1x1006', 'portTile1x1007',
+    ],
+  }
+
+  const generateBaseTerrain = useCallback((gridSize: number = 5) => {
+    const tileSize = 20 // unidades 3D por tile
+    const newPlacements: MapPlacement[] = []
+
+    // Pesos de probabilidad por tipo
+    const weights = {
+      road: 0.40,     // 40% carreteras
+      home: 0.35,     // 35% suelo base
+      beach: 0.12,    // 12% playa
+      parking: 0.06,  // 6% parking
+      port: 0.07,     // 7% puerto
+    }
+
+    // Selección aleatoria ponderada
+    const weightedRandom = (): keyof typeof weights => {
+      const rand = Math.random()
+      let sum = 0
+      for (const [type, weight] of Object.entries(weights)) {
+        sum += weight
+        if (rand <= sum) return type as keyof typeof weights
+      }
+      return 'home'
+    }
+
+    // Centrar el grid en el origen
+    // El grid de N tiles tiene N-1 espacios entre centros
+    // Para centrar simétrico: offset = (N-1) * tileSize / 2
+    const offset = ((gridSize - 1) * tileSize) / 2
+
+    for (let x = 0; x < gridSize; x++) {
+      for (let z = 0; z < gridSize; z++) {
+        const tileType = weightedRandom()
+        const tiles = TERRAIN_TILES[tileType]
+        const tileKey = tiles[Math.floor(Math.random() * tiles.length)]
+
+        newPlacements.push({
+          id: `terrain-${x}-${z}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          category: 'cfCityFull' as AssetCategory,
+          assetKey: tileKey,
+          position: [
+            x * tileSize - offset,
+            0,
+            z * tileSize - offset
+          ],
+          rotation: Math.floor(Math.random() * 4) * (Math.PI / 2), // 0, 90, 180, 270 grados
+          scale: 1,
+        })
+      }
+    }
+
+    setPlacements(newPlacements)
+    setScenarioName('')
+    setScenarioCode('')
+  }, [])
+
   return (
     <div className="relative w-full h-screen bg-gray-900">
       {/* 3D Canvas - shadows disabled for performance test */}
@@ -2528,7 +2796,7 @@ export const GameScene3D: React.FC<{
       >
         <Suspense fallback={<Loader />}>
           <Scene
-            key={zone.id}
+            key={`${zone.id}-${baseMode}-${groundColor}-${groundSize}`}
             zone={zone}
             editorMode={editorMode}
             onCoordCapture={handleCoordCapture}
@@ -2536,6 +2804,12 @@ export const GameScene3D: React.FC<{
             placements={placements}
             showIntro={showIntro}
             onIntroComplete={handleIntroComplete}
+            baseMode={baseMode}
+            groundColor={groundColor}
+            groundSize={groundSize}
+            selectedPlacementId={selectedPlacementId}
+            onSelectPlacement={setSelectedPlacementId}
+            onRightClickPlacement={handleRightClickPlacement}
           />
         </Suspense>
       </Canvas>
@@ -2575,8 +2849,12 @@ export const GameScene3D: React.FC<{
         </div>
       </div>
 
-      {/* Instructions */}
-      <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm rounded-xl px-4 py-3 text-white text-sm">
+      {/* Instructions - se mueve cuando el panel editor está abierto */}
+      <div
+        className={`absolute bottom-4 bg-black/60 backdrop-blur-sm rounded-xl px-4 py-3 text-white text-sm transition-all duration-300 ${
+          editorMode && !editorPanelCollapsed ? 'left-80' : 'left-4'
+        }`}
+      >
         <div className="font-bold mb-1">Controles:</div>
         <div className="text-gray-300 text-xs">
           🖱️ Arrastrar = Rotar<br/>
@@ -2602,10 +2880,52 @@ export const GameScene3D: React.FC<{
         {editorMode ? '🎯 MODO EDITOR ON' : '🎯 Editor Mode'}
       </button>
 
-      {/* Editor Panel - shows placements */}
+      {/* Editor Panel - Collapsible Slide-out Drawer */}
       {editorMode && (
-        <div className="absolute top-20 left-4 bg-black/90 backdrop-blur-sm rounded-xl px-4 py-3 text-white w-72">
-          <div className="font-bold mb-2">🎯 Editor de Mapa</div>
+        <>
+          {/* Tab para abrir/cerrar el panel cuando está colapsado */}
+          <button
+            onClick={() => setEditorPanelCollapsed(!editorPanelCollapsed)}
+            className={`absolute top-20 z-30 bg-black/90 backdrop-blur-sm text-white px-2 py-4 rounded-r-lg transition-all duration-300 hover:bg-black ${
+              editorPanelCollapsed ? 'left-0' : 'left-72'
+            }`}
+            title={editorPanelCollapsed ? 'Abrir panel' : 'Cerrar panel'}
+          >
+            <span className="text-lg">{editorPanelCollapsed ? '▶' : '◀'}</span>
+          </button>
+
+          {/* Panel principal con animación de slide */}
+          <div
+            className={`absolute top-20 bg-black/90 backdrop-blur-sm rounded-r-xl px-4 py-3 text-white w-72 max-h-[calc(100vh-120px)] overflow-y-auto transition-all duration-300 z-20 ${
+              editorPanelCollapsed ? '-left-72' : 'left-0'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-bold">🎯 Editor de Mapa</span>
+              <button
+                onClick={() => setEditorPanelCollapsed(true)}
+                className="text-gray-400 hover:text-white text-xs"
+                title="Minimizar panel"
+              >
+                ◀
+              </button>
+            </div>
+
+          {/* Instrucciones de uso */}
+          <div className="text-xs text-gray-400 mb-3 bg-gray-800/50 rounded px-2 py-1.5">
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="text-yellow-400">Shift+Click</span>
+              <span>= Colocar</span>
+            </div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="text-cyan-400">Click</span>
+              <span>= Seleccionar</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-green-400">Click derecho</span>
+              <span>= Editar objeto</span>
+            </div>
+          </div>
 
           {/* Metadata del escenario */}
           <div className="space-y-2 mb-3 pb-3 border-b border-gray-700">
@@ -2625,6 +2945,147 @@ export const GameScene3D: React.FC<{
             />
           </div>
 
+          {/* Selector de modo base */}
+          <div className="mb-3 pb-3 border-b border-gray-700">
+            <div className="text-xs text-gray-400 mb-2">Modo de base:</div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => { setBaseMode('city'); setPlacements([]); }}
+                className={`flex-1 px-2 py-1.5 rounded text-xs transition-all ${
+                  baseMode === 'city'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+                title="Con la ciudad completa"
+              >
+                🏙️ Ciudad
+              </button>
+              <button
+                onClick={() => { setBaseMode('generated'); setPlacements([]); }}
+                className={`flex-1 px-2 py-1.5 rounded text-xs transition-all ${
+                  baseMode === 'generated'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+                title="Terreno generado con tiles"
+              >
+                🎲 Generado
+              </button>
+              <button
+                onClick={() => { setBaseMode('empty'); setPlacements([]); }}
+                className={`flex-1 px-2 py-1.5 rounded text-xs transition-all ${
+                  baseMode === 'empty'
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+                title="Terreno vacío"
+              >
+                🌿 Vacío
+              </button>
+            </div>
+          </div>
+
+          {/* Selector de color del terreno - solo en modos vacío/generado */}
+          {baseMode !== 'city' && (
+          <div className="mb-3 pb-3 border-b border-gray-700">
+            <div className="text-xs text-gray-400 mb-2">Color del terreno:</div>
+            <div className="flex gap-1 flex-wrap">
+              {GROUND_COLORS.map((gc) => (
+                <button
+                  key={gc.color}
+                  onClick={() => setGroundColor(gc.color)}
+                  className={`px-2 py-1 rounded text-xs transition-all ${
+                    groundColor === gc.color
+                      ? 'ring-2 ring-white ring-offset-1 ring-offset-gray-900'
+                      : 'opacity-70 hover:opacity-100'
+                  }`}
+                  style={{ backgroundColor: gc.color }}
+                  title={gc.name}
+                >
+                  {gc.icon}
+                </button>
+              ))}
+            </div>
+          </div>
+          )}
+
+          {/* Selector de tamaño del canvas - solo en modos vacío/generado */}
+          {baseMode !== 'city' && (
+          <div className="mb-3 pb-3 border-b border-gray-700">
+            <div className="text-xs text-gray-400 mb-2">Tamaño del canvas:</div>
+            <div className="flex gap-1 flex-wrap">
+              {GROUND_SIZES.map((gs) => (
+                <button
+                  key={gs.size}
+                  onClick={() => setGroundSize(gs.size)}
+                  className={`px-2 py-1 rounded text-xs transition-all ${
+                    groundSize === gs.size
+                      ? 'bg-coral text-white ring-2 ring-coral ring-offset-1 ring-offset-gray-900'
+                      : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                  }`}
+                  title={`${gs.name} (${gs.size}x${gs.size})`}
+                >
+                  {gs.icon} {gs.size}
+                </button>
+              ))}
+            </div>
+            {/* Input para tamaño personalizado */}
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-xs text-gray-400">Custom:</span>
+              <input
+                type="number"
+                min={50}
+                max={2000}
+                step={50}
+                value={groundSize}
+                onChange={(e) => setGroundSize(Math.max(50, Math.min(2000, parseInt(e.target.value) || 100)))}
+                className="w-20 bg-gray-800 text-white text-xs px-2 py-1 rounded border border-gray-600 focus:border-coral focus:outline-none"
+              />
+              <span className="text-xs text-gray-500">unidades</span>
+            </div>
+          </div>
+          )}
+
+          {/* Generador de terreno base - solo en modo generado */}
+          {baseMode === 'generated' && (
+          <div className="mb-3 pb-3 border-b border-gray-700">
+            <div className="text-xs text-gray-400 mb-2">Generar terreno aleatorio (centrado):</div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => generateBaseTerrain(3)}
+                className="flex-1 bg-emerald-700 hover:bg-emerald-600 px-2 py-1.5 rounded text-xs"
+                title="Grilla 3x3 (9 tiles) = 60x60 unidades"
+              >
+                3x3
+              </button>
+              <button
+                onClick={() => generateBaseTerrain(5)}
+                className="flex-1 bg-emerald-700 hover:bg-emerald-600 px-2 py-1.5 rounded text-xs"
+                title="Grilla 5x5 (25 tiles) = 100x100 unidades"
+              >
+                5x5
+              </button>
+              <button
+                onClick={() => generateBaseTerrain(7)}
+                className="flex-1 bg-emerald-700 hover:bg-emerald-600 px-2 py-1.5 rounded text-xs"
+                title="Grilla 7x7 (49 tiles) = 140x140 unidades"
+              >
+                7x7
+              </button>
+              <button
+                onClick={() => generateBaseTerrain(9)}
+                className="flex-1 bg-emerald-700 hover:bg-emerald-600 px-2 py-1.5 rounded text-xs"
+                title="Grilla 9x9 (81 tiles) = 180x180 unidades"
+              >
+                9x9
+              </button>
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              Tile = 20 unidades. Los tiles se centran en el canvas.
+            </div>
+          </div>
+          )}
+
           <div className="text-xs text-gray-400 mb-3">Click en el mapa para agregar elementos</div>
 
           {placements.length > 0 && (
@@ -2636,37 +3097,89 @@ export const GameScene3D: React.FC<{
                   const items = cat?.items as Record<string, { label: string; displayName: string }> | undefined
                   const item = items?.[p.assetKey]
                   const fileName = item?.label || p.assetKey
+                  const isSelected = selectedPlacementId === p.id
 
                   return (
-                    <div key={p.id} className="py-2 border-b border-gray-700 last:border-0">
+                    <div
+                      key={p.id}
+                      className={`py-2 border-b border-gray-700 last:border-0 cursor-pointer transition-all ${
+                        isSelected ? 'bg-cyan-900/50 -mx-2 px-2 rounded' : 'hover:bg-gray-700/50'
+                      }`}
+                      onClick={() => setSelectedPlacementId(isSelected ? null : p.id)}
+                    >
                       <div className="flex justify-between items-start mb-1">
                         <div className="flex flex-col flex-1">
-                          <span className="text-gray-400 text-[10px]">
+                          <span className={`text-[10px] ${isSelected ? 'text-cyan-300' : 'text-gray-400'}`}>
+                            {isSelected && <span className="mr-1">▶</span>}
                             {p.megacity && <span className="text-purple-400 mr-1">◆</span>}
                             {fileName}
                           </span>
                         </div>
-                        <button
-                          onClick={() => removePlacement(p.id)}
-                          className="text-red-400 hover:text-red-300 text-xs ml-2"
-                        >
-                          ✕
-                        </button>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); duplicatePlacement(p.id) }}
+                            className="text-blue-400 hover:text-blue-300 text-xs"
+                            title="Duplicar"
+                          >
+                            📋
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removePlacement(p.id) }}
+                            className="text-red-400 hover:text-red-300 text-xs"
+                            title="Eliminar"
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
                       <input
                         type="text"
                         value={p.customName || ''}
                         onChange={(e) => updatePlacementName(p.id, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
                         placeholder="Nombre personalizado..."
                         className="w-full bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600 focus:border-coral focus:outline-none"
                       />
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-gray-500 text-[10px]">🏷️</span>
+                        <input
+                          type="text"
+                          list="tag-suggestions"
+                          value={p.customTag || ''}
+                          onChange={(e) => updatePlacementTag(p.id, e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          placeholder="Etiqueta..."
+                          className="flex-1 bg-gray-800 text-gray-300 text-[10px] px-2 py-0.5 rounded border border-gray-700 focus:border-emerald-500 focus:outline-none"
+                        />
+                      </div>
                     </div>
                   )
                 })}
+                <datalist id="tag-suggestions">
+                  <option value="edificio" />
+                  <option value="decoracion" />
+                  <option value="vegetacion" />
+                  <option value="vehiculo" />
+                  <option value="personaje" />
+                  <option value="tile" />
+                  <option value="calle" />
+                  <option value="mobiliario" />
+                </datalist>
               </div>
 
-              {/* Botones de archivo */}
-              <div className="flex gap-1 mb-2">
+              {/* Indicador de objeto seleccionado */}
+              {selectedPlacement && (
+                <div className="bg-cyan-900/30 rounded p-2 mb-3 border border-cyan-700 text-xs">
+                  <span className="text-cyan-300">Seleccionado:</span>{' '}
+                  <span className="text-white">{selectedPlacement.customName || selectedPlacement.assetKey}</span>
+                  <div className="text-gray-400 text-[10px] mt-1">Click derecho sobre el objeto para editar</div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Botones de archivo */}
+          <div className="flex gap-1 mb-2">
                 <button
                   onClick={exportJSON}
                   className="flex-1 bg-blue-600 hover:bg-blue-500 px-2 py-1.5 rounded text-xs"
@@ -2798,21 +3311,20 @@ export const GameScene3D: React.FC<{
                 </div>
               )}
 
-              <button
-                onClick={clearAll}
-                className="w-full bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded text-xs"
-              >
-                🗑️ Limpiar Todo
-              </button>
-            </>
-          )}
+          <button
+            onClick={clearAll}
+            className="w-full bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded text-xs"
+          >
+            🗑️ Limpiar Todo
+          </button>
 
           {placements.length === 0 && (
             <div className="text-gray-500 text-center py-4">
               Sin elementos aún.<br/>Haz click en el mapa.
             </div>
           )}
-        </div>
+          </div>
+        </>
       )}
 
       {/* Asset Selector Popup */}
@@ -2821,6 +3333,138 @@ export const GameScene3D: React.FC<{
           position={pendingPosition}
           onSelect={handleAssetSelect}
           onCancel={handleCancelSelect}
+        />
+      )}
+
+      {/* Context Menu - Click derecho en objeto */}
+      {contextMenu && selectedPlacement && (
+        <div
+          className="fixed bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700 p-3 z-50 text-white w-56"
+          style={{
+            left: Math.min(contextMenu.x, window.innerWidth - 240),
+            top: Math.min(contextMenu.y, window.innerHeight - 320),
+          }}
+          onClick={(e) => e.stopPropagation()}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-700">
+            <span className="text-xs font-bold text-cyan-300 truncate flex-1">
+              {selectedPlacement.customName || selectedPlacement.assetKey}
+            </span>
+            <button
+              onClick={closeContextMenu}
+              className="text-gray-400 hover:text-white ml-2"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Posición con múltiples incrementos */}
+          <div className="mb-3">
+            <div className="text-[10px] text-gray-400 mb-1">Posición:</div>
+            <div className="grid grid-cols-3 gap-1 mb-1">
+              {(['x', 'y', 'z'] as const).map((axis, i) => (
+                <div key={axis} className="flex flex-col items-center">
+                  <span className="text-[9px] text-gray-500 uppercase">{axis}</span>
+                  <span className="text-[10px] font-mono">
+                    {selectedPlacement.position[i]}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Controles de incremento */}
+            <div className="space-y-1">
+              {[0.5, 1, 5].map(delta => (
+                <div key={delta} className="flex gap-0.5">
+                  <span className="text-[8px] text-gray-500 w-6">±{delta}</span>
+                  {(['x', 'y', 'z'] as const).map(axis => (
+                    <div key={axis} className="flex gap-px flex-1">
+                      <button
+                        onClick={() => movePlacement(selectedPlacement.id, axis, -delta)}
+                        className="flex-1 bg-gray-700 hover:bg-gray-600 py-0.5 rounded-l text-[9px]"
+                      >-</button>
+                      <button
+                        onClick={() => movePlacement(selectedPlacement.id, axis, delta)}
+                        className="flex-1 bg-gray-700 hover:bg-gray-600 py-0.5 rounded-r text-[9px]"
+                      >+</button>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Rotación */}
+          <div className="mb-3">
+            <div className="text-[10px] text-gray-400 mb-1">Rotación:</div>
+            <div className="flex gap-1">
+              {[0, Math.PI/2, Math.PI, Math.PI*1.5].map((rot, i) => (
+                <button
+                  key={rot}
+                  onClick={() => rotatePlacement(selectedPlacement.id, rot)}
+                  className={`flex-1 py-1 rounded text-[10px] ${
+                    Math.abs(selectedPlacement.rotation - rot) < 0.1
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-gray-700 hover:bg-gray-600'
+                  }`}
+                >
+                  {i * 90}°
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Escala */}
+          <div className="mb-3">
+            <div className="text-[10px] text-gray-400 mb-1">
+              Escala: {selectedPlacement.scale.toFixed(1)}x
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => scalePlacement(selectedPlacement.id, selectedPlacement.scale - 0.1)}
+                className="bg-gray-700 hover:bg-gray-600 w-6 h-6 rounded text-xs"
+              >-</button>
+              <input
+                type="range"
+                min="0.1"
+                max="3"
+                step="0.1"
+                value={selectedPlacement.scale}
+                onChange={(e) => scalePlacement(selectedPlacement.id, parseFloat(e.target.value))}
+                className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <button
+                onClick={() => scalePlacement(selectedPlacement.id, selectedPlacement.scale + 0.1)}
+                className="bg-gray-700 hover:bg-gray-600 w-6 h-6 rounded text-xs"
+              >+</button>
+            </div>
+          </div>
+
+          {/* Acciones */}
+          <div className="flex gap-1 pt-2 border-t border-gray-700">
+            <button
+              onClick={() => { duplicatePlacement(selectedPlacement.id); closeContextMenu() }}
+              className="flex-1 bg-blue-600 hover:bg-blue-500 py-1.5 rounded text-xs"
+            >
+              📋 Duplicar
+            </button>
+            <button
+              onClick={() => { removePlacement(selectedPlacement.id); closeContextMenu() }}
+              className="flex-1 bg-red-600 hover:bg-red-500 py-1.5 rounded text-xs"
+            >
+              🗑️ Eliminar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Overlay para cerrar context menu */}
+      {contextMenu && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={closeContextMenu}
+          onContextMenu={(e) => { e.preventDefault(); closeContextMenu() }}
         />
       )}
     </div>
