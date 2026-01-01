@@ -1905,10 +1905,17 @@ const Scene: React.FC<{
   groundColor: string
   groundSize: number
   selectedPlacementId: string | null
-  onSelectPlacement: (id: string | null) => void
+  selectedIds: Set<string>
+  onSelectPlacement: (id: string | null, ctrlKey?: boolean) => void
   onRightClickPlacement: (id: string, x: number, y: number) => void
-}> = ({ zone, editorMode, onCoordCapture, markers, placements, showIntro, onIntroComplete, baseMode, groundColor, groundSize, selectedPlacementId, onSelectPlacement, onRightClickPlacement }) => {
+  // Drag & Drop
+  isDragging: boolean
+  onDragStart: (id: string, y: number) => void
+  onDragMove: (x: number, z: number) => void
+  onDragEnd: () => void
+}> = ({ zone, editorMode, onCoordCapture, markers, placements, showIntro, onIntroComplete, baseMode, groundColor, groundSize, selectedPlacementId, selectedIds, onSelectPlacement, onRightClickPlacement, isDragging, onDragStart, onDragMove, onDragEnd }) => {
   const controlsRef = useRef<any>(null)
+  const { camera, raycaster, pointer } = useThree()
 
   // Click en el suelo/ciudad - solo con Shift para colocar assets
   const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
@@ -1930,6 +1937,34 @@ const Scene: React.FC<{
     ]
     onCoordCapture(coord)
   }, [editorMode, onCoordCapture, onSelectPlacement])
+
+  // Deshabilitar OrbitControls durante el drag
+  useEffect(() => {
+    if (controlsRef.current) {
+      controlsRef.current.enabled = !isDragging
+    }
+  }, [isDragging])
+
+  // Handler para mover el objeto durante el drag
+  const dragPlane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
+  const intersectionPoint = useRef(new THREE.Vector3())
+
+  // Actualizar el plano de drag cuando cambia el objeto arrastrado
+  const handlePointerMove = useCallback(() => {
+    if (!isDragging) return
+
+    // Raycast al plano horizontal Y
+    raycaster.setFromCamera(pointer, camera)
+    if (raycaster.ray.intersectPlane(dragPlane.current, intersectionPoint.current)) {
+      onDragMove(intersectionPoint.current.x, intersectionPoint.current.z)
+    }
+  }, [isDragging, camera, raycaster, pointer, onDragMove])
+
+  const handlePointerUp = useCallback(() => {
+    if (isDragging) {
+      onDragEnd()
+    }
+  }, [isDragging, onDragEnd])
 
   return (
     <>
@@ -2006,14 +2041,23 @@ const Scene: React.FC<{
         </mesh>
       )}
 
-      {/* Editor placed assets - clickable for selection */}
-      <PlacedAssets
-        placements={placements}
-        selectedId={selectedPlacementId}
-        onSelect={onSelectPlacement}
-        onRightClick={onRightClickPlacement}
-        editorMode={editorMode}
-      />
+      {/* Drag event capture group */}
+      <group
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+      >
+        {/* Editor placed assets - clickable for selection */}
+        <PlacedAssets
+          placements={placements}
+          selectedId={selectedPlacementId}
+          selectedIds={selectedIds}
+          onSelect={onSelectPlacement}
+          onRightClick={onRightClickPlacement}
+          editorMode={editorMode}
+          onDragStart={onDragStart}
+          isDragging={isDragging}
+        />
+      </group>
 
       {/* Editor mode markers */}
       {editorMode && markers.map((pos, i) => (
@@ -2054,10 +2098,12 @@ const getAssetLabel = (category: AssetCategory, assetKey: string): string => {
 const ClickableAsset: React.FC<{
   placement: MapPlacement
   isSelected: boolean
-  onClick: (id: string) => void
+  onClick: (id: string, ctrlKey?: boolean) => void
   onRightClick: (id: string, screenX: number, screenY: number) => void
   editorMode: boolean
-}> = ({ placement, isSelected, onClick, onRightClick, editorMode }) => {
+  onDragStart: (id: string, y: number) => void
+  isDragging: boolean
+}> = ({ placement, isSelected, onClick, onRightClick, editorMode, onDragStart, isDragging }) => {
   const url = getAssetUrl(placement.category, placement.assetKey)
   if (!url) return null
 
@@ -2066,16 +2112,34 @@ const ClickableAsset: React.FC<{
   return (
     <group
       onClick={(e) => {
-        if (editorMode) {
+        if (editorMode && !isDragging) {
           e.stopPropagation()
-          onClick(placement.id)
+          onClick(placement.id, e.nativeEvent.ctrlKey || e.nativeEvent.metaKey)
         }
       }}
       onPointerDown={(e) => {
-        // Right click (button 2)
-        if (editorMode && e.nativeEvent.button === 2) {
+        if (!editorMode) return
+
+        // Alt + Left click = start drag
+        if (e.nativeEvent.altKey && e.nativeEvent.button === 0) {
           e.stopPropagation()
+          onDragStart(placement.id, placement.position[1])
+          return
+        }
+
+        // Right click (button 2) = context menu
+        if (e.nativeEvent.button === 2) {
+          e.stopPropagation()
+          e.nativeEvent.preventDefault()
+          e.nativeEvent.stopPropagation()
           onRightClick(placement.id, e.nativeEvent.clientX, e.nativeEvent.clientY)
+        }
+      }}
+      onContextMenu={(e) => {
+        // Prevent browser context menu on right-click
+        if (editorMode) {
+          e.stopPropagation()
+          e.nativeEvent.preventDefault()
         }
       }}
     >
@@ -2100,16 +2164,19 @@ const ClickableAsset: React.FC<{
 const PlacedAssets: React.FC<{
   placements: MapPlacement[]
   selectedId: string | null
-  onSelect: (id: string | null) => void
+  selectedIds: Set<string>
+  onSelect: (id: string | null, ctrlKey?: boolean) => void
   onRightClick: (id: string, x: number, y: number) => void
   editorMode: boolean
-}> = ({ placements, selectedId, onSelect, onRightClick, editorMode }) => {
-  const handleClick = useCallback((id: string) => {
-    onSelect(id)
+  onDragStart: (id: string, y: number) => void
+  isDragging: boolean
+}> = ({ placements, selectedId, selectedIds, onSelect, onRightClick, editorMode, onDragStart, isDragging }) => {
+  const handleClick = useCallback((id: string, ctrlKey: boolean = false) => {
+    onSelect(id, ctrlKey)
   }, [onSelect])
 
   const handleRightClick = useCallback((id: string, x: number, y: number) => {
-    onSelect(id) // También seleccionar al hacer click derecho
+    onSelect(id, false) // También seleccionar al hacer click derecho
     onRightClick(id, x, y)
   }, [onSelect, onRightClick])
 
@@ -2119,10 +2186,12 @@ const PlacedAssets: React.FC<{
         <Suspense key={p.id} fallback={null}>
           <ClickableAsset
             placement={p}
-            isSelected={selectedId === p.id}
+            isSelected={selectedId === p.id || selectedIds.has(p.id)}
             onClick={handleClick}
             onRightClick={handleRightClick}
             editorMode={editorMode}
+            onDragStart={onDragStart}
+            isDragging={isDragging}
           />
         </Suspense>
       ))}
@@ -2161,9 +2230,24 @@ const AssetSelectorPopup: React.FC<{
   const [selectedAsset, setSelectedAsset] = useState<string | null>(null)
   const [rotation, setRotation] = useState(0)
   const [heightOffset, setHeightOffset] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const handleAssetClick = (key: string) => {
     setSelectedAsset(key)
+  }
+
+  // Filtrar assets por búsqueda
+  const getFilteredAssets = () => {
+    if (!selectedCategory) return []
+    const items = ASSET_CATALOG[selectedCategory].items
+    if (!searchQuery.trim()) return Object.entries(items)
+
+    const query = searchQuery.toLowerCase()
+    return Object.entries(items).filter(([key, item]) => {
+      const label = (item as { label: string; displayName?: string }).label?.toLowerCase() || ''
+      const displayName = (item as { displayName?: string }).displayName?.toLowerCase() || ''
+      return label.includes(query) || displayName.includes(query) || key.toLowerCase().includes(query)
+    })
   }
 
   const handleConfirm = () => {
@@ -2200,14 +2284,25 @@ const AssetSelectorPopup: React.FC<{
         ) : !selectedAsset ? (
           <>
             <button
-              onClick={() => setSelectedCategory(null)}
+              onClick={() => { setSelectedCategory(null); setSearchQuery('') }}
               className="text-gray-400 hover:text-white text-sm mb-2"
             >
               ← Volver
             </button>
-            <div className="text-gray-400 text-sm mb-3">{ASSET_CATALOG[selectedCategory].label}:</div>
-            <div className="grid grid-cols-1 gap-1 max-h-60 overflow-y-auto">
-              {Object.entries(ASSET_CATALOG[selectedCategory].items).map(([key, item]) => {
+            <div className="text-gray-400 text-sm mb-2">{ASSET_CATALOG[selectedCategory].label}:</div>
+
+            {/* Search Input */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="🔍 Buscar asset..."
+              className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded-lg mb-2 border border-gray-700 focus:border-coral focus:outline-none"
+              autoFocus
+            />
+
+            <div className="grid grid-cols-1 gap-1 max-h-52 overflow-y-auto">
+              {getFilteredAssets().map(([key, item]) => {
                 const isMC = (item as { megacity?: boolean }).megacity
                 return (
                   <button
@@ -2217,14 +2312,19 @@ const AssetSelectorPopup: React.FC<{
                   >
                     <span className="font-bold">
                       {isMC && <span className="mr-1">◆</span>}
-                      {item.displayName || item.label}
+                      {(item as { displayName?: string }).displayName || (item as { label: string }).label}
                     </span>
-                    {item.displayName && (
-                      <span className="text-xs text-white/70">{item.label}</span>
+                    {(item as { displayName?: string }).displayName && (
+                      <span className="text-xs text-white/70">{(item as { label: string }).label}</span>
                     )}
                   </button>
                 )
               })}
+              {getFilteredAssets().length === 0 && (
+                <div className="text-gray-500 text-sm text-center py-4">
+                  No se encontraron assets
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -2308,12 +2408,72 @@ export const GameScene3D: React.FC<{
 }) => {
   const [currentZoneId, setCurrentZoneId] = useState(zoneId)
   const [editorMode, setEditorMode] = useState(false)
-  const [placements, setPlacements] = useState<MapPlacement[]>([])
+  const [placements, setPlacementsInternal] = useState<MapPlacement[]>([])
   const [pendingPosition, setPendingPosition] = useState<[number, number, number] | null>(null)
+
+  // Undo/Redo system
+  const [history, setHistory] = useState<MapPlacement[][]>([[]])
+  const [historyIndex, setHistoryIndex] = useState(0)
+  const MAX_HISTORY = 50
+
+  // Custom setPlacements that tracks history
+  const setPlacements = useCallback((action: MapPlacement[] | ((prev: MapPlacement[]) => MapPlacement[])) => {
+    setPlacementsInternal(prev => {
+      const newPlacements = typeof action === 'function' ? action(prev) : action
+      // Solo agregar al historial si cambió
+      if (JSON.stringify(newPlacements) !== JSON.stringify(prev)) {
+        setHistory(h => {
+          // Cortar el historial desde el índice actual
+          const newHistory = h.slice(0, historyIndex + 1)
+          newHistory.push(newPlacements)
+          // Limitar tamaño del historial
+          if (newHistory.length > MAX_HISTORY) {
+            newHistory.shift()
+            return newHistory
+          }
+          return newHistory
+        })
+        setHistoryIndex(i => Math.min(i + 1, MAX_HISTORY - 1))
+      }
+      return newPlacements
+    })
+  }, [historyIndex])
+
+  // Undo function
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1
+      setHistoryIndex(newIndex)
+      setPlacementsInternal(history[newIndex])
+    }
+  }, [historyIndex, history])
+
+  // Redo function
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1
+      setHistoryIndex(newIndex)
+      setPlacementsInternal(history[newIndex])
+    }
+  }, [historyIndex, history])
   const [markers, setMarkers] = useState<[number, number, number][]>([])
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set()) // Multi-selection
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [editorPanelCollapsed, setEditorPanelCollapsed] = useState(false)
+
+  // Drag & Drop states
+  const [isDragging, setIsDragging] = useState(false)
+  const [draggedId, setDraggedId] = useState<string | null>(null)
+  const [draggedY, setDraggedY] = useState(0) // Y del objeto siendo arrastrado
+
+  // Preview mode - oculta toda la UI para ver el escenario limpio
+  const [previewMode, setPreviewMode] = useState(false)
+
+  // Snap to Grid - alinea objetos a una cuadrícula
+  const [snapToGrid, setSnapToGrid] = useState(false)
+  const GRID_SIZE = 5 // tamaño de la cuadrícula en unidades
+
   const zone = getZone(currentZoneId)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -2328,6 +2488,188 @@ export const GameScene3D: React.FC<{
     setSelectedPlacementId(id)
     setContextMenu({ x, y })
   }, [])
+
+  // Manejo de selección (simple y múltiple)
+  const handleSelectPlacement = useCallback((id: string | null, ctrlKey: boolean = false) => {
+    if (!id) {
+      // Click en vacío - deseleccionar todo
+      setSelectedPlacementId(null)
+      setSelectedIds(new Set())
+      return
+    }
+
+    if (ctrlKey) {
+      // Ctrl+Click - agregar/quitar de la selección múltiple
+      setSelectedIds(prev => {
+        const newSet = new Set(prev)
+        if (newSet.has(id)) {
+          newSet.delete(id)
+        } else {
+          newSet.add(id)
+        }
+        return newSet
+      })
+      // También agregar el ID principal si no está
+      if (!selectedPlacementId) {
+        setSelectedPlacementId(id)
+      }
+    } else {
+      // Click normal - selección simple, limpiar multi-selección
+      setSelectedPlacementId(id)
+      setSelectedIds(new Set())
+    }
+  }, [selectedPlacementId])
+
+  // Drag & Drop handlers
+  const handleDragStart = useCallback((id: string, y: number) => {
+    setIsDragging(true)
+    setDraggedId(id)
+    setDraggedY(y)
+    setSelectedPlacementId(id)
+    closeContextMenu()
+  }, [closeContextMenu])
+
+  // Helper para snap to grid
+  const snapValue = useCallback((value: number) => {
+    if (!snapToGrid) return Math.round(value * 10) / 10
+    return Math.round(value / GRID_SIZE) * GRID_SIZE
+  }, [snapToGrid, GRID_SIZE])
+
+  const handleDragMove = useCallback((newX: number, newZ: number) => {
+    if (!isDragging || !draggedId) return
+
+    setPlacements(prev => prev.map(p => {
+      if (p.id !== draggedId) return p
+      return {
+        ...p,
+        position: [
+          snapValue(newX),
+          draggedY,
+          snapValue(newZ)
+        ] as [number, number, number]
+      }
+    }))
+  }, [isDragging, draggedId, draggedY, snapValue])
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false)
+    setDraggedId(null)
+  }, [])
+
+  // Rotar 90 grados con tecla R
+  const rotateSelected90 = useCallback(() => {
+    if (!selectedPlacementId) return
+    setPlacements(prev => prev.map(p => {
+      if (p.id !== selectedPlacementId) return p
+      // Sumar 90 grados (PI/2), mantener en rango [0, 2PI)
+      const newRotation = (p.rotation + Math.PI / 2) % (Math.PI * 2)
+      return { ...p, rotation: newRotation }
+    }))
+  }, [selectedPlacementId])
+
+  // Eliminar todos los seleccionados
+  const removeSelectedPlacements = useCallback(() => {
+    const idsToRemove = new Set([...selectedIds])
+    if (selectedPlacementId) idsToRemove.add(selectedPlacementId)
+
+    if (idsToRemove.size === 0) return
+
+    setPlacements(prev => prev.filter(p => !idsToRemove.has(p.id)))
+    setSelectedPlacementId(null)
+    setSelectedIds(new Set())
+  }, [selectedPlacementId, selectedIds])
+
+  // Duplicar todos los seleccionados
+  const duplicateSelectedPlacements = useCallback(() => {
+    const idsToDuplicate = new Set([...selectedIds])
+    if (selectedPlacementId && !selectedIds.has(selectedPlacementId)) {
+      idsToDuplicate.add(selectedPlacementId)
+    }
+
+    if (idsToDuplicate.size === 0) return
+
+    const newPlacements: MapPlacement[] = []
+    const newIds: string[] = []
+
+    placements.forEach(p => {
+      if (idsToDuplicate.has(p.id)) {
+        const newId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        newPlacements.push({
+          ...p,
+          id: newId,
+          position: [
+            p.position[0] + 5,
+            p.position[1],
+            p.position[2] + 5
+          ],
+          customName: p.customName ? `${p.customName} (copia)` : undefined,
+        })
+        newIds.push(newId)
+      }
+    })
+
+    setPlacements(prev => [...prev, ...newPlacements])
+    // Seleccionar los nuevos duplicados
+    setSelectedIds(new Set(newIds))
+    if (newIds.length > 0) {
+      setSelectedPlacementId(newIds[0])
+    }
+  }, [placements, selectedIds, selectedPlacementId])
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    if (!editorMode) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorar si está escribiendo en un input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
+      // R = Rotar 90 grados
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault()
+        rotateSelected90()
+      }
+
+      // P = Toggle Preview mode
+      if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault()
+        setPreviewMode(prev => !prev)
+      }
+
+      // G = Toggle Snap to Grid
+      if (e.key === 'g' || e.key === 'G') {
+        e.preventDefault()
+        setSnapToGrid(prev => !prev)
+      }
+
+      // Ctrl+Z = Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      }
+
+      // Ctrl+Shift+Z or Ctrl+Y = Redo
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault()
+        redo()
+      }
+
+      // Delete/Backspace = Eliminar seleccionados
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault()
+        removeSelectedPlacements()
+      }
+
+      // Ctrl+D = Duplicar seleccionados
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault()
+        duplicateSelectedPlacements()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [editorMode, rotateSelected90, undo, redo, removeSelectedPlacements, duplicateSelectedPlacements])
 
   // Metadata del escenario
   const [scenarioName, setScenarioName] = useState('')
@@ -2379,9 +2721,14 @@ export const GameScene3D: React.FC<{
   }, [])
 
   const handleCoordCapture = useCallback((coord: [number, number, number]) => {
-    setPendingPosition(coord)
-    setMarkers(prev => [...prev, coord])
-  }, [])
+    const snappedCoord: [number, number, number] = [
+      snapValue(coord[0]),
+      coord[1], // No snap en Y
+      snapValue(coord[2])
+    ]
+    setPendingPosition(snappedCoord)
+    setMarkers(prev => [...prev, snappedCoord])
+  }, [snapValue])
 
   const handleAssetSelect = useCallback((category: AssetCategory, assetKey: string, rotation: number, heightOffset: number) => {
     if (!pendingPosition) return
@@ -2808,8 +3155,13 @@ export const GameScene3D: React.FC<{
             groundColor={groundColor}
             groundSize={groundSize}
             selectedPlacementId={selectedPlacementId}
-            onSelectPlacement={setSelectedPlacementId}
+            selectedIds={selectedIds}
+            onSelectPlacement={handleSelectPlacement}
             onRightClickPlacement={handleRightClickPlacement}
+            isDragging={isDragging}
+            onDragStart={handleDragStart}
+            onDragMove={handleDragMove}
+            onDragEnd={handleDragEnd}
           />
         </Suspense>
       </Canvas>
@@ -2868,20 +3220,30 @@ export const GameScene3D: React.FC<{
         Centro: [{zone.center.join(', ')}]
       </div>
 
-      {/* Editor Mode Toggle */}
-      <button
-        onClick={() => setEditorMode(!editorMode)}
-        className={`absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg font-bold transition-all ${
-          editorMode
-            ? 'bg-red-500 text-white'
-            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-        }`}
-      >
-        {editorMode ? '🎯 MODO EDITOR ON' : '🎯 Editor Mode'}
-      </button>
+      {/* Editor Mode Toggle - Hidden in preview mode */}
+      {!previewMode && (
+        <button
+          onClick={() => setEditorMode(!editorMode)}
+          className={`absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg font-bold transition-all ${
+            editorMode
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+        >
+          {editorMode ? '🎯 MODO EDITOR ON' : '🎯 Editor Mode'}
+        </button>
+      )}
+
+      {/* Preview Mode Indicator */}
+      {previewMode && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-lg flex items-center gap-2">
+          <span className="text-purple-400 font-bold">👁️ PREVIEW</span>
+          <span className="text-gray-400 text-sm">Presiona P para salir</span>
+        </div>
+      )}
 
       {/* Editor Panel - Collapsible Slide-out Drawer */}
-      {editorMode && (
+      {editorMode && !previewMode && (
         <>
           {/* Tab para abrir/cerrar el panel cuando está colapsado */}
           <button
@@ -2921,9 +3283,42 @@ export const GameScene3D: React.FC<{
               <span className="text-cyan-400">Click</span>
               <span>= Seleccionar</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 mb-0.5">
               <span className="text-green-400">Click derecho</span>
               <span>= Editar objeto</span>
+            </div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="text-orange-400">Alt+Arrastrar</span>
+              <span>= Mover objeto</span>
+            </div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="text-pink-400">R</span>
+              <span>= Rotar 90°</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-purple-400">P</span>
+              <span>= Preview</span>
+            </div>
+            <div className="flex items-center gap-1 mt-1">
+              <span className={snapToGrid ? 'text-green-400' : 'text-gray-500'}>G</span>
+              <span>= Snap {snapToGrid ? 'ON' : 'off'}</span>
+            </div>
+            <div className="flex items-center gap-2 mt-1 pt-1 border-t border-gray-700">
+              <span className={historyIndex > 0 ? 'text-blue-400' : 'text-gray-600'}>Ctrl+Z</span>
+              <span className="text-gray-500">|</span>
+              <span className={historyIndex < history.length - 1 ? 'text-blue-400' : 'text-gray-600'}>Ctrl+Y</span>
+            </div>
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="text-teal-400">Ctrl+Click</span>
+              <span>= Multi-selección</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className={selectedIds.size > 0 || selectedPlacementId ? 'text-red-400' : 'text-gray-600'}>Del</span>
+              <span>= Eliminar ({selectedIds.size + (selectedPlacementId && !selectedIds.has(selectedPlacementId) ? 1 : 0)})</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className={selectedIds.size > 0 || selectedPlacementId ? 'text-blue-400' : 'text-gray-600'}>Ctrl+D</span>
+              <span>= Duplicar</span>
             </div>
           </div>
 
