@@ -43,5 +43,16 @@ export const creatorApi = {
         const res = await fetch(`${API_BASE}/api/v1/creator/my-creations?creator=${creator}`)
         if (!res.ok) throw new Error('Error al cargar creaciones')
         return res.json()
+    },
+
+    // Eliminar creación
+    async deleteCreation(id: string): Promise<void> {
+        const res = await fetch(`${API_BASE}/api/v1/creator/creations/${id}`, {
+            method: 'DELETE'
+        })
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            throw new Error(err.error || 'Error al eliminar')
+        }
     }
 }

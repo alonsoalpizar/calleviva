@@ -36,7 +36,7 @@ function EscenaAnimada({
       <color attach="background" args={['#0f0f1a']} />
 
       {/* Iluminación uniforme 360° */}
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.3} />
       {/* Luz frontal */}
       <directionalLight position={[0, 5, 5]} intensity={0.6} />
       {/* Luz trasera */}
@@ -123,6 +123,24 @@ export function ApprovedCharacters3D() {
     loadCharacters()
   }, [])
 
+  // Eliminar personaje
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`¿Eliminar "${name}"?`)) return
+
+    try {
+      await creatorApi.deleteCreation(id)
+      // Actualizar lista local
+      setCharacters(prev => prev.filter(c => c.id !== id))
+      // Si era el seleccionado, seleccionar otro
+      if (selectedId === id) {
+        const remaining = characters.filter(c => c.id !== id)
+        setSelectedId(remaining.length > 0 ? remaining[0].id : null)
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Error al eliminar')
+    }
+  }
+
   const selectedCharacter = characters.find(c => c.id === selectedId)
 
   // Convertir recipe de la DB al formato de CharacterRecipe
@@ -190,28 +208,47 @@ export function ApprovedCharacters3D() {
         {characters.length > 0 && (
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             {characters.map(char => (
-              <button
+              <div
                 key={char.id}
-                onClick={() => {
-                  setIsLoaded(false)
-                  setSelectedId(char.id)
-                }}
-                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
+                className={`flex items-center gap-1 rounded-lg transition-all ${
                   selectedId === char.id
                     ? 'bg-coral text-white shadow-md'
                     : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  {char.recipe.full_body && <span>🎭</span>}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{char.name}</div>
-                    <div className="text-xs opacity-70 truncate">
-                      {char.description || 'Sin descripcion'}
+                <button
+                  onClick={() => {
+                    setIsLoaded(false)
+                    setSelectedId(char.id)
+                  }}
+                  className="flex-1 text-left px-3 py-2"
+                >
+                  <div className="flex items-center gap-2">
+                    {char.recipe.full_body && <span>🎭</span>}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{char.name}</div>
+                      <div className="text-xs opacity-70 truncate">
+                        {char.description || 'Sin descripcion'}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                {/* Botón eliminar */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDelete(char.id, char.name)
+                  }}
+                  className={`p-2 rounded-r-lg transition-colors ${
+                    selectedId === char.id
+                      ? 'hover:bg-red-500 text-white/70 hover:text-white'
+                      : 'hover:bg-red-100 text-gray-400 hover:text-red-500'
+                  }`}
+                  title="Eliminar personaje"
+                >
+                  ✕
+                </button>
+              </div>
             ))}
           </div>
         )}

@@ -32,6 +32,7 @@ func (h *Handler) SetupPublicRoutes(r chi.Router) {
 	r.Route("/creator", func(r chi.Router) {
 		r.Post("/submit", h.Submit)
 		r.Get("/my-creations", h.MyCreations)
+		r.Delete("/creations/{id}", h.Delete)
 	})
 
 	r.Route("/game/content", func(r chi.Router) {
@@ -305,4 +306,34 @@ func (h *Handler) GetRandomContent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, creation)
+}
+
+// DELETE /api/creator/creations/{id}
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "ID required"})
+		return
+	}
+
+	result, err := h.db.Exec(r.Context(), `
+		DELETE FROM content_creations WHERE id = $1
+	`, id)
+
+	if err != nil {
+		log.Printf("Error deleting creation: %v", err)
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Error deleting"})
+		return
+	}
+
+	if result.RowsAffected() == 0 {
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, map[string]string{"error": "Not found"})
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]string{"status": "deleted"})
 }
