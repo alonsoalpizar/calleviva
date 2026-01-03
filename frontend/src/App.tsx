@@ -16,6 +16,11 @@ import { Market } from './components/game/Market'
 import { LocationsPreview } from './pages/LocationsPreview'
 import { GameSimulationDemo } from './components/simulation'
 import { Game3DDemo, CharacterViewer, GameScene3D } from './components/game3d'
+import AnimatedCharacterTest from './pages/AnimatedCharacterTest'
+import AnimatedFullBodyTest from './pages/AnimatedFullBodyTest'
+import CustomizedCharacterTest from './pages/CustomizedCharacterTest'
+import SkinnedCharacterTest from './pages/SkinnedCharacterTest'
+import SavedCharactersTest from './pages/SavedCharactersTest'
 
 // Wrapper for GameScene3D with URL params
 function GameScene3DWrapper() {
@@ -90,6 +95,21 @@ function App() {
         {/* 3D City Zone Scene - Public (for dev) */}
         <Route path="/scene3d" element={<GameScene3D />} />
         <Route path="/scene3d/:zoneId" element={<GameScene3DWrapper />} />
+
+        {/* Animated Character Test - Public (for dev) */}
+        <Route path="/animated-character" element={<AnimatedCharacterTest />} />
+
+        {/* Animated Full Body Test - Public (for dev) */}
+        <Route path="/animated-fullbody" element={<AnimatedFullBodyTest />} />
+
+        {/* Customized Character Test - Public (for dev) */}
+        <Route path="/customized-character" element={<CustomizedCharacterTest />} />
+
+        {/* Skinned Character Test - Public (for dev) */}
+        <Route path="/skinned-character" element={<SkinnedCharacterTest />} />
+
+        {/* Saved Characters Test - Public (for dev) */}
+        <Route path="/saved-characters" element={<SavedCharactersTest />} />
 
         {/* Protected Routes */}
         <Route

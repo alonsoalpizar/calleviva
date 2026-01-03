@@ -3,6 +3,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react'
 // Lazy load 3D Creators para mejor rendimiento
 const Character3DCreator = lazy(() => import('./Character3DCreator'))
 const GameScene3D = lazy(() => import('../game3d/GameScene3D'))
+const ApprovedCharacters3D = lazy(() => import('./ApprovedCharacters3D'))
 
 // ============================================
 // CALLEVIVA CREATOR - VERSIÓN MEGA EXPANDIDA
@@ -993,7 +994,7 @@ const CalleVivaCreator = () => {
   }, [gallery])
 
   const section = SECTIONS.find(s => s.id === activeTab)
-  const bgColor = activeTab === 'personajes3d' ? 'from-sky-400 to-cyan-400' : activeTab === 'locaciones3d' ? 'from-emerald-400 to-teal-400' : (section?.color || 'from-orange-400 to-amber-400')
+  const bgColor = activeTab === 'personajes3d' ? 'from-sky-400 to-cyan-400' : activeTab === 'locaciones3d' ? 'from-emerald-400 to-teal-400' : activeTab === 'animados' ? 'from-coral to-mango' : (section?.color || 'from-orange-400 to-amber-400')
 
   const showToast = (message: string) => {
     setToast(message)
@@ -1103,6 +1104,13 @@ const CalleVivaCreator = () => {
         >
           🏙️ Locaciones 3D
         </button>
+        {/* Tab especial para Personajes Animados (aprobados) */}
+        <button
+          onClick={() => { setActiveTab('animados'); setLoadedData(null) }}
+          className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${activeTab === 'animados' ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'}`}
+        >
+          🎬 Animados
+        </button>
       </div>
 
       <div className={activeTab === 'locaciones3d' ? 'max-w-7xl mx-auto' : 'max-w-5xl mx-auto'}>
@@ -1124,6 +1132,16 @@ const CalleVivaCreator = () => {
           }>
             <div className="rounded-xl shadow-lg overflow-hidden" style={{ height: '85vh' }}>
               <GameScene3D />
+            </div>
+          </Suspense>
+        ) : activeTab === 'animados' ? (
+          <Suspense fallback={
+            <div className="bg-white rounded-xl p-8 shadow-lg text-center">
+              <div className="animate-pulse text-xl">Cargando personajes animados...</div>
+            </div>
+          }>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: '80vh' }}>
+              <ApprovedCharacters3D />
             </div>
           </Suspense>
         ) : section ? (
