@@ -1,45 +1,64 @@
 // GameScene3D.tsx - City exploration with zone selection
 // Clean 3D city viewer without post-processing (for stability)
 
-import React, { useState, Suspense, useCallback, useRef, useEffect } from 'react'
+import React, { useState, Suspense, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, Html, useGLTF, useProgress } from '@react-three/drei'
 import * as THREE from 'three'
-import { getZone, CityZone, ZONE_LIST } from './cityZones'
+import { getZone, CityZone, ZONE_LIST, EDITOR_ZONES, ZoneBounds } from './cityZones'
 
 // MegaCity texture path
 const MEGACITY_TEXTURE = '/assets/models/City/MegaCity/MegapolisCityPack/Assets/Textures/Polygon_Texture.png'
 
-// Complete City Scene Model
-const CityScene: React.FC<{
+// Filtered City Scene - loads City_2.glb and filters by bounding box (siempre filtrado por zona)
+const FilteredCityScene: React.FC<{
+  bounds: ZoneBounds
   position?: [number, number, number]
   scale?: number
   onClick?: (e: ThreeEvent<MouseEvent>) => void
-}> = ({ position = [0, 0, 0], scale = 1, onClick }) => {
+}> = ({ bounds, position = [0, 0, 0], scale = 1, onClick }) => {
   const { scene } = useGLTF('/assets/models/City/CityFull/City_2.glb')
 
-  // Habilitar sombras y mejorar calidad de texturas
-  React.useEffect(() => {
-    scene.traverse((child) => {
-      const mesh = child as THREE.Mesh
-      if (mesh.isMesh) {
-        mesh.castShadow = true
-        mesh.receiveShadow = true
+  // Filter and clone scene based on bounds
+  const filteredScene = useMemo(() => {
+    const clone = scene.clone(true)
 
-        // Mejorar calidad de texturas
-        const material = mesh.material as THREE.MeshStandardMaterial
-        if (material?.map) {
-          material.map.anisotropy = 16
-          material.map.minFilter = THREE.LinearMipmapLinearFilter
-          material.map.magFilter = THREE.LinearFilter
+    clone.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        // Get world position of mesh
+        const worldPos = new THREE.Vector3()
+        child.getWorldPosition(worldPos)
+
+        // Check if within bounding box
+        const inBounds =
+          worldPos.x >= bounds.minX &&
+          worldPos.x <= bounds.maxX &&
+          worldPos.z >= bounds.minZ &&
+          worldPos.z <= bounds.maxZ
+
+        child.visible = inBounds
+
+        if (inBounds) {
+          child.castShadow = true
+          child.receiveShadow = true
+
+          // Improve texture quality
+          const material = child.material as THREE.MeshStandardMaterial
+          if (material?.map) {
+            material.map.anisotropy = 16
+            material.map.minFilter = THREE.LinearMipmapLinearFilter
+            material.map.magFilter = THREE.LinearFilter
+          }
         }
       }
     })
-  }, [scene])
+
+    return clone
+  }, [scene, bounds])
 
   return (
     <primitive
-      object={scene}
+      object={filteredScene}
       position={position}
       scale={scale}
       onClick={onClick}
@@ -1710,10 +1729,23 @@ interface ScenarioData {
   code: string
   name: string
   worldType: string
+  zoneId?: string  // Zona base del escenario (playa, comercial, etc.)
   scene: {
-    baseModel: string
-    placements: MapPlacement[]
+    baseModel: string | null  // null = no base model (empty/generated)
+    baseMode: 'city' | 'empty' | 'generated'
+    zoneId: string  // ID de la zona activa al guardar (para UI)
+    placementsByZone: Record<string, MapPlacement[]>  // Placements independientes por zona
+    // Legacy support: si existe 'placements' en vez de 'placementsByZone', migrar
   }
+  // Campos de aprobación
+  status?: 'pending' | 'approved' | 'rejected'
+  creatorName?: string
+  reviewedBy?: string
+  reviewedAt?: string
+  reviewNotes?: string
+  timesUsed?: number
+  lastUsedAt?: string
+  // Timestamps
   createdAt: string
   updatedAt: string
   version: number
@@ -2075,10 +2107,15 @@ const Scene: React.FC<{
         args={['#87ceeb', '#90785a', 0.35]}
       />
 
-      {/* Complete City Scene - only in 'city' mode */}
-      {baseMode === 'city' && (
+      {/* City Scene - siempre filtrado por zona (mas ligero) */}
+      {baseMode === 'city' && zone.bounds && (
         <Suspense fallback={null}>
-          <CityScene position={[0, 0, 0]} scale={1} onClick={handleClick} />
+          <FilteredCityScene
+            bounds={zone.bounds}
+            position={[0, 0, 0]}
+            scale={1}
+            onClick={handleClick}
+          />
         </Suspense>
       )}
 
@@ -2463,58 +2500,85 @@ const AssetSelectorPopup: React.FC<{
 export const GameScene3D: React.FC<{
   zoneId?: string
 }> = ({
-  zoneId = 'panoramica',
+  zoneId = 'centro',
 }) => {
   const [currentZoneId, setCurrentZoneId] = useState(zoneId)
   const [editorMode, setEditorMode] = useState(false)
-  const [placements, setPlacementsInternal] = useState<MapPlacement[]>([])
+  // Placements por zona - cada zona tiene su propio array independiente
+  const [placementsByZone, setPlacementsByZoneInternal] = useState<Record<string, MapPlacement[]>>({})
   const [pendingPosition, setPendingPosition] = useState<[number, number, number] | null>(null)
 
-  // Undo/Redo system
-  const [history, setHistory] = useState<MapPlacement[][]>([[]])
-  const [historyIndex, setHistoryIndex] = useState(0)
+  // Placements de la zona actual (computed)
+  const placements = useMemo(() => placementsByZone[currentZoneId] || [], [placementsByZone, currentZoneId])
+
+  // Undo/Redo system - por zona
+  const [historyByZone, setHistoryByZone] = useState<Record<string, MapPlacement[][]>>({})
+  const [historyIndexByZone, setHistoryIndexByZone] = useState<Record<string, number>>({})
   const MAX_HISTORY = 50
 
-  // Custom setPlacements that tracks history
+  // Obtener historial de la zona actual
+  const history = useMemo(() => historyByZone[currentZoneId] || [[]], [historyByZone, currentZoneId])
+  const historyIndex = useMemo(() => historyIndexByZone[currentZoneId] || 0, [historyIndexByZone, currentZoneId])
+
+  // Custom setPlacements que actualiza solo la zona actual y trackea historial
   const setPlacements = useCallback((action: MapPlacement[] | ((prev: MapPlacement[]) => MapPlacement[])) => {
-    setPlacementsInternal(prev => {
-      const newPlacements = typeof action === 'function' ? action(prev) : action
-      // Solo agregar al historial si cambió
-      if (JSON.stringify(newPlacements) !== JSON.stringify(prev)) {
-        setHistory(h => {
-          // Cortar el historial desde el índice actual
-          const newHistory = h.slice(0, historyIndex + 1)
-          newHistory.push(newPlacements)
-          // Limitar tamaño del historial
-          if (newHistory.length > MAX_HISTORY) {
-            newHistory.shift()
-            return newHistory
-          }
-          return newHistory
-        })
-        setHistoryIndex(i => Math.min(i + 1, MAX_HISTORY - 1))
+    const currentPlacements = placementsByZone[currentZoneId] || []
+    const newPlacements = typeof action === 'function' ? action(currentPlacements) : action
+
+    // Solo agregar al historial si cambió
+    if (JSON.stringify(newPlacements) !== JSON.stringify(currentPlacements)) {
+      const currentHistory = historyByZone[currentZoneId] || [[]]
+      const currentIndex = historyIndexByZone[currentZoneId] || 0
+
+      // Cortar el historial desde el índice actual y agregar nuevo estado
+      let newHistory = currentHistory.slice(0, currentIndex + 1)
+      newHistory.push(newPlacements)
+
+      // Limitar tamaño del historial
+      if (newHistory.length > MAX_HISTORY) {
+        newHistory = newHistory.slice(1)
       }
-      return newPlacements
-    })
-  }, [historyIndex])
 
-  // Undo function
+      setHistoryByZone(h => ({ ...h, [currentZoneId]: newHistory }))
+      setHistoryIndexByZone(i => ({ ...i, [currentZoneId]: Math.min(currentIndex + 1, MAX_HISTORY - 1) }))
+    }
+
+    // Actualizar placements de la zona actual
+    setPlacementsByZoneInternal(prev => ({
+      ...prev,
+      [currentZoneId]: newPlacements
+    }))
+  }, [currentZoneId, placementsByZone, historyByZone, historyIndexByZone])
+
+  // Undo function - usa historial de la zona actual
   const undo = useCallback(() => {
-    if (historyIndex > 0) {
-      const newIndex = historyIndex - 1
-      setHistoryIndex(newIndex)
-      setPlacementsInternal(history[newIndex])
-    }
-  }, [historyIndex, history])
+    const currentHistory = historyByZone[currentZoneId] || [[]]
+    const currentIndex = historyIndexByZone[currentZoneId] || 0
 
-  // Redo function
-  const redo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1
-      setHistoryIndex(newIndex)
-      setPlacementsInternal(history[newIndex])
+    if (currentIndex > 0) {
+      const newIndex = currentIndex - 1
+      setHistoryIndexByZone(i => ({ ...i, [currentZoneId]: newIndex }))
+      setPlacementsByZoneInternal(prev => ({
+        ...prev,
+        [currentZoneId]: currentHistory[newIndex]
+      }))
     }
-  }, [historyIndex, history])
+  }, [currentZoneId, historyByZone, historyIndexByZone])
+
+  // Redo function - usa historial de la zona actual
+  const redo = useCallback(() => {
+    const currentHistory = historyByZone[currentZoneId] || [[]]
+    const currentIndex = historyIndexByZone[currentZoneId] || 0
+
+    if (currentIndex < currentHistory.length - 1) {
+      const newIndex = currentIndex + 1
+      setHistoryIndexByZone(i => ({ ...i, [currentZoneId]: newIndex }))
+      setPlacementsByZoneInternal(prev => ({
+        ...prev,
+        [currentZoneId]: currentHistory[newIndex]
+      }))
+    }
+  }, [currentZoneId, historyByZone, historyIndexByZone])
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set()) // Multi-selection
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
@@ -2737,10 +2801,10 @@ export const GameScene3D: React.FC<{
   const [showSavedList, setShowSavedList] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
 
-  // Intro animation state - only on first load with panoramica
-  const [showIntro, setShowIntro] = useState(zoneId === 'panoramica')
+  // Intro animation state - deshabilitada (ya no hay ciudad completa)
+  const [showIntro, setShowIntro] = useState(false)
 
-  // Base mode: 'city' (with City_2.glb), 'generated' (tiles), 'empty' (just ground)
+  // Base mode: 'city' (with City_2.glb filtered), 'generated' (tiles), 'empty' (just ground)
   const [baseMode, setBaseMode] = useState<BaseMode>('city')
 
   // Ground color for empty/generated modes
@@ -2836,8 +2900,10 @@ export const GameScene3D: React.FC<{
       name: scenarioName || 'Sin nombre',
       worldType: 'costa_rica',
       scene: {
-        baseModel: '/assets/models/City/CityFull/City_2.glb',
-        placements
+        baseModel: baseMode === 'city' ? '/assets/models/City/CityFull/City_2.glb' : null,
+        baseMode,
+        zoneId: currentZoneId,
+        placementsByZone  // Exportar todas las zonas
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -2851,7 +2917,7 @@ export const GameScene3D: React.FC<{
     a.download = `${code}.json`
     a.click()
     URL.revokeObjectURL(url)
-  }, [placements, scenarioName, scenarioCode])
+  }, [placementsByZone, scenarioName, scenarioCode, baseMode, currentZoneId])
 
   const handleImportJSON = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -2862,33 +2928,66 @@ export const GameScene3D: React.FC<{
       try {
         const data = JSON.parse(event.target?.result as string)
 
-        // Soportar formato viejo (solo array) y nuevo (con metadata)
-        let importedPlacements: MapPlacement[]
-        if (Array.isArray(data)) {
-          importedPlacements = data
+        // Validar placement
+        const isValidPlacement = (p: MapPlacement) =>
+          p.id && p.category && p.assetKey && Array.isArray(p.position)
+
+        // Soportar formato nuevo (placementsByZone), viejo (placements) y muy viejo (solo array)
+        let importedPlacementsByZone: Record<string, MapPlacement[]> = {}
+        let totalCount = 0
+
+        if (data.scene?.placementsByZone && typeof data.scene.placementsByZone === 'object') {
+          // Nuevo formato: placements por zona
+          for (const [zoneId, placements] of Object.entries(data.scene.placementsByZone)) {
+            const validPlacements = (placements as MapPlacement[]).filter(isValidPlacement)
+            if (validPlacements.length > 0) {
+              importedPlacementsByZone[zoneId] = validPlacements
+              totalCount += validPlacements.length
+            }
+          }
+        } else if (Array.isArray(data)) {
+          // Formato muy viejo: solo un array
+          const validPlacements = data.filter(isValidPlacement)
+          if (validPlacements.length > 0) {
+            importedPlacementsByZone[currentZoneId] = validPlacements
+            totalCount = validPlacements.length
+          }
         } else if (data.scene?.placements && Array.isArray(data.scene.placements)) {
-          importedPlacements = data.scene.placements
+          // Formato viejo: placements como array único
+          const targetZone = data.scene.zoneId || currentZoneId
+          const validPlacements = data.scene.placements.filter(isValidPlacement)
+          if (validPlacements.length > 0) {
+            importedPlacementsByZone[targetZone] = validPlacements
+            totalCount = validPlacements.length
+          }
         } else {
-          throw new Error('Formato inválido: no se encontró array de placements')
+          throw new Error('Formato inválido: no se encontró placementsByZone ni placements')
         }
 
-        // Validar que cada placement tenga los campos requeridos
-        const validPlacements = importedPlacements.filter(p =>
-          p.id && p.category && p.assetKey && Array.isArray(p.position)
-        )
-
-        if (validPlacements.length === 0) {
+        if (totalCount === 0) {
           throw new Error('No se encontraron placements válidos')
         }
 
-        setPlacements(validPlacements)
+        setPlacementsByZoneInternal(importedPlacementsByZone)
 
         // Cargar metadata si existe
         if (data.name) setScenarioName(data.name)
         if (data.code) setScenarioCode(data.code)
+        // Cargar modo base y zona si están disponibles
+        if (data.scene?.baseMode) {
+          setBaseMode(data.scene.baseMode)
+        }
+        if (data.scene?.zoneId) {
+          setCurrentZoneId(data.scene.zoneId)
+        }
+
+        // Resetear historial
+        setHistoryByZone({})
+        setHistoryIndexByZone({})
 
         const name = data.name || 'sin nombre'
-        alert(`Escenario "${name}" cargado: ${validPlacements.length} elementos`)
+        const zonesLoaded = Object.keys(importedPlacementsByZone).length
+        alert(`Escenario "${name}" cargado: ${totalCount} elementos en ${zonesLoaded} zona(s)`)
       } catch (err) {
         alert('Error al cargar JSON: ' + (err as Error).message)
       }
@@ -2899,7 +2998,7 @@ export const GameScene3D: React.FC<{
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [])
+  }, [currentZoneId])
 
   const saveToLocal = useCallback(() => {
     if (!scenarioCode.trim()) {
@@ -2912,8 +3011,10 @@ export const GameScene3D: React.FC<{
       name: scenarioName || 'Sin nombre',
       worldType: 'costa_rica',
       scene: {
-        baseModel: '/assets/models/City/CityFull/City_2.glb',
-        placements
+        baseModel: baseMode === 'city' ? '/assets/models/City/CityFull/City_2.glb' : null,
+        baseMode,
+        zoneId: currentZoneId,
+        placementsByZone  // Guardar todas las zonas
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -2922,7 +3023,7 @@ export const GameScene3D: React.FC<{
     scenarioStorage.save(scenario)
     setSavedScenarios(scenarioStorage.list())
     alert(`Escenario "${scenario.name}" guardado localmente`)
-  }, [placements, scenarioName, scenarioCode])
+  }, [placementsByZone, scenarioName, scenarioCode, baseMode, currentZoneId])
 
   const loadFromLocal = useCallback((code: string) => {
     const scenario = scenarioStorage.load(code)
@@ -2930,11 +3031,40 @@ export const GameScene3D: React.FC<{
       alert('Escenario no encontrado')
       return
     }
-    setPlacements(scenario.scene.placements)
+
+    // Cargar placements - soportar formato nuevo y legacy
+    const scene = scenario.scene as {
+      placementsByZone?: Record<string, MapPlacement[]>
+      placements?: MapPlacement[]  // Legacy format
+      baseMode?: 'city' | 'empty' | 'generated'
+      zoneId?: string
+    }
+
+    if (scene.placementsByZone) {
+      setPlacementsByZoneInternal(scene.placementsByZone)
+    } else if (scene.placements) {
+      // Legacy format: migrar a la zona indicada o 'centro'
+      const targetZone = scene.zoneId || 'centro'
+      setPlacementsByZoneInternal({ [targetZone]: scene.placements })
+    }
+
     setScenarioName(scenario.name)
     setScenarioCode(scenario.code)
+
+    // Cargar modo base y zona si están disponibles
+    if (scene.baseMode) {
+      setBaseMode(scene.baseMode)
+    }
+    if (scene.zoneId) {
+      setCurrentZoneId(scene.zoneId)
+    }
+
+    // Resetear historial
+    setHistoryByZone({})
+    setHistoryIndexByZone({})
+
     setShowSavedList(false)
-    alert(`Escenario "${scenario.name}" cargado`)
+    alert(`Escenario "${scenario.name}" cargado (zona: ${scenario.scene.zoneId || 'default'})`)
   }, [])
 
   const deleteFromLocal = useCallback((code: string) => {
@@ -2956,9 +3086,12 @@ export const GameScene3D: React.FC<{
         code: scenarioCode,
         name: scenarioName || 'Sin nombre',
         worldType: 'costa_rica',
+        zoneId: currentZoneId,  // Zona base del escenario (importante para filtros)
         scene: {
-          baseModel: '/assets/models/City/CityFull/City_2.glb',
-          placements
+          baseModel: baseMode === 'city' ? '/assets/models/City/CityFull/City_2.glb' : null,
+          baseMode,
+          zoneId: currentZoneId,
+          placementsByZone  // Guardar todas las zonas con sus placements
         }
       }
 
@@ -2970,13 +3103,15 @@ export const GameScene3D: React.FC<{
         // Update existing
         saved = await scenarioAPI.update(scenarioCode, {
           name: scenarioData.name,
+          zoneId: currentZoneId,
           scene: scenarioData.scene
         })
-        alert(`Escenario "${saved.name}" actualizado en servidor (v${saved.version})`)
+        const statusMsg = saved.status === 'pending' ? ' (pendiente de aprobación)' : ''
+        alert(`Escenario "${saved.name}" actualizado en servidor (v${saved.version})${statusMsg}`)
       } else {
-        // Create new
+        // Create new - se crea como pending
         saved = await scenarioAPI.create(scenarioData)
-        alert(`Escenario "${saved.name}" guardado en servidor`)
+        alert(`Escenario "${saved.name}" guardado en servidor (pendiente de aprobación)`)
       }
 
       // Update server list
@@ -2987,7 +3122,7 @@ export const GameScene3D: React.FC<{
     } finally {
       setIsSyncing(false)
     }
-  }, [placements, scenarioName, scenarioCode])
+  }, [placementsByZone, scenarioName, scenarioCode, baseMode, currentZoneId])
 
   const loadFromServer = useCallback(async (code: string) => {
     setIsSyncing(true)
@@ -2997,11 +3132,41 @@ export const GameScene3D: React.FC<{
         alert('Escenario no encontrado en servidor')
         return
       }
-      setPlacements(scenario.scene.placements)
+
+      // Cargar placements - soportar formato nuevo y legacy
+      const scene = scenario.scene as {
+        placementsByZone?: Record<string, MapPlacement[]>
+        placements?: MapPlacement[]  // Legacy format
+        baseMode?: 'city' | 'empty' | 'generated'
+        zoneId?: string
+      }
+
+      if (scene.placementsByZone) {
+        // Nuevo formato: placements por zona
+        setPlacementsByZoneInternal(scene.placementsByZone)
+      } else if (scene.placements) {
+        // Legacy format: migrar a la zona indicada o 'centro'
+        const targetZone = scene.zoneId || 'centro'
+        setPlacementsByZoneInternal({ [targetZone]: scene.placements })
+      }
+
       setScenarioName(scenario.name)
       setScenarioCode(scenario.code)
+
+      // Cargar modo base y zona si están disponibles
+      if (scene.baseMode) {
+        setBaseMode(scene.baseMode)
+      }
+      if (scene.zoneId) {
+        setCurrentZoneId(scene.zoneId)
+      }
+
+      // Resetear historial para todas las zonas cargadas
+      setHistoryByZone({})
+      setHistoryIndexByZone({})
+
       setShowSavedList(false)
-      alert(`Escenario "${scenario.name}" (v${scenario.version}) cargado desde servidor`)
+      alert(`Escenario "${scenario.name}" (v${scenario.version}) cargado desde servidor (zona: ${scene.zoneId || 'default'})`)
     } catch (err) {
       alert('Error al cargar: ' + (err instanceof Error ? err.message : 'Unknown error'))
     } finally {
@@ -3229,25 +3394,41 @@ export const GameScene3D: React.FC<{
           </div>
         </div>
 
-        {/* Zone buttons */}
+        {/* Zone buttons - show EDITOR_ZONES when in editor mode (excludes heavy panoramica) */}
         <div className="bg-black/70 backdrop-blur-sm rounded-xl px-3 py-2">
-          <div className="text-white text-xs mb-2 font-bold">Zonas:</div>
-          <div className="flex gap-2 flex-wrap">
-            {ZONE_LIST.map((z) => (
-              <button
-                key={z.id}
-                onClick={() => setCurrentZoneId(z.id)}
-                className={`px-3 py-2 rounded-lg text-lg transition-all ${
-                  z.id === zone.id
-                    ? 'bg-coral text-white scale-110 shadow-lg'
-                    : 'bg-white/20 text-white hover:bg-white/40 hover:scale-105'
-                }`}
-                title={z.nombre}
-              >
-                {z.icono}
-              </button>
-            ))}
+          <div className="text-white text-xs mb-2 font-bold">
+            {editorMode ? 'Zonas Editables:' : 'Zonas:'}
           </div>
+          <div className="flex gap-2 flex-wrap">
+            {(editorMode ? EDITOR_ZONES : ZONE_LIST).map((z) => {
+              const zoneCount = placementsByZone[z.id]?.length || 0
+              return (
+                <button
+                  key={z.id}
+                  onClick={() => setCurrentZoneId(z.id)}
+                  className={`relative px-3 py-2 rounded-lg text-lg transition-all ${
+                    z.id === zone.id
+                      ? 'bg-coral text-white scale-110 shadow-lg'
+                      : 'bg-white/20 text-white hover:bg-white/40 hover:scale-105'
+                  }`}
+                  title={`${z.nombre}\n${z.descripcion}${editorMode ? `\n${zoneCount} elementos` : ''}`}
+                >
+                  {z.icono}
+                  {/* Badge con conteo de elementos cuando hay objetos en la zona */}
+                  {editorMode && zoneCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-cyan-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {zoneCount > 9 ? '9+' : zoneCount}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+          {editorMode && (
+            <div className="text-gray-400 text-[10px] mt-1">
+              Zonas independientes - cada una guarda sus propios elementos
+            </div>
+          )}
         </div>
       </div>
 
@@ -3685,7 +3866,12 @@ export const GameScene3D: React.FC<{
                       <button
                         onClick={() => loadFromLocal(s.code)}
                         className="flex-1 text-left text-xs hover:text-cyan-400 truncate"
-                        title={`${s.name} (${s.scene.placements.length} elementos)`}
+                        title={`${s.name} (${
+                          // Soportar formato nuevo y legacy
+                          (s.scene as { placementsByZone?: Record<string, MapPlacement[]>; placements?: MapPlacement[] }).placementsByZone
+                            ? Object.values((s.scene as { placementsByZone: Record<string, MapPlacement[]> }).placementsByZone).flat().length
+                            : (s.scene as { placements?: MapPlacement[] }).placements?.length || 0
+                        } elementos)`}
                       >
                         {s.name || s.code}
                       </button>
@@ -3736,26 +3922,57 @@ export const GameScene3D: React.FC<{
               {serverScenarios.length > 0 && (
                 <div className="bg-gray-800 rounded p-2 mb-2">
                   <div className="text-xs text-orange-400 mb-1">☁️ Servidor ({serverScenarios.length}):</div>
-                  <div className="max-h-32 overflow-y-auto">
-                    {serverScenarios.map((s) => (
-                      <div key={s.code} className="flex items-center justify-between py-1 border-b border-gray-700 last:border-0">
-                        <button
-                          onClick={() => loadFromServer(s.code)}
-                          disabled={isSyncing}
-                          className="flex-1 text-left text-xs hover:text-orange-400 truncate"
-                          title={`${s.name} v${s.version} (${s.scene.placements.length} elementos)`}
-                        >
-                          {s.name || s.code} <span className="text-gray-500">v{s.version}</span>
-                        </button>
-                        <button
-                          onClick={() => deleteFromServer(s.code)}
-                          disabled={isSyncing}
-                          className="text-red-400 hover:text-red-300 text-xs ml-2"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
+                  <div className="max-h-40 overflow-y-auto">
+                    {serverScenarios.map((s) => {
+                      const statusColors: Record<string, string> = {
+                        pending: 'bg-yellow-500',
+                        approved: 'bg-green-500',
+                        rejected: 'bg-red-500'
+                      }
+                      const statusIcons: Record<string, string> = {
+                        pending: '⏳',
+                        approved: '✅',
+                        rejected: '❌'
+                      }
+                      const status = s.status || 'pending'
+                      const placementCount = (s.scene as { placementsByZone?: Record<string, MapPlacement[]>; placements?: MapPlacement[] }).placementsByZone
+                        ? Object.values((s.scene as { placementsByZone: Record<string, MapPlacement[]> }).placementsByZone).flat().length
+                        : (s.scene as { placements?: MapPlacement[] }).placements?.length || 0
+
+                      return (
+                        <div key={s.code} className="flex items-center gap-1 py-1 border-b border-gray-700 last:border-0">
+                          {/* Status badge */}
+                          <span
+                            className={`${statusColors[status]} text-white text-[9px] px-1 rounded`}
+                            title={`Estado: ${status}`}
+                          >
+                            {statusIcons[status]}
+                          </span>
+                          {/* Zona badge */}
+                          {s.zoneId && (
+                            <span className="bg-blue-600 text-white text-[9px] px-1 rounded" title={`Zona: ${s.zoneId}`}>
+                              {s.zoneId.substring(0, 3)}
+                            </span>
+                          )}
+                          <button
+                            onClick={() => loadFromServer(s.code)}
+                            disabled={isSyncing}
+                            className="flex-1 text-left text-xs hover:text-orange-400 truncate"
+                            title={`${s.name} v${s.version} (${placementCount} elementos)\nZona: ${s.zoneId || 'N/A'}\nEstado: ${status}\nCreador: ${s.creatorName || 'admin'}`}
+                          >
+                            {s.name || s.code}
+                          </button>
+                          <span className="text-gray-500 text-[10px]">v{s.version}</span>
+                          <button
+                            onClick={() => deleteFromServer(s.code)}
+                            disabled={isSyncing}
+                            className="text-red-400 hover:text-red-300 text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -3763,8 +3980,9 @@ export const GameScene3D: React.FC<{
           <button
             onClick={clearAll}
             className="w-full bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded text-xs"
+            title="Limpiar solo los elementos de esta zona"
           >
-            🗑️ Limpiar Todo
+            🗑️ Limpiar Zona Actual
           </button>
 
           {placements.length === 0 && (

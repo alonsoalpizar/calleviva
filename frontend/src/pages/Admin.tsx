@@ -6,7 +6,7 @@ import { useAuthStore } from '../stores/authStore'
 import { api, Parameter, CreateParameter } from '../services/api'
 import { PersonajeSVG, IngredienteSVG, ArtefactoSVG } from '../components/creator/CalleVivaCreator'
 
-type AdminTab = 'parameters' | 'users' | 'ai' | 'creator'
+type AdminTab = 'parameters' | 'users' | 'ai' | 'creator' | 'scenarios'
 
 interface Player {
   id: string
@@ -86,12 +86,22 @@ export function Admin() {
           >
             🎨 Creator
           </button>
+          <button
+            onClick={() => setActiveTab('scenarios')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-colors ${activeTab === 'scenarios'
+                ? 'bg-coral text-white shadow-md'
+                : 'bg-white text-carbon hover:bg-gray-100'
+              }`}
+          >
+            🗺️ Escenarios
+          </button>
         </div>
 
         {activeTab === 'parameters' && <ParametersSection />}
         {activeTab === 'users' && <UsersSection />}
         {activeTab === 'ai' && <AISection />}
         {activeTab === 'creator' && <CreatorSection />}
+        {activeTab === 'scenarios' && <ScenariosSection />}
       </div>
     </div>
   )
@@ -644,7 +654,528 @@ function CreationPreview({ creation, large = false }: { creation: ContentCreatio
   )
 }
 
-// ========== Parameters Section ==========
+// ========== Scenarios Section (NEW!) ==========
+interface Scenario {
+  id: string
+  code: string
+  name: string
+  zoneId?: string
+  status: 'pending' | 'approved' | 'rejected'
+  creatorName: string
+  reviewedBy?: string
+  reviewedAt?: string
+  reviewNotes?: string
+  timesUsed: number
+  lastUsedAt?: string
+  version: number
+  createdAt: string
+  updatedAt: string
+}
+
+type ScenarioTab = 'pending' | 'approved' | 'rejected' | 'all'
+
+// Zone icons for display
+const ZONE_ICONS: Record<string, string> = {
+  playa: '🏖️',
+  comercial: '🏪',
+  financiera: '🏢',
+  residencial: '🏠',
+  parque: '🌳',
+  centro: '🏛️',
+}
+
+function ScenariosSection() {
+  const [scenarios, setScenarios] = useState<Scenario[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [activeTab, setActiveTab] = useState<ScenarioTab>('pending')
+
+  // Modal state
+  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [reviewNotes, setReviewNotes] = useState('')
+  const [reviewAction, setReviewAction] = useState<'approved' | 'rejected'>('approved')
+
+  useEffect(() => {
+    loadScenarios()
+  }, [activeTab])
+
+  const loadScenarios = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const status = activeTab === 'all' ? '' : activeTab
+      const url = status
+        ? `/api/v1/scenarios?status=${status}`
+        : '/api/v1/scenarios'
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
+      if (!response.ok) throw new Error('Error cargando escenarios')
+      const data = await response.json()
+      // Backend returns { scenarios: [...], total: N } or array directly
+      const scenarioList = Array.isArray(data) ? data : (data.scenarios || [])
+      setScenarios(scenarioList)
+    } catch {
+      setError('Error cargando escenarios')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReview = async () => {
+    if (!selectedScenario) return
+
+    try {
+      const response = await fetch(`/api/v1/scenarios/${selectedScenario.code}/review`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: reviewAction,
+          reviewNotes: reviewNotes || undefined,
+        }),
+      })
+
+      if (!response.ok) throw new Error('Error al revisar')
+
+      setSuccess(`Escenario ${reviewAction === 'approved' ? 'aprobado' : 'rechazado'}`)
+      setShowReviewModal(false)
+      setSelectedScenario(null)
+      setReviewNotes('')
+      loadScenarios()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setError('Error al revisar el escenario')
+    }
+  }
+
+  const quickApprove = async (scenario: Scenario) => {
+    try {
+      const response = await fetch(`/api/v1/scenarios/${scenario.code}/review`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'approved',
+          reviewNotes: 'Aprobado rápidamente',
+        }),
+      })
+
+      if (!response.ok) throw new Error('Error al aprobar')
+
+      setSuccess(`"${scenario.name}" aprobado ✓`)
+      loadScenarios()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setError('Error al aprobar')
+    }
+  }
+
+  const quickReject = async (scenario: Scenario) => {
+    if (!confirm(`¿Rechazar "${scenario.name}"?`)) return
+
+    try {
+      const response = await fetch(`/api/v1/scenarios/${scenario.code}/review`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'rejected',
+          reviewNotes: 'Rechazado',
+        }),
+      })
+
+      if (!response.ok) throw new Error('Error al rechazar')
+
+      setSuccess(`"${scenario.name}" rechazado`)
+      loadScenarios()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setError('Error al rechazar')
+    }
+  }
+
+  const handleDelete = async (scenario: Scenario) => {
+    if (!confirm(`¿Eliminar permanentemente "${scenario.name}"?`)) return
+
+    try {
+      const response = await fetch(`/api/v1/scenarios/${scenario.code}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
+
+      if (!response.ok) throw new Error('Error al eliminar')
+
+      setSuccess(`"${scenario.name}" eliminado`)
+      loadScenarios()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch {
+      setError('Error al eliminar')
+    }
+  }
+
+  const openReviewModal = (scenario: Scenario) => {
+    setSelectedScenario(scenario)
+    setReviewNotes('')
+    setReviewAction('approved')
+    setShowReviewModal(true)
+  }
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('es-CR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  const getStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      pending: 'bg-yellow-100 text-yellow-700',
+      approved: 'bg-green-100 text-green-700',
+      rejected: 'bg-red-100 text-red-700',
+    }
+    const labels: Record<string, string> = {
+      pending: '⏳ Pendiente',
+      approved: '✅ Aprobado',
+      rejected: '❌ Rechazado',
+    }
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status] || 'bg-gray-100'}`}>
+        {labels[status] || status}
+      </span>
+    )
+  }
+
+  const getZoneBadge = (zoneId?: string) => {
+    if (!zoneId) return null
+    const icon = ZONE_ICONS[zoneId] || '📍'
+    return (
+      <span className="px-2 py-1 rounded-full text-xs font-semibold bg-agua/20 text-agua">
+        {icon} {zoneId}
+      </span>
+    )
+  }
+
+  // Stats (computed from all scenarios, not just filtered)
+  const stats = {
+    pending: scenarios.filter(s => s.status === 'pending').length,
+    approved: scenarios.filter(s => s.status === 'approved').length,
+    rejected: scenarios.filter(s => s.status === 'rejected').length,
+    total: scenarios.length,
+  }
+
+  return (
+    <>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 flex justify-between items-center">
+          <span>{error}</span>
+          <button onClick={() => setError('')} className="text-red-700 hover:text-red-900 font-bold">×</button>
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-4">
+          {success}
+        </div>
+      )}
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl p-4 shadow-md">
+          <div className="text-3xl font-bold text-yellow-600">{stats.pending}</div>
+          <div className="text-sm text-gray-600">Pendientes</div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-md">
+          <div className="text-3xl font-bold text-green-600">{stats.approved}</div>
+          <div className="text-sm text-gray-600">Aprobados</div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-md">
+          <div className="text-3xl font-bold text-red-600">{stats.rejected}</div>
+          <div className="text-sm text-gray-600">Rechazados</div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-md">
+          <div className="text-3xl font-bold text-agua">{stats.total}</div>
+          <div className="text-sm text-gray-600">Total</div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        {/* Header */}
+        <div className="border-b border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-carbon">🗺️ Escenarios / Locaciones</h2>
+          <button onClick={loadScenarios} className="btn-ghost text-agua">
+            🔄 Actualizar
+          </button>
+        </div>
+
+        {/* Sub Tabs */}
+        <div className="flex border-b border-gray-200 overflow-x-auto bg-white">
+          {(['pending', 'approved', 'rejected', 'all'] as ScenarioTab[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === tab
+                  ? 'text-coral border-b-2 border-coral bg-coral/5'
+                  : 'text-gray-600 hover:text-carbon hover:bg-gray-50'
+                }`}
+            >
+              {tab === 'pending' && `⏳ Pendientes (${stats.pending})`}
+              {tab === 'approved' && `✅ Aprobados (${stats.approved})`}
+              {tab === 'rejected' && `❌ Rechazados (${stats.rejected})`}
+              {tab === 'all' && `📋 Todos (${stats.total})`}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="text-4xl mb-4 animate-bounce">🗺️</div>
+              <p className="text-gray-500">Cargando escenarios...</p>
+            </div>
+          ) : scenarios.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-4xl mb-4">📭</div>
+              <p className="text-gray-500">
+                {activeTab === 'pending'
+                  ? 'No hay escenarios pendientes de revisión'
+                  : 'No hay escenarios en esta categoría'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {scenarios.map(scenario => (
+                <div
+                  key={scenario.id}
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-shadow"
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{ZONE_ICONS[scenario.zoneId || ''] || '🗺️'}</span>
+                      <div>
+                        <h3 className="font-bold text-carbon">{scenario.name}</h3>
+                        <p className="text-xs text-gray-500 font-mono">{scenario.code}</p>
+                      </div>
+                    </div>
+                    {getStatusBadge(scenario.status)}
+                  </div>
+
+                  {/* Zone Badge */}
+                  {scenario.zoneId && (
+                    <div className="mb-3">
+                      {getZoneBadge(scenario.zoneId)}
+                    </div>
+                  )}
+
+                  {/* Meta */}
+                  <div className="text-xs text-gray-500 mb-3 space-y-1">
+                    <div>👤 Por: <span className="font-semibold">{scenario.creatorName}</span></div>
+                    <div>📅 {formatDate(scenario.createdAt)}</div>
+                    <div>🔢 Versión {scenario.version}</div>
+                    {scenario.timesUsed > 0 && (
+                      <div>🎮 Usado {scenario.timesUsed} veces</div>
+                    )}
+                    {scenario.reviewNotes && (
+                      <div className="bg-yellow-50 p-2 rounded mt-2">
+                        📝 {scenario.reviewNotes}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  {scenario.status === 'pending' ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => quickApprove(scenario)}
+                        className="flex-1 py-2 px-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        ✅ Aprobar
+                      </button>
+                      <button
+                        onClick={() => openReviewModal(scenario)}
+                        className="py-2 px-3 bg-gray-200 hover:bg-gray-300 text-carbon rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        📝
+                      </button>
+                      <button
+                        onClick={() => quickReject(scenario)}
+                        className="py-2 px-3 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        ❌
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => openReviewModal(scenario)}
+                        className="flex-1 py-2 px-3 bg-gray-200 hover:bg-gray-300 text-carbon rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        👁️ Ver Detalles
+                      </button>
+                      <button
+                        onClick={() => handleDelete(scenario)}
+                        className="py-2 px-3 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Review Modal */}
+      {showReviewModal && selectedScenario && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="border-b px-6 py-4 flex items-center justify-between sticky top-0 bg-white">
+              <h3 className="text-lg font-bold text-carbon flex items-center gap-2">
+                {ZONE_ICONS[selectedScenario.zoneId || ''] || '🗺️'}
+                {selectedScenario.name}
+              </h3>
+              <button onClick={() => setShowReviewModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl">
+                ×
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Details */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Código</label>
+                  <p className="font-mono text-sm">{selectedScenario.code}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Zona Base</label>
+                  <p className="font-medium">{selectedScenario.zoneId || 'Sin zona'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Creador</label>
+                  <p className="font-medium">{selectedScenario.creatorName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Versión</label>
+                  <p className="font-medium">v{selectedScenario.version}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Creado</label>
+                  <p className="font-medium">{formatDate(selectedScenario.createdAt)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Estado</label>
+                  <p>{getStatusBadge(selectedScenario.status)}</p>
+                </div>
+              </div>
+
+              {/* Review Form (only for pending) */}
+              {selectedScenario.status === 'pending' && (
+                <>
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold text-gray-600 mb-2">Acción</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setReviewAction('approved')}
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${reviewAction === 'approved'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                      >
+                        ✅ Aprobar
+                      </button>
+                      <button
+                        onClick={() => setReviewAction('rejected')}
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${reviewAction === 'rejected'
+                            ? 'bg-red-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                      >
+                        ❌ Rechazar
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold text-gray-600 mb-1">
+                      Notas (opcional)
+                    </label>
+                    <textarea
+                      value={reviewNotes}
+                      onChange={e => setReviewNotes(e.target.value)}
+                      className="input"
+                      rows={3}
+                      placeholder={
+                        reviewAction === 'approved'
+                          ? '¡Excelente escenario!'
+                          : 'Motivo del rechazo...'
+                      }
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowReviewModal(false)}
+                      className="btn-outline"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleReview}
+                      className={`btn-primary ${reviewAction === 'approved' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
+                    >
+                      Confirmar
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Previous notes if already reviewed */}
+              {selectedScenario.status !== 'pending' && selectedScenario.reviewNotes && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <label className="text-sm font-semibold text-yellow-800">📝 Notas de revisión</label>
+                  <p className="text-yellow-700 mt-1">{selectedScenario.reviewNotes}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Info */}
+      <div className="mt-6 bg-gradient-to-r from-agua/10 to-mango/10 rounded-2xl p-6">
+        <h3 className="font-bold text-carbon mb-2">🗺️ Sobre los Escenarios</h3>
+        <ul className="text-sm text-gray-600 space-y-1">
+          <li>• Los escenarios son locaciones 3D creadas en el editor <code className="bg-gray-200 px-1 rounded">/scene3d</code></li>
+          <li>• Cada escenario pertenece a una <strong>zona base</strong> (playa, centro, comercial...)</li>
+          <li>• Pueden existir múltiples escenarios para la misma zona con diferentes configuraciones</li>
+          <li>• Solo los escenarios <strong>aprobados</strong> aparecen disponibles para gameplay</li>
+          <li>• El contador "veces usado" se incrementa cada vez que se selecciona en juego</li>
+        </ul>
+      </div>
+    </>
+  )
+}
+
 // ========== Parameters Section ==========
 function ParametersSection() {
   const [categories, setCategories] = useState<string[]>([])

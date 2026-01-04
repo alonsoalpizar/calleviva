@@ -1097,19 +1097,19 @@ const CalleVivaCreator = () => {
         >
           🧍 Personajes 3D
         </button>
-        {/* Tab especial para Locaciones 3D */}
-        <button
-          onClick={() => { setActiveTab('locaciones3d'); setLoadedData(null) }}
-          className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${activeTab === 'locaciones3d' ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'}`}
-        >
-          🏙️ Locaciones 3D
-        </button>
         {/* Tab especial para Personajes Animados (aprobados) */}
         <button
           onClick={() => { setActiveTab('animados'); setLoadedData(null) }}
           className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${activeTab === 'animados' ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'}`}
         >
           🎬 Animados
+        </button>
+        {/* Tab especial para Locaciones 3D */}
+        <button
+          onClick={() => { setActiveTab('locaciones3d'); setLoadedData(null) }}
+          className={`px-3 py-1.5 rounded-full font-bold text-sm transition-all ${activeTab === 'locaciones3d' ? 'bg-white text-gray-800 shadow-lg scale-105' : 'bg-white/30 text-white hover:bg-white/50'}`}
+        >
+          🏙️ Locaciones 3D
         </button>
       </div>
 

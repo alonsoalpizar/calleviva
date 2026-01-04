@@ -140,11 +140,13 @@ func main() {
 
 		// Scenarios (público - escenarios 3D)
 		r.Route("/scenarios", func(r chi.Router) {
-			r.Get("/", scenarios.HandleList)
+			r.Get("/", scenarios.HandleList)           // ?status=pending|approved|rejected&zone_id=playa&approved=true
 			r.Get("/{code}", scenarios.HandleGet)
 			r.Post("/", scenarios.HandleCreate)
 			r.Put("/{code}", scenarios.HandleUpdate)
 			r.Delete("/{code}", scenarios.HandleDelete)
+			r.Post("/{code}/review", scenarios.HandleReview) // Aprobar/rechazar (admin)
+			r.Post("/{code}/use", scenarios.HandleUse)       // Incrementar contador de uso
 		})
 
 		// Creator Mode - Public Routes

@@ -21,6 +21,8 @@ import AnimatedFullBodyTest from './pages/AnimatedFullBodyTest'
 import CustomizedCharacterTest from './pages/CustomizedCharacterTest'
 import SkinnedCharacterTest from './pages/SkinnedCharacterTest'
 import SavedCharactersTest from './pages/SavedCharactersTest'
+import CityZoneTest from './pages/CityZoneTest'
+import NormalCharacterTest from './pages/NormalCharacterTest'
 
 // Wrapper for GameScene3D with URL params
 function GameScene3DWrapper() {
@@ -110,6 +112,12 @@ function App() {
 
         {/* Saved Characters Test - Public (for dev) */}
         <Route path="/saved-characters" element={<SavedCharactersTest />} />
+
+        {/* City Zone Test - Division de ciudad */}
+        <Route path="/city-zones" element={<CityZoneTest />} />
+
+        {/* Normal Character Test - 31 animaciones */}
+        <Route path="/normal-character" element={<NormalCharacterTest />} />
 
         {/* Protected Routes */}
         <Route
