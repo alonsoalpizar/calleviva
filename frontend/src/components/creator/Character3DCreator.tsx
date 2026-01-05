@@ -4,7 +4,7 @@
 import React, { useState, Suspense, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Environment, Html } from '@react-three/drei'
-import { creatorApi } from '../../services/creatorApi'
+import { creatorApi, AgentOptionCategory } from '../../services/creatorApi'
 
 // ==================== PATHS DE ASSETS ====================
 const ASSET_PATH_FUNNY = '/assets/models/funny_characters_pack/Assets_glb'
@@ -356,11 +356,22 @@ interface RecetaPersonaje3D {
   [categoriaId: string]: string | null
 }
 
+// Configuración de agente AI
+interface AgentConfig {
+  [categoryId: string]: string | string[]  // string para single-select, string[] para multi-select
+}
+
+interface AgentConfigState {
+  config: AgentConfig
+  instrucciones: string  // Campo de texto libre para instrucciones custom
+}
+
 interface CreacionPersonaje3D {
   id: string
   nombre: string
   descripcion: string
   receta: RecetaPersonaje3D
+  agentConfig?: AgentConfigState
   creador: string
   creadoEn: string
   enviado: boolean
@@ -448,8 +459,21 @@ export const Character3DCreator: React.FC = () => {
   const [categoriaActiva, setCategoriaActiva] = useState('body')
   const [busqueda, setBusqueda] = useState('')
 
+  // Agent configuration state
+  const [agentOptions, setAgentOptions] = useState<AgentOptionCategory[]>([])
+  const [agentConfig, setAgentConfig] = useState<AgentConfig>({})
+  const [instrucciones, setInstrucciones] = useState('')
+  const [showAgentConfig, setShowAgentConfig] = useState(false)
+
   // Categorías actuales según el pack seleccionado
   const categorias = getCategorias(pack)
+
+  // Cargar opciones de agente al iniciar
+  useEffect(() => {
+    creatorApi.getAgentOptions()
+      .then(options => setAgentOptions(options))
+      .catch(err => console.error('Error loading agent options:', err))
+  }, [])
 
   // Cargar galería y personaje actual al iniciar
   useEffect(() => {
@@ -465,6 +489,10 @@ export const Character3DCreator: React.FC = () => {
         setReceta(data.receta || { body: 'body_blue_1' })
         setNombre(data.nombre || '')
         setDescripcion(data.descripcion || '')
+        if (data.agentConfig) {
+          setAgentConfig(data.agentConfig.config || {})
+          setInstrucciones(data.agentConfig.instrucciones || '')
+        }
       }
     } catch (e) {
       console.error('Error cargando:', e)
@@ -473,9 +501,14 @@ export const Character3DCreator: React.FC = () => {
 
   // Auto-guardar personaje actual cuando cambia
   useEffect(() => {
-    const dataActual = { nombre, descripcion, receta }
+    const dataActual = {
+      nombre,
+      descripcion,
+      receta,
+      agentConfig: { config: agentConfig, instrucciones }
+    }
     localStorage.setItem(CURRENT_KEY, JSON.stringify(dataActual))
-  }, [receta, nombre, descripcion])
+  }, [receta, nombre, descripcion, agentConfig, instrucciones])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(galeria))
@@ -523,7 +556,10 @@ export const Character3DCreator: React.FC = () => {
     setReceta(getDefaultReceta())
     setNombre('')
     setDescripcion('')
+    setAgentConfig({})
+    setInstrucciones('')
     setEditandoId(null)
+    setShowAgentConfig(false)
     localStorage.removeItem(CURRENT_KEY)
   }
 
@@ -553,6 +589,7 @@ export const Character3DCreator: React.FC = () => {
       nombre: nombre.trim(),
       descripcion: descripcion.trim(),
       receta: { ...receta },
+      agentConfig: { config: agentConfig, instrucciones },
       creador: 'Nacho',
       creadoEn: new Date().toISOString(),
       enviado: false,
@@ -574,6 +611,8 @@ export const Character3DCreator: React.FC = () => {
     setNombre(personaje.nombre)
     setDescripcion(personaje.descripcion)
     setReceta(personaje.receta)
+    setAgentConfig(personaje.agentConfig?.config || {})
+    setInstrucciones(personaje.agentConfig?.instrucciones || '')
     setEditandoId(personaje.id)
   }
 
@@ -592,11 +631,26 @@ export const Character3DCreator: React.FC = () => {
     setEnviando((prev) => new Set(prev).add(personaje.id))
 
     try {
+      // Combinar receta visual con config de agente
+      const recetaCompleta: Record<string, string> = {
+        ...personaje.receta as Record<string, string>,
+      }
+
+      // Agregar configuración de agente al recipe
+      if (personaje.agentConfig) {
+        Object.entries(personaje.agentConfig.config).forEach(([key, value]) => {
+          recetaCompleta[`agent_${key}`] = Array.isArray(value) ? value.join(',') : value
+        })
+        if (personaje.agentConfig.instrucciones) {
+          recetaCompleta['agent_instrucciones'] = personaje.agentConfig.instrucciones
+        }
+      }
+
       await creatorApi.submit({
         content_type: 'personaje_3d',
         name: personaje.nombre,
         description: personaje.descripcion || 'Personaje 3D',
-        recipe: personaje.receta as Record<string, string>,
+        recipe: recetaCompleta,
         creator_name: personaje.creador,
       })
 
@@ -621,6 +675,30 @@ export const Character3DCreator: React.FC = () => {
   const assetsFiltrados = categoriaSeleccionada?.assets.filter((a) =>
     a.nombre.toLowerCase().includes(busqueda.toLowerCase())
   ) || []
+
+  // Helpers para agent config
+  const handleAgentSelect = (categoryId: string, optionKey: string, isMultiSelect: boolean) => {
+    setAgentConfig(prev => {
+      if (isMultiSelect) {
+        const current = Array.isArray(prev[categoryId]) ? prev[categoryId] as string[] : []
+        const updated = current.includes(optionKey)
+          ? current.filter(k => k !== optionKey)
+          : [...current, optionKey]
+        return { ...prev, [categoryId]: updated }
+      } else {
+        return { ...prev, [categoryId]: prev[categoryId] === optionKey ? '' : optionKey }
+      }
+    })
+  }
+
+  const isAgentOptionSelected = (categoryId: string, optionKey: string): boolean => {
+    const value = agentConfig[categoryId]
+    if (Array.isArray(value)) return value.includes(optionKey)
+    return value === optionKey
+  }
+
+  // Categorías multi-select
+  const multiSelectCategories = ['preferencias', 'restricciones']
 
   return (
     <div className="flex flex-col lg:flex-row h-full bg-crema">
@@ -723,7 +801,82 @@ export const Character3DCreator: React.FC = () => {
             onChange={(e) => setDescripcion(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-coral"
           />
+
+          {/* Toggle para configuración de agente */}
+          <button
+            onClick={() => setShowAgentConfig(!showAgentConfig)}
+            className={`mt-2 w-full py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-between transition-colors ${
+              showAgentConfig ? 'bg-mango text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <span>🤖 Configurar Agente AI</span>
+            <span>{showAgentConfig ? '▲' : '▼'}</span>
+          </button>
         </div>
+
+        {/* Panel de configuración de agente */}
+        {showAgentConfig && (
+          <div className="p-3 border-b border-gray-200 bg-gradient-to-b from-mango/10 to-white max-h-64 overflow-y-auto">
+            <p className="text-xs text-gray-500 mb-2">
+              Define el comportamiento del personaje como cliente AI
+            </p>
+
+            {agentOptions.map((category) => {
+              const isMulti = multiSelectCategories.includes(category.id)
+              const selectedCount = isMulti
+                ? (Array.isArray(agentConfig[category.id]) ? (agentConfig[category.id] as string[]).length : 0)
+                : (agentConfig[category.id] ? 1 : 0)
+
+              return (
+                <div key={category.id} className="mb-3">
+                  <div className="flex items-center gap-1 mb-1">
+                    <span>{category.icon}</span>
+                    <span className="text-xs font-semibold text-gray-700">{category.name}</span>
+                    {selectedCount > 0 && (
+                      <span className="text-xs bg-coral text-white px-1.5 rounded-full">
+                        {selectedCount}
+                      </span>
+                    )}
+                    {isMulti && <span className="text-xs text-gray-400">(múltiple)</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {category.options.map((opt) => {
+                      const selected = isAgentOptionSelected(category.id, opt.key)
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => handleAgentSelect(category.id, opt.key, isMulti)}
+                          className={`px-2 py-0.5 rounded text-xs transition-all ${
+                            selected
+                              ? 'bg-coral text-white'
+                              : 'bg-white border border-gray-200 text-gray-600 hover:border-coral'
+                          }`}
+                          title={opt.description}
+                        >
+                          {opt.icon} {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Campo de instrucciones custom */}
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <label className="text-xs font-semibold text-gray-700 block mb-1">
+                📝 Instrucciones Personalizadas
+              </label>
+              <textarea
+                value={instrucciones}
+                onChange={(e) => setInstrucciones(e.target.value)}
+                placeholder="Instrucciones específicas para el comportamiento del agente... (ej: siempre pregunta por opciones vegetarianas, es muy indeciso...)"
+                className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs resize-none focus:outline-none focus:ring-1 focus:ring-coral"
+                rows={3}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Tabs de categorías */}
         <div className="flex flex-wrap gap-1 p-2 bg-gray-100 border-b">

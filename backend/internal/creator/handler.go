@@ -33,6 +33,7 @@ func (h *Handler) SetupPublicRoutes(r chi.Router) {
 		r.Post("/submit", h.Submit)
 		r.Get("/my-creations", h.MyCreations)
 		r.Delete("/creations/{id}", h.Delete)
+		r.Get("/agent-options", h.GetAgentOptions)
 	})
 
 	r.Route("/game/content", func(r chi.Router) {
@@ -336,4 +337,103 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]string{"status": "deleted"})
+}
+
+// AgentOptionCategory represents a category of agent options
+type AgentOptionCategory struct {
+	ID          string        `json:"id"`
+	Name        string        `json:"name"`
+	Description string        `json:"description"`
+	Icon        string        `json:"icon"`
+	SortOrder   int           `json:"sort_order"`
+	Options     []AgentOption `json:"options"`
+}
+
+// AgentOption represents a single agent configuration option
+type AgentOption struct {
+	ID           string          `json:"id"`
+	CategoryID   string          `json:"category_id"`
+	Key          string          `json:"key"`
+	Label        string          `json:"label"`
+	Description  string          `json:"description"`
+	Icon         string          `json:"icon"`
+	ValueType    string          `json:"value_type"`
+	MinValue     *int            `json:"min_value,omitempty"`
+	MaxValue     *int            `json:"max_value,omitempty"`
+	DefaultValue *string         `json:"default_value,omitempty"`
+	SortOrder    int             `json:"sort_order"`
+	Metadata     json.RawMessage `json:"metadata"`
+}
+
+// GET /api/creator/agent-options
+func (h *Handler) GetAgentOptions(w http.ResponseWriter, r *http.Request) {
+	// First, get all categories
+	catRows, err := h.db.Query(r.Context(), `
+		SELECT id, name, COALESCE(description, '') as description,
+		       COALESCE(icon, '') as icon, sort_order
+		FROM agent_option_categories
+		WHERE is_active = true
+		ORDER BY sort_order
+	`)
+	if err != nil {
+		log.Printf("Error fetching categories: %v", err)
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Database error"})
+		return
+	}
+	defer catRows.Close()
+
+	categories := make(map[string]*AgentOptionCategory)
+	var orderedCategories []*AgentOptionCategory
+
+	for catRows.Next() {
+		var cat AgentOptionCategory
+		if err := catRows.Scan(&cat.ID, &cat.Name, &cat.Description, &cat.Icon, &cat.SortOrder); err != nil {
+			log.Printf("Error scanning category: %v", err)
+			continue
+		}
+		cat.Options = []AgentOption{}
+		categories[cat.ID] = &cat
+		orderedCategories = append(orderedCategories, &cat)
+	}
+
+	// Now get all options
+	optRows, err := h.db.Query(r.Context(), `
+		SELECT id, category_id, key, label,
+		       COALESCE(description, '') as description,
+		       COALESCE(icon, '') as icon,
+		       value_type, min_value, max_value, default_value,
+		       sort_order, COALESCE(metadata, '{}')::text as metadata
+		FROM agent_config_options
+		WHERE is_active = true
+		ORDER BY sort_order
+	`)
+	if err != nil {
+		log.Printf("Error fetching options: %v", err)
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Database error"})
+		return
+	}
+	defer optRows.Close()
+
+	for optRows.Next() {
+		var opt AgentOption
+		var metadataStr string
+		if err := optRows.Scan(
+			&opt.ID, &opt.CategoryID, &opt.Key, &opt.Label,
+			&opt.Description, &opt.Icon, &opt.ValueType,
+			&opt.MinValue, &opt.MaxValue, &opt.DefaultValue,
+			&opt.SortOrder, &metadataStr,
+		); err != nil {
+			log.Printf("Error scanning option: %v", err)
+			continue
+		}
+		opt.Metadata = json.RawMessage(metadataStr)
+
+		if cat, exists := categories[opt.CategoryID]; exists {
+			cat.Options = append(cat.Options, opt)
+		}
+	}
+
+	render.JSON(w, r, orderedCategories)
 }

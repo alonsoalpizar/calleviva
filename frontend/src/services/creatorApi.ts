@@ -1,5 +1,30 @@
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
+// Tipos para configuración de agentes
+export interface AgentOption {
+    id: string
+    category_id: string
+    key: string
+    label: string
+    description: string
+    icon: string
+    value_type: string
+    min_value?: number
+    max_value?: number
+    default_value?: string
+    sort_order: number
+    metadata: Record<string, unknown>
+}
+
+export interface AgentOptionCategory {
+    id: string
+    name: string
+    description: string
+    icon: string
+    sort_order: number
+    options: AgentOption[]
+}
+
 export interface ContentCreation {
     id: string
     content_type: string
@@ -54,5 +79,12 @@ export const creatorApi = {
             const err = await res.json().catch(() => ({}))
             throw new Error(err.error || 'Error al eliminar')
         }
+    },
+
+    // Obtener opciones de configuración de agentes
+    async getAgentOptions(): Promise<AgentOptionCategory[]> {
+        const res = await fetch(`${API_BASE}/api/v1/creator/agent-options`)
+        if (!res.ok) throw new Error('Error al cargar opciones de agente')
+        return res.json()
     }
 }
