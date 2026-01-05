@@ -809,7 +809,7 @@ export const Character3DCreator: React.FC = () => {
               showAgentConfig ? 'bg-mango text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <span>🤖 Configurar Agente AI</span>
+            <span>🎭 Configurar Comportamiento</span>
             <span>{showAgentConfig ? '▲' : '▼'}</span>
           </button>
         </div>
