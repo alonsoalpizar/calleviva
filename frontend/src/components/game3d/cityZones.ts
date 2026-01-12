@@ -34,7 +34,7 @@ export const CITY_ZONES: Record<string, CityZone> = {
     icono: '🏖️',
     center: [190, 0, -10],
     radius: 90,
-    cameraPosition: [190, 60, -10],
+    cameraPosition: [240, 50, 60],  // Panorámica desde sureste
     spawnPoints: [
       [150, 0, -40],
       [220, 0, 20],
@@ -55,7 +55,7 @@ export const CITY_ZONES: Record<string, CityZone> = {
     icono: '🏪',
     center: [90, 0, -50],
     radius: 70,
-    cameraPosition: [90, 80, -50],
+    cameraPosition: [150, 55, 20],  // Panorámica desde sureste
     spawnPoints: [
       [50, 0, -80],
       [130, 0, -20],
@@ -76,7 +76,7 @@ export const CITY_ZONES: Record<string, CityZone> = {
     icono: '🏢',
     center: [25, 0, 0],
     radius: 75,
-    cameraPosition: [25, 100, 0],
+    cameraPosition: [90, 65, 70],  // Panorámica desde sureste
     spawnPoints: [
       [-20, 0, -30],
       [70, 0, 30],
@@ -97,7 +97,7 @@ export const CITY_ZONES: Record<string, CityZone> = {
     icono: '🏠',
     center: [-100, 0, -120],
     radius: 70,
-    cameraPosition: [-100, 80, -120],
+    cameraPosition: [-40, 55, -50],  // Panorámica desde sureste
     spawnPoints: [
       [-150, 0, -150],
       [-50, 0, -90],
@@ -118,7 +118,7 @@ export const CITY_ZONES: Record<string, CityZone> = {
     icono: '🌳',
     center: [270, 0, -25],
     radius: 75,
-    cameraPosition: [270, 60, -25],
+    cameraPosition: [320, 50, 45],  // Panorámica desde sureste
     spawnPoints: [
       [230, 0, -70],
       [310, 0, 20],
@@ -139,7 +139,7 @@ export const CITY_ZONES: Record<string, CityZone> = {
     icono: '🏛️',
     center: [50, 0, 15],
     radius: 100,
-    cameraPosition: [50, 100, 15],
+    cameraPosition: [120, 60, 90],  // Panorámica desde sureste
     spawnPoints: [
       [0, 0, -20],
       [100, 0, 50],

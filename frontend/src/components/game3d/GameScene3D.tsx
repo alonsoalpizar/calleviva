@@ -67,6 +67,7 @@ const FilteredCityScene: React.FC<{
 }
 
 // Static Vehicle component (for assets with embedded textures)
+// Centra el modelo para que aparezca donde se hace clic
 const StaticVehicle: React.FC<{
   url: string
   position: [number, number, number]
@@ -75,9 +76,29 @@ const StaticVehicle: React.FC<{
 }> = ({ url, position, rotation = 0, scale = 1 }) => {
   const { scene } = useGLTF(url)
 
+  // Crear grupo contenedor con modelo centrado
+  const [containerGroup] = useState(() => {
+    const cloned = scene.clone(true)
+    const group = new THREE.Group()
+
+    // Calcular bounding box para centrar el modelo
+    const box = new THREE.Box3().setFromObject(cloned)
+    const center = box.getCenter(new THREE.Vector3())
+
+    // Debug: ver el offset original del modelo
+    const fileName = url.split('/').pop()
+    console.log(`[STATIC-CENTER] ${fileName}: center=(${center.x.toFixed(1)}, ${center.y.toFixed(1)}, ${center.z.toFixed(1)})`)
+
+    // Mover el modelo para que su centro X/Z esté en origen y base Y en 0
+    cloned.position.set(-center.x, -box.min.y, -center.z)
+
+    group.add(cloned)
+    return group
+  })
+
   return (
     <primitive
-      object={scene.clone()}
+      object={containerGroup}
       position={position}
       rotation={[0, rotation, 0]}
       scale={scale}
@@ -91,6 +112,7 @@ polyTexture.flipY = false  // Importante para GLTF
 polyTexture.colorSpace = THREE.SRGBColorSpace
 
 // MegaCity Vehicle component (for assets that need external texture)
+// Centra el modelo y aplica texturas - los GLB de MegaCity tienen offset grande
 const MegaCityVehicle: React.FC<{
   url: string
   position: [number, number, number]
@@ -99,24 +121,26 @@ const MegaCityVehicle: React.FC<{
 }> = ({ url, position, rotation = 0, scale = 1 }) => {
   const { scene } = useGLTF(url)
 
-  // Clonar escena, centrar y aplicar textura
-  const clonedScene = React.useMemo(() => {
-    const clone = scene.clone(true)
+  // Crear grupo contenedor con modelo centrado y texturas
+  const [containerGroup] = useState(() => {
+    const cloned = scene.clone(true)
+    const group = new THREE.Group()
 
     // Calcular bounding box para centrar el modelo
-    const box = new THREE.Box3().setFromObject(clone)
+    const box = new THREE.Box3().setFromObject(cloned)
     const center = box.getCenter(new THREE.Vector3())
 
-    // Mover todos los hijos para centrar en origen (solo X y Z, mantener Y)
-    clone.traverse((child) => {
+    // Debug: ver el offset original del modelo
+    const fileName = url.split('/').pop()
+    console.log(`[MC-CENTER] ${fileName}: original center=(${center.x.toFixed(1)}, ${center.y.toFixed(1)}, ${center.z.toFixed(1)})`)
+
+    // Mover el modelo para que su centro X/Z esté en origen y base Y en 0
+    cloned.position.set(-center.x, -box.min.y, -center.z)
+
+    // Aplicar texturas a todos los meshes
+    cloned.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh
-
-        // Centrar geometría
-        mesh.position.x -= center.x
-        mesh.position.z -= center.z
-
-        // Aplicar textura
         if (Array.isArray(mesh.material)) {
           mesh.material = mesh.material.map(m => {
             const mat = (m as THREE.MeshStandardMaterial).clone()
@@ -134,12 +158,14 @@ const MegaCityVehicle: React.FC<{
         mesh.receiveShadow = true
       }
     })
-    return clone
-  }, [scene])
+
+    group.add(cloned)
+    return group
+  })
 
   return (
     <primitive
-      object={clonedScene}
+      object={containerGroup}
       position={position}
       rotation={[0, rotation, 0]}
       scale={scale}
@@ -309,34 +335,6 @@ const ASSET_CATALOG = {
       shark: { label: 'Shark_001', displayName: 'Tiburón', url: `${CHAR_PATH}/Shark_001.glb` },
     }
   },
-  characters: {
-    label: '👤 Personajes',
-    items: {
-      astronaut: { label: 'Astronaut_001', displayName: 'Astronauta', url: `${CHAR_PATH}/Astronaut_001.glb` },
-      alien: { label: 'Alien_001', displayName: 'Alien', url: `${CHAR_PATH}/Alien_001.glb` },
-      demon: { label: 'Demon_001', displayName: 'Demonio', url: `${CHAR_PATH}/Demon_001.glb` },
-      ghost: { label: 'Ghost_001', displayName: 'Fantasma', url: `${CHAR_PATH}/Ghost_001.glb` },
-      lego: { label: 'Lego_001', displayName: 'Lego', url: `${CHAR_PATH}/Lego_001.glb` },
-      fallguys: { label: 'Red_Fall_Guys_001', displayName: 'Fall Guys', url: `${CHAR_PATH}/Red_Fall_Guys_001.glb` },
-      snowman: { label: 'Snowman_001', displayName: 'Muñeco Nieve', url: `${CHAR_PATH}/Snowman_001.glb` },
-      ostrich: { label: 'Ostrich_001', displayName: 'Avestruz', url: `${CHAR_PATH}/Ostrich_001.glb` },
-      snake: { label: 'Snake_001', displayName: 'Serpiente', url: `${CHAR_PATH}/Snake_001.glb` },
-      crayfish: { label: 'Crayfish_001', displayName: 'Langosta', url: `${CHAR_PATH}/Crayfish_001.glb` },
-      actionFigure: { label: 'Action_figure_001', displayName: '', url: `${CHAR_PATH}/Action_figure_001.glb` },
-      tooth: { label: 'Tooth_001', displayName: 'Diente', url: `${CHAR_PATH}/Tooth_001.glb` },
-    }
-  },
-  food: {
-    label: '🍔 Comida',
-    items: {
-      hotdog: { label: 'Hot_dog_001', displayName: 'Hot Dog', url: `${CHAR_PATH}/Hot_dog_001.glb` },
-      banana: { label: 'Banana_001', displayName: 'Banana', url: `${CHAR_PATH}/Banana_001.glb` },
-      sushi: { label: 'Sushi_001', displayName: 'Sushi', url: `${CHAR_PATH}/Sushi_001.glb` },
-      mushroom: { label: 'Mushroom_001', displayName: 'Hongo', url: `${CHAR_PATH}/Mushroom_001.glb` },
-      eggplant: { label: 'Eggplant_001', displayName: 'Berenjena', url: `${CHAR_PATH}/Eggplant_001.glb` },
-      sausage: { label: 'Sausage_001', displayName: 'Salchicha', url: `${CHAR_PATH}/Sausage_001.glb` },
-    }
-  },
   foodtrucks: {
     label: '🚚 Food Trucks',
     items: {
@@ -410,14 +408,6 @@ const ASSET_CATALOG = {
       bb4x1_3: { label: 'Billboard_4x1_03', displayName: '', url: `${CITY_PATH}/Billboard_4x1_03.glb` },
       bb4x1_4: { label: 'Billboard_4x1_04', displayName: '', url: `${CITY_PATH}/Billboard_4x1_04.glb` },
       graffiti: { label: 'Graffiti_03', displayName: '', url: `${CITY_PATH}/Graffiti_03.glb` },
-    }
-  },
-  props: {
-    label: '🎁 Props',
-    items: {
-      gift: { label: 'Gift_001', displayName: 'Regalo', url: `${CHAR_PATH}/Gift_001.glb` },
-      flower: { label: 'Flower_001', displayName: 'Flor', url: `${CHAR_PATH}/Flower_001.glb` },
-      nightstand: { label: 'Nightstand_001', displayName: '', url: `${CHAR_PATH}/Nightstand_001.glb` },
     }
   },
   // ============ MEGACITY PACK (requieren textura externa) - 809 assets ============
@@ -2511,6 +2501,7 @@ export const GameScene3D: React.FC<{
   // Placements de la zona actual (computed)
   const placements = useMemo(() => placementsByZone[currentZoneId] || [], [placementsByZone, currentZoneId])
 
+
   // Undo/Redo system - por zona
   const [historyByZone, setHistoryByZone] = useState<Record<string, MapPlacement[][]>>({})
   const [historyIndexByZone, setHistoryIndexByZone] = useState<Record<string, number>>({})
@@ -2687,7 +2678,7 @@ export const GameScene3D: React.FC<{
       const newRotation = (p.rotation + Math.PI / 2) % (Math.PI * 2)
       return { ...p, rotation: newRotation }
     }))
-  }, [selectedPlacementId])
+  }, [selectedPlacementId, setPlacements])
 
   // Eliminar todos los seleccionados
   const removeSelectedPlacements = useCallback(() => {
@@ -2699,7 +2690,7 @@ export const GameScene3D: React.FC<{
     setPlacements(prev => prev.filter(p => !idsToRemove.has(p.id)))
     setSelectedPlacementId(null)
     setSelectedIds(new Set())
-  }, [selectedPlacementId, selectedIds])
+  }, [selectedPlacementId, selectedIds, setPlacements])
 
   // Duplicar todos los seleccionados
   const duplicateSelectedPlacements = useCallback(() => {
@@ -2736,7 +2727,7 @@ export const GameScene3D: React.FC<{
     if (newIds.length > 0) {
       setSelectedPlacementId(newIds[0])
     }
-  }, [placements, selectedIds, selectedPlacementId])
+  }, [placements, selectedIds, selectedPlacementId, setPlacements])
 
   // Keyboard shortcuts
   React.useEffect(() => {
@@ -2870,7 +2861,7 @@ export const GameScene3D: React.FC<{
       assetKey,
       position: adjustedPosition,
       rotation,
-      scale: category === 'characters' ? 3 : 1,
+      scale: 1,
       megacity: isMegacity,
     }
 
@@ -2991,6 +2982,9 @@ export const GameScene3D: React.FC<{
       } catch (err) {
         alert('Error al cargar JSON: ' + (err as Error).message)
       }
+    }
+    reader.onerror = () => {
+      alert('Error al leer el archivo')
     }
     reader.readAsText(file)
 
@@ -3203,44 +3197,47 @@ export const GameScene3D: React.FC<{
 
   const removePlacement = useCallback((id: string) => {
     setPlacements(prev => prev.filter(p => p.id !== id))
-  }, [])
+  }, [setPlacements])
 
   const updatePlacementName = useCallback((id: string, customName: string) => {
     setPlacements(prev => prev.map(p =>
       p.id === id ? { ...p, customName } : p
     ))
-  }, [])
+  }, [setPlacements])
 
   const updatePlacementTag = useCallback((id: string, customTag: string) => {
     setPlacements(prev => prev.map(p =>
       p.id === id ? { ...p, customTag } : p
     ))
-  }, [])
+  }, [setPlacements])
 
   // Mover placement (ajustar posición)
   const movePlacement = useCallback((id: string, axis: 'x' | 'y' | 'z', delta: number) => {
-    setPlacements(prev => prev.map(p => {
-      if (p.id !== id) return p
-      const newPos: [number, number, number] = [...p.position]
-      const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2
-      newPos[axisIndex] = Math.round((newPos[axisIndex] + delta) * 10) / 10
-      return { ...p, position: newPos }
-    }))
-  }, [])
+    setPlacements(prev => {
+      const result = prev.map(p => {
+        if (p.id !== id) return p
+        const newPos: [number, number, number] = [...p.position]
+        const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2
+        newPos[axisIndex] = Math.round((newPos[axisIndex] + delta) * 10) / 10
+        return { ...p, position: newPos }
+      })
+      return result
+    })
+  }, [setPlacements])
 
   // Rotar placement
   const rotatePlacement = useCallback((id: string, rotation: number) => {
     setPlacements(prev => prev.map(p =>
       p.id === id ? { ...p, rotation } : p
     ))
-  }, [])
+  }, [setPlacements])
 
   // Escalar placement
   const scalePlacement = useCallback((id: string, scale: number) => {
     setPlacements(prev => prev.map(p =>
       p.id === id ? { ...p, scale: Math.max(0.1, Math.min(5, scale)) } : p
     ))
-  }, [])
+  }, [setPlacements])
 
   // Duplicar placement
   const duplicatePlacement = useCallback((id: string) => {
@@ -3259,7 +3256,7 @@ export const GameScene3D: React.FC<{
     }
     setPlacements(prev => [...prev, newPlacement])
     setSelectedPlacementId(newPlacement.id)
-  }, [placements])
+  }, [placements, setPlacements])
 
   // ==== GENERADOR DE TERRENO BASE ====
   const TERRAIN_TILES = {
@@ -3343,7 +3340,7 @@ export const GameScene3D: React.FC<{
     setPlacements(newPlacements)
     setScenarioName('')
     setScenarioCode('')
-  }, [])
+  }, [setPlacements])
 
   return (
     <div className="relative w-full h-screen bg-gray-900">

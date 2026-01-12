@@ -263,6 +263,24 @@ const PlacedAsset: React.FC<{
   const { scene } = useGLTF(`${CITY_ASSETS_PATH}/${objeto.archivo}`)
   const clonedScene = scene.clone()
 
+  // Debug: verificar valores invalidos
+  const hasInvalidPosition = objeto.position.some(v => isNaN(v) || !isFinite(v))
+  const hasInvalidRotation = objeto.rotation.some(v => isNaN(v) || !isFinite(v))
+  const hasInvalidScale = isNaN(objeto.scale) || !isFinite(objeto.scale) || objeto.scale <= 0
+
+  if (hasInvalidPosition || hasInvalidRotation || hasInvalidScale) {
+    console.error('PlacedAsset has INVALID values:', {
+      id: objeto.id,
+      position: objeto.position,
+      rotation: objeto.rotation,
+      scale: objeto.scale,
+      hasInvalidPosition,
+      hasInvalidRotation,
+      hasInvalidScale
+    })
+    return null // No renderizar objetos con valores inválidos
+  }
+
   return (
     <primitive
       object={clonedScene}
@@ -331,6 +349,8 @@ const TruckSpotMarker: React.FC<{ position: [number, number, number] }> = ({ pos
 
 // ==================== COMPONENTE PRINCIPAL ====================
 export const LocationCreator: React.FC = () => {
+  // DEBUG VERSION 4 - Este comentario confirma la version desplegada
+
   // Estado de la locacion
   const [locationName, setLocationName] = useState('Nueva Locacion')
   const [locationDesc, setLocationDesc] = useState('Descripcion de la locacion')
@@ -391,6 +411,11 @@ export const LocationCreator: React.FC = () => {
 
   // Actualizar posicion de objeto
   const updateObjectPosition = useCallback((id: string, position: [number, number, number]) => {
+    console.log('updateObjectPosition:', { id, position, hasNaN: position.some(v => isNaN(v)) })
+    if (position.some(v => isNaN(v) || !isFinite(v))) {
+      console.warn('BLOCKED: Invalid position values', position)
+      return
+    }
     setPlacedObjects(prev =>
       prev.map(o => (o.id === id ? { ...o, position } : o))
     )
@@ -398,6 +423,11 @@ export const LocationCreator: React.FC = () => {
 
   // Actualizar rotacion de objeto
   const updateObjectRotation = useCallback((id: string, rotation: [number, number, number]) => {
+    console.log('updateObjectRotation:', { id, rotation, hasNaN: rotation.some(v => isNaN(v)) })
+    if (rotation.some(v => isNaN(v) || !isFinite(v))) {
+      console.warn('BLOCKED: Invalid rotation values', rotation)
+      return
+    }
     setPlacedObjects(prev =>
       prev.map(o => (o.id === id ? { ...o, rotation } : o))
     )
@@ -405,6 +435,11 @@ export const LocationCreator: React.FC = () => {
 
   // Actualizar escala de objeto
   const updateObjectScale = useCallback((id: string, scale: number) => {
+    console.log('updateObjectScale:', { id, scale, isNaN: isNaN(scale) })
+    if (isNaN(scale) || !isFinite(scale) || scale <= 0) {
+      console.warn('BLOCKED: Invalid scale value', scale)
+      return
+    }
     setPlacedObjects(prev =>
       prev.map(o => (o.id === id ? { ...o, scale } : o))
     )
@@ -648,6 +683,7 @@ export const LocationCreator: React.FC = () => {
 
   // Click en el suelo para mover objeto seleccionado
   const handleGroundClick = useCallback((point: THREE.Vector3) => {
+    console.log('handleGroundClick:', { point: { x: point.x, y: point.y, z: point.z }, selectedObjectId })
     if (selectedObjectId) {
       updateObjectPosition(selectedObjectId, [point.x, 0, point.z])
     }
@@ -677,6 +713,35 @@ export const LocationCreator: React.FC = () => {
 
   // Objeto seleccionado actual
   const selectedObject = placedObjects.find(o => o.id === selectedObjectId)
+
+  // DEBUG: Log en el mount del componente para confirmar version
+  const mountedRef = useRef(false)
+  React.useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true
+      // Usando múltiples métodos de logging para asegurar que al menos uno funcione
+      console.warn('=== LOCATION CREATOR DEBUG BUILD v4 ===')
+      console.error('[DEBUG] LocationCreator mounted - this is a test error log')
+      // Verificar que los logs están funcionando
+      try {
+        console.table({ version: 'v4', component: 'LocationCreator', timestamp: new Date().toISOString() })
+      } catch (e) {
+        // console.table might not work in all browsers
+      }
+    }
+  }, [])
+
+  // Debug: log cuando cambia el objeto seleccionado o sus valores
+  React.useEffect(() => {
+    if (selectedObject) {
+      console.warn('[DEBUG] selectedObject changed:', JSON.stringify({
+        id: selectedObject.id,
+        position: selectedObject.position,
+        rotation: selectedObject.rotation,
+        scale: selectedObject.scale
+      }))
+    }
+  }, [selectedObject])
 
   return (
     <div className="flex h-full bg-gray-100">
@@ -720,7 +785,7 @@ export const LocationCreator: React.FC = () => {
 
       {/* Viewport 3D - Centro */}
       <div className="flex-1 relative">
-        <Canvas shadows camera={{ position: [30, 30, 30], fov: 50 }}>
+        <Canvas shadows camera={{ position: [60, 35, 60], fov: 55 }}>
           <Suspense fallback={<Html center><div className="bg-black/80 text-white px-4 py-2 rounded">Cargando...</div></Html>}>
             {/* Iluminacion */}
             <ambientLight intensity={0.6} />
@@ -793,7 +858,11 @@ export const LocationCreator: React.FC = () => {
         </Canvas>
 
         {/* Toolbar flotante */}
-        <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
+        <div
+          className="absolute top-4 left-4 flex gap-2 flex-wrap"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             onClick={loadExampleScene}
             className={`px-3 py-2 rounded font-bold text-sm shadow-lg ${
@@ -866,7 +935,15 @@ export const LocationCreator: React.FC = () => {
 
         {/* Panel de transformacion del objeto seleccionado */}
         {selectedObject && (
-          <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 text-sm w-80">
+          <div
+            className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 text-sm w-80"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onPointerMove={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            onContextMenu={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <div className="font-bold mb-3 text-coral">{selectedObject.assetId}</div>
 
             {/* Posicion */}
@@ -880,10 +957,20 @@ export const LocationCreator: React.FC = () => {
                       type="number"
                       step="0.5"
                       value={selectedObject.position[i]}
+                      onFocus={() => console.warn(`[DEBUG] Position ${axis} FOCUS`)}
+                      onBlur={() => console.warn(`[DEBUG] Position ${axis} BLUR`)}
                       onChange={e => {
-                        const newPos = [...selectedObject.position] as [number, number, number]
-                        newPos[i] = Number(e.target.value)
-                        updateObjectPosition(selectedObject.id, newPos)
+                        const rawValue = e.target.value
+                        const parsed = parseFloat(rawValue)
+                        console.warn(`[DEBUG] Position ${axis} onChange:`, { rawValue, parsed, isNaN: isNaN(parsed) })
+                        if (!isNaN(parsed)) {
+                          const newPos = [...selectedObject.position] as [number, number, number]
+                          newPos[i] = parsed
+                          console.warn(`[DEBUG] Calling updateObjectPosition with:`, { id: selectedObject.id, newPos })
+                          updateObjectPosition(selectedObject.id, newPos)
+                        } else {
+                          console.warn(`[DEBUG] BLOCKED - NaN value for position ${axis}`)
+                        }
                       }}
                       className="w-full px-2 py-1 border rounded text-xs"
                     />
@@ -904,9 +991,13 @@ export const LocationCreator: React.FC = () => {
                       step="15"
                       value={Math.round(selectedObject.rotation[i] * 180 / Math.PI)}
                       onChange={e => {
-                        const newRot = [...selectedObject.rotation] as [number, number, number]
-                        newRot[i] = Number(e.target.value) * Math.PI / 180
-                        updateObjectRotation(selectedObject.id, newRot)
+                        console.log(`Rotation input [${axis}] onChange:`, { rawValue: e.target.value, parsed: parseFloat(e.target.value) })
+                        const val = parseFloat(e.target.value)
+                        if (!isNaN(val)) {
+                          const newRot = [...selectedObject.rotation] as [number, number, number]
+                          newRot[i] = val * Math.PI / 180
+                          updateObjectRotation(selectedObject.id, newRot)
+                        }
                       }}
                       className="w-full px-2 py-1 border rounded text-xs"
                     />
@@ -924,16 +1015,20 @@ export const LocationCreator: React.FC = () => {
                 max="3"
                 step="0.1"
                 value={selectedObject.scale}
-                onChange={e => updateObjectScale(selectedObject.id, Number(e.target.value))}
+                onChange={e => {
+                  console.log('Scale input onChange:', { rawValue: e.target.value, parsed: Number(e.target.value) })
+                  updateObjectScale(selectedObject.id, Number(e.target.value))
+                }}
                 className="w-full"
               />
             </div>
           </div>
         )}
 
-        {/* Contador de objetos */}
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow px-3 py-2 text-sm">
+        {/* Contador de objetos + version badge para debug */}
+        <div className="absolute top-4 right-4 bg-white rounded-lg shadow px-3 py-2 text-sm flex gap-2 items-center">
           <span className="font-bold">{placedObjects.length}</span> objetos
+          <span className="bg-red-500 text-white text-xs px-1 rounded">v4</span>
         </div>
       </div>
 
@@ -1002,9 +1097,12 @@ export const LocationCreator: React.FC = () => {
                   type="number"
                   value={truckSpot[i]}
                   onChange={e => {
-                    const newSpot = [...truckSpot] as [number, number, number]
-                    newSpot[i] = Number(e.target.value)
-                    setTruckSpot(newSpot)
+                    const val = parseFloat(e.target.value)
+                    if (!isNaN(val)) {
+                      const newSpot = [...truckSpot] as [number, number, number]
+                      newSpot[i] = val
+                      setTruckSpot(newSpot)
+                    }
                   }}
                   className="w-full px-2 py-1 border rounded text-sm"
                 />
